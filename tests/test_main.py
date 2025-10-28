@@ -25,7 +25,7 @@ def test_get_cantons_returns_list():
 
 
 def test_get_coords_ok():
-    # use coordinates that appear in settings_cantons examples (should be within bounds)
+    # use coordinates that appear in settings examples (should be within bounds)
     resp = client.get("/v1/2679004/1247702")
     assert resp.status_code == 200
     payload = resp.json()
