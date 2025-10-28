@@ -7,9 +7,7 @@ New backend for ich-tanke-strom
 
 Create python virtual environment
 
-```bash
-python3 -m venv venv
-```
+```python3 -m venv venv```
 
 Activate python virtual environment
 
@@ -46,7 +44,7 @@ Main route v1
 ```http://127.0.0.1:8000/v1/2602531.09/1202835.00```
 
 
-Canton's configuration v2
+Canton's configuration v1
 
 ```http://127.0.0.1:8000/v1/cantons```
 
