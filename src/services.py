@@ -20,30 +20,7 @@ def get_canton_from_coordinates(coord_x: float, coord_y: float):
         resp = client.get(url, params=params)
         resp.raise_for_status()
         payload = resp.json()
-        print(payload)
 
-    for result in payload.get("results", []):
-        attrs = result.get("attributes", {}) or {}
-        # Try common attribute names used for canton labels
-        for key in (
-            "name",
-            "NAME",
-            "name_de",
-            "NAME_DE",
-            "KANTON",
-            "kanton",
-            "KANTONSNAME",
-            "KANTONSBEZ",
-            "KNT_NAME",
-            "label",
-        ):
-            val = attrs.get(key)
-            print(val)
-            if isinstance(val, str) and val.strip():
-                return val.strip()
-        # Fallback: return first non-empty string attribute
-        for val in attrs.values():
-            if isinstance(val, str) and val.strip():
-                return val.strip()
+    result = payload.get("results", [])
 
-    return None
+    return result
