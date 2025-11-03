@@ -1,7 +1,7 @@
 # drillapi
 [![CI](https://github.com/SFOE/drillapi/actions/workflows/ci.yml/badge.svg)](https://github.com/SFOE/drillapi/actions/workflows/ci.yml)
 
-New backend for ich-tanke-strom
+New backend for kann ich bohren
 
 ## Startup
 
