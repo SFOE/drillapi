@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import FastAPI, Path, Request
-
+from fastapi.middleware.cors import CORSMiddleware
 from settings_values import cantons, globals
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -14,6 +14,21 @@ limiter = Limiter(key_func=get_remote_address)
 
 # start the app
 app = FastAPI()
+
+# Define allowed origins
+origins = [
+    "http://localhost:5173",      # local dev (Vite)
+    "https://app.example.com"     # production Vue app
+]
+
+# Only allow GET
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,        # which domains are allowed
+    allow_credentials=True,
+    allow_methods=["GET"],        # ONLY allow GET
+    allow_headers=["*"],          # allow all headers
+)
 
 # Register exception handler for rate limit errors
 app.state.limiter = limiter
