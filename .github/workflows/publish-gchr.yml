@@ -24,7 +24,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image
-        run: docker build -t ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }} .
+        run: |
+          IMAGE_NAME=$(echo "ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          docker build -t $IMAGE_NAME:pr-${{ github.event.pull_request.number }} .
 
       - name: Push Docker image
-        run: docker push ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }}
+        run: |
+          IMAGE_NAME=$(echo "ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          docker push $IMAGE_NAME:pr-${{ github.event.pull_request.number }}
