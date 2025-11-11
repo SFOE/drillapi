@@ -1,1 +1,2 @@
 RATE_LIMIT = "1000/minute"
+ALLOWED_IPS = {"127.0.0.1", "192.168.1.10"}

@@ -52,5 +52,13 @@ OpenAPI doc
 
 ```http://127.0.0.1:8000/docs```
 
+Run tests
+
+```python -m pytest -v```
+
+Run only service avaibility checker test
+
+```python -m pytest tests/test_services.py```
+
 
 

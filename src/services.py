@@ -1,4 +1,6 @@
 import httpx
+from fastapi import Depends, Request, HTTPException, status
+from settings_values.globals import ALLOWED_IPS
 
 
 def get_canton_from_coordinates(coord_x: float, coord_y: float):
@@ -24,3 +26,12 @@ def get_canton_from_coordinates(coord_x: float, coord_y: float):
     result = payload.get("results", [])
 
     return result
+
+
+def verify_ip(request: Request):
+    """Dependency to enforce IP whitelist access control."""
+    client_ip = request.client.host
+    if client_ip not in ALLOWED_IPS:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
+        )
