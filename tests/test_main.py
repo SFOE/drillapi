@@ -8,7 +8,7 @@ if ROOT not in sys.path:
 
 from fastapi.testclient import TestClient
 
-from src.main import app
+from src.routes.drill_category import app
 
 
 client = TestClient(app)

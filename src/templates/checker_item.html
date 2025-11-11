@@ -1,0 +1,21 @@
+{% if status == "success" %}
+<details class="success">
+  <summary>✅ {{ canton }} - {{ location }} ({{ status_code }})</summary>
+  <p><b>Ground Category:</b> {{ ground_category or "N/A" }}</p>
+  <p><b>WMS URL:</b> <a href="{{ wms_url }}" target="_blank">{{ wms_url }}</a></p>
+  <p><b>Full WMS Call:</b> <a href="{{ full_wms_url }}" target="_blank">{{ full_wms_url }}</a></p>
+  <pre>{{ wms_params | tojson(indent=2) }}</pre>
+</details>
+{% elif status == "error" %}
+<details class="error">
+  <summary>❌ {{ canton }} - {{ location }} ({{ status_code }})</summary>
+  <p><b>WMS URL:</b> <a href="{{ wms_url }}" target="_blank">{{ wms_url }}</a></p>
+  <p><b>Full WMS Call:</b> <a href="{{ full_wms_url }}" target="_blank">{{ full_wms_url }}</a></p>
+  <pre>{{ response | tojson(indent=2) }}</pre>
+</details>
+{% else %}
+<details class="exception">
+  <summary>⚠️ {{ canton }} - {{ location }} (Exception)</summary>
+  <pre>{{ error }}</pre>
+</details>
+{% endif %}
