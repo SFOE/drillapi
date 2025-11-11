@@ -61,4 +61,18 @@ Run only service avaibility checker test
 ```python -m pytest tests/test_services.py```
 
 
+## Using Docker Compose
 
+```docker compose up -d --build && docker compose logs -f fastapi-app```
+
+
+## Using Docker
+
+Build local image
+
+```docker build -t fastapi-app .```
+
+Run container
+
+
+```docker run -d -p 8000:8000 --name fastapi_container fastapi-app```
