@@ -33,6 +33,63 @@ def get_canton_from_coordinates(coord_x: float, coord_y: float):
     return payload.get("results", [])
 
 
+async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict):
+    """
+    Fetch features at a given coordinate using either WMS GetFeatureInfo or ESRI REST Feature service
+    depending on config['infoFormat'].
+    Returns a list of feature dicts.
+    """
+    info_format = config["infoFormat"].lower()
+    features = []
+
+    async with httpx.AsyncClient(timeout=20.0) as client:
+
+        if info_format == "arcgis/json":
+            layers_list = [layer["name"] for layer in config["layers"]]
+
+            for layer_name in layers_list:
+                esri_url = f"{config['wmsUrl'].rstrip('/')}/{layer_name}/query"
+                params = {
+                    "geometry": f"{coord_x},{coord_y}",
+                    "geometryType": "esriGeometryPoint",
+                    "spatialRel": "esriSpatialRelIntersects",
+                    "outFields": "*",
+                    "f": "json",
+                }
+                logger.info("ESRI Feature request: %s %s", esri_url, params)
+                resp = await client.get(esri_url, params=params)
+                resp.raise_for_status()
+                data = resp.json()
+                features.extend(data.get("features", []))
+
+        else:
+            # WMS GetFeatureInfo
+            delta = 10
+            bbox = f"{coord_x - delta},{coord_y - delta},{coord_x + delta},{coord_y + delta}"
+            layers_list = ",".join([layer["name"] for layer in config["layers"]])
+            params_wms = {
+                "SERVICE": "WMS",
+                "VERSION": "1.3.0",
+                "REQUEST": "GetFeatureInfo",
+                "QUERY_LAYERS": layers_list,
+                "LAYERS": layers_list,
+                "INFO_FORMAT": config["infoFormat"],
+                "I": "50",
+                "J": "50",
+                "CRS": "EPSG:2056",
+                "WIDTH": "101",
+                "HEIGHT": "101",
+                "BBOX": bbox,
+            }
+            wms_url = config["wmsUrl"]
+            logger.info("WMS request: %s %s", wms_url, params_wms)
+            resp = await client.get(wms_url, params=params_wms)
+            resp.raise_for_status()
+            features = await parse_wms_getfeatureinfo(resp.content, config["infoFormat"])
+
+    return features
+
+
 async def parse_wms_getfeatureinfo(content: bytes, info_format: str):
     """
     Parse WMS GetFeatureInfo response content depending on infoFormat.
