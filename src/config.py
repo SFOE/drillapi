@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 
     RATE_LIMIT: str = "1000/minute"
     ALLOWED_IPS: List[str] = ["127.0.0.1"]
+    ALLOWED_ORIGINS: List[str] = ["http://localhost:5173"]
     ENVIRONMENT: str = "production"
 
 
