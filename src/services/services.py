@@ -7,39 +7,39 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# -----------------------------
-# Encoding / Normalization Utils
-# -----------------------------
+# ============================================================
+# STRING NORMALIZATION
+# ============================================================
 def normalize_string(value: str) -> str:
     """
-    Fix common double-encoding issues from WMS responses.
+    Fix common double-encoding issues from WMS or ESRI JSON responses.
+    Example: 'unzul\\u00e4ssig' → 'unzulässig'
     """
     if not isinstance(value, str):
         return value
     try:
-        # decode double UTF-8 encoded strings
+        # Try decoding strings that were double-encoded (latin1→utf8)
         return value.encode("latin1").decode("utf-8")
-    except UnicodeEncodeError:
-        return value
-    except UnicodeDecodeError:
+    except Exception:
         return value
 
 
 def normalize_feature(feat):
     """
-    Safely normalize a feature dict or string.
+    Normalize every string value in a feature dict.
     """
     if isinstance(feat, dict):
         return {k: normalize_string(v) for k, v in feat.items()}
     return normalize_string(feat)
 
 
-# -----------------------------
-# Canton Lookup
-# -----------------------------
+# ============================================================
+# CANTON LOOKUP (geo.admin.ch)
+# ============================================================
 def get_canton_from_coordinates(coord_x: float, coord_y: float):
     """
-    Query geo.admin.ch to find the canton for coordinates in EPSG:2056.
+    Query geo.admin.ch to find the canton (AK code) for EPSG:2056 coordinates.
+    Returns: list of dicts (geo.admin.ch "results" array)
     """
     url = "https://api3.geo.admin.ch/rest/services/ech/MapServer/identify"
     params = {
@@ -57,24 +57,34 @@ def get_canton_from_coordinates(coord_x: float, coord_y: float):
             resp.raise_for_status()
             payload = resp.json()
     except Exception as e:
+        logger.error("Failed to fetch canton for (%.2f, %.2f): %s", coord_x, coord_y, e)
         raise HTTPException(500, detail=f"Failed to fetch canton: {e}")
 
-    return payload.get("results", [])
+    results = payload.get("results", [])
+    if not results:
+        logger.warning(
+            "No canton found for coordinates: (%.2f, %.2f)", coord_x, coord_y
+        )
+    return results
 
 
-# -----------------------------
-# Fetch WMS / ESRI Features
-# -----------------------------
+# ============================================================
+# FETCH WMS OR ESRI FEATURES
+# ============================================================
 async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict):
     """
-    Fetch features at a given coordinate using WMS GetFeatureInfo or ESRI REST Feature service.
-    Returns a list of normalized feature dicts.
+    Fetch features for a coordinate using either:
+      - ESRI REST Feature Service (infoFormat='arcgis/json'), or
+      - WMS GetFeatureInfo for other formats.
+
+    Returns: list of normalized feature dicts
     """
     info_format = config["infoFormat"].lower()
     features = []
 
     async with httpx.AsyncClient(timeout=20.0) as client:
 
+        # ---------- ESRI REST Feature Service ----------
         if info_format == "arcgis/json":
             for layer in config["layers"]:
                 layer_name = layer["name"]
@@ -86,18 +96,42 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                     "outFields": "*",
                     "f": "json",
                 }
+
                 logger.info("ESRI request: %s %s", esri_url, params)
                 resp = await client.get(esri_url, params=params)
-                resp.raise_for_status()
-                data = resp.json()
-                raw_features = data.get("features", [])
-                # Normalize
-                for feat in raw_features:
-                    attr = feat.get("attributes", {})
-                    features.append(normalize_feature(attr))
 
+                if resp.status_code != 200:
+                    logger.warning(
+                        "ESRI request failed (%s): %s", resp.status_code, esri_url
+                    )
+                    continue
+
+                try:
+                    data = resp.json()
+                except Exception:
+                    snippet = resp.text[:200]
+                    logger.error("Non-JSON ESRI response for %s: %s", esri_url, snippet)
+                    continue
+
+                raw_features = data.get("features", [])
+                if not raw_features:
+                    logger.warning(
+                        "ESRI returned no features for layer '%s'", layer_name
+                    )
+                else:
+                    logger.info(
+                        "ESRI returned %d features for '%s'",
+                        len(raw_features),
+                        layer_name,
+                    )
+
+                for feat in raw_features:
+                    if isinstance(feat, dict):
+                        attr = feat.get("attributes", {})
+                        features.append(normalize_feature(attr))
+
+        # ---------- WMS GetFeatureInfo ----------
         else:
-            # WMS GetFeatureInfo
             delta = 10
             bbox = f"{coord_x - delta},{coord_y - delta},{coord_x + delta},{coord_y + delta}"
             layers_list = ",".join([layer["name"] for layer in config["layers"]])
@@ -117,41 +151,73 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
             }
             wms_url = config["wmsUrl"]
             logger.info("WMS request: %s %s", wms_url, params_wms)
+
             resp = await client.get(wms_url, params=params_wms)
-            resp.raise_for_status()
-            raw_features = await parse_wms_getfeatureinfo(
-                resp.content, config["infoFormat"]
-            )
-            # Normalize
+            if resp.status_code != 200:
+                logger.warning("WMS request failed (%s): %s", resp.status_code, wms_url)
+                return []
+
+            snippet = resp.text[:200]
+            logger.debug("WMS raw response snippet: %s", snippet)
+
+            try:
+                raw_features = await parse_wms_getfeatureinfo(
+                    resp.content, config["infoFormat"]
+                )
+            except Exception as e:
+                logger.error("Failed to parse WMS response: %s", e)
+                return []
+
+            if not raw_features:
+                logger.warning("WMS returned empty features for URL: %s", wms_url)
+            else:
+                logger.info("WMS returned %d features", len(raw_features))
+
             features.extend([normalize_feature(f) for f in raw_features])
+
+    if not features:
+        logger.error(
+            "No features found for coords (%s, %s) using infoFormat '%s'.",
+            coord_x,
+            coord_y,
+            info_format,
+        )
 
     return features
 
 
-# -----------------------------
-# Parse WMS GetFeatureInfo
-# -----------------------------
+# ============================================================
+# PARSE WMS OR ESRI JSON RESPONSES
+# ============================================================
 async def parse_wms_getfeatureinfo(content: bytes, info_format: str):
-    text = content.decode("utf-8")
+    """
+    Parse WMS GetFeatureInfo or ESRI REST JSON response into Python dicts.
+    """
+    text = content.decode("utf-8", errors="ignore")
     info_format = info_format.lower()
 
-    if "arcgis/json" in info_format or "json" in info_format:
-        try:
+    try:
+        # ArcGIS REST JSON or GeoJSON
+        if "json" in info_format:
             data = json.loads(text)
             features = []
 
-            if "features" in data and isinstance(data["features"], list):
+            # ESRI REST-style
+            if isinstance(data, dict) and "features" in data:
                 for feat in data["features"]:
                     attr = feat.get("attributes", {}) if isinstance(feat, dict) else {}
                     features.append(attr)
-            else:
-                features = data if isinstance(data, list) else []
-            return features
-        except Exception as e:
-            raise HTTPException(500, detail=f"Failed to parse JSON response: {e}")
 
-    elif "gml" in info_format or "xml" in info_format:
-        try:
+            # Plain array of features
+            elif isinstance(data, list):
+                features = data
+            else:
+                features = [data] if data else []
+
+            return features
+
+        # GML/XML
+        elif "gml" in info_format or "xml" in info_format:
             root = ET.fromstring(text)
             ns = {"gml": "http://www.opengis.net/gml"}
             features = []
@@ -164,19 +230,30 @@ async def parse_wms_getfeatureinfo(content: bytes, info_format: str):
                 features.append(feature_data)
 
             return features
-        except Exception as e:
-            raise HTTPException(500, detail=f"Failed to parse GML response: {e}")
 
-    else:
-        raise HTTPException(500, detail=f"Unsupported infoFormat: {info_format}")
+        else:
+            raise ValueError(f"Unsupported infoFormat: {info_format}")
+
+    except Exception as e:
+        logger.error("Error parsing WMS/ESRI response: %s", e)
+        raise HTTPException(500, detail=f"Failed to parse WMS/ESRI response: {e}")
 
 
-# -----------------------------
-# Process Ground Categories
-# -----------------------------
+# ============================================================
+# PROCESS + HARMONIZE GROUND CATEGORIES
+# ============================================================
 def process_ground_category(
     ground_features: list, config_layers: list, harmony_map: list
 ):
+    """
+    Process raw features into harmonized ground category values per canton configuration.
+    Returns:
+        dict: {
+            "layer_results": [...],
+            "mapping_sum": int,
+            "harmonized_value": int
+        }
+    """
     layer_results = []
     mapping_sum = 0
 
@@ -190,13 +267,11 @@ def process_ground_category(
         last_value = None
 
         for feature in ground_features:
-            # Handle dict or string
-            raw_value = (
-                feature.get(property_name) if isinstance(feature, dict) else feature
-            )
-            if not raw_value:
+            value = feature.get(property_name) if isinstance(feature, dict) else feature
+            if not value:
                 continue
-            value = normalize_string(raw_value)
+
+            value = normalize_string(value)
             last_value = value
 
             for item in property_values:
@@ -217,7 +292,7 @@ def process_ground_category(
             }
         )
 
-    # Harmonize sum
+    # Harmonization: map sum → harmonized value
     harmonized_value = None
     if harmony_map:
         match = next((h["value"] for h in harmony_map if h["sum"] == mapping_sum), None)
