@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Request, Path, HTTPException
 from settings_values import cantons
 from src.services import services, security
+from src.services.error_handler import handle_errors
 import httpx
 import logging
 from src.config import settings
-
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 @router.get("/v1/drill-category/{coord_x}/{coord_y}")
 @security.limiter.limit(settings.RATE_LIMIT)
+@handle_errors
 async def get_drill_category(
     request: Request,
     coord_x: float = Path(..., gt=2400000, le=2900000),
@@ -19,12 +20,12 @@ async def get_drill_category(
 ):
     """Return ground category at a given coordinate using WMS GetFeatureInfo."""
 
+    # --- Your previous code remains almost identical ---
     canton_result = services.get_canton_from_coordinates(coord_x, coord_y)
     if not canton_result:
         raise HTTPException(404, detail="No canton found for these coordinates")
 
     code_canton = canton_result[0]["attributes"]["ak"]
-
     config = cantons.CANTONS["cantons_configurations"].get(code_canton)
     if not config:
         raise HTTPException(404, f"Configuration for canton {code_canton} not found!")
@@ -47,63 +48,25 @@ async def get_drill_category(
         "BBOX": bbox,
     }
     wms_url = config["wmsUrl"]
-    logger.info(f"WMS request: {wms_url} {params_wms}")
+    logger.info("WMS request: %s %s", wms_url, params_wms)
 
-    ground_category = []
-    error_detail = None
-    try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            resp = await client.get(wms_url, params=params_wms)
-            resp.raise_for_status()
-            ground_category = await services.parse_wms_getfeatureinfo(
-                resp.content, config["infoFormat"]
-            )
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        resp = await client.get(wms_url, params=params_wms)
+        resp.raise_for_status()
+        ground_category = await services.parse_wms_getfeatureinfo(
+            resp.content, config["infoFormat"]
+        )
 
-        if isinstance(ground_category, dict) and "raw" in ground_category:
-            # Raw response → treat as error
-            status = "error"
-            error_detail = {
-                "message": "WMS returned raw text instead of features",
-                "response_content": ground_category["raw"],
-            }
-            ground_category = []
-        elif isinstance(ground_category, list) and not ground_category:
-            # Empty features → treat as error
-            status = "error"
-            error_detail = {
-                "message": "WMS returned empty feature list",
-                "response_content": resp.text,
-            }
-        else:
-            ground_category_summand = services.process_ground_category(
-                ground_category, config["layers"], config["harmonyMap"]
-            )
-            print("----------------////////////")
-            print(ground_category_summand)
-            status = "success"
-
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        status = "error"
-        ground_category = []
-        error_detail = {
-            "message": f"Failed WMS call for canton {code_canton}",
-            "wms_full_url": str(resp.url if "resp" in locals() else wms_url),
-            "wms_url": wms_url,
-            "wms_params": params_wms,
-            "response_content": resp.text if "resp" in locals() else None,
-            "exception": str(e),
-        }
+    ground_category = services.process_ground_category(
+        ground_category, config["layers"], config["harmonyMap"]
+    )
 
     return {
         "coord_x": coord_x,
         "coord_y": coord_y,
         "canton": code_canton,
         "ground_category": ground_category,
-        "status": status,
-        "error": error_detail,
+        "status": "success",
         "wms_url": wms_url,
-        "full_wms_url": str(resp.url if "resp" in locals() else wms_url),
         "wms_params": params_wms,
     }

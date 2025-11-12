@@ -5,7 +5,9 @@ New backend for kann ich bohren
 
 ## Startup
 
-Create .env file and :warning: adapt values :warning
+Create .env file and :warning: adapt values :warning:
+
+Special attention to the ```ENVIRONMENT``` value, MUST never be set to ```DEV``` in production environnement
 
 ```cp env.example .env```
 
