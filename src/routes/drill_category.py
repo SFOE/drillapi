@@ -43,7 +43,9 @@ async def get_drill_category(
         status = "success"
         error_detail = None
         # --- Process features into ground category ---
-        # features = services.process_ground_category(features, config["layers"], config["harmonyMap"])
+        features = services.process_ground_category(
+            features, config["layers"], config["harmonyMap"]
+        )
 
     return {
         "coord_x": coord_x,
