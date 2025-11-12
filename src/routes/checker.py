@@ -54,8 +54,6 @@ async def checker_stream():
                     try:
                         resp = await client.get(url, timeout=60.0)
                         result["status"] = resp.status_code
-                        print("------------------")
-                        print(resp.json().get("status"))
                         if (
                             resp.status_code == 200
                             and resp.json().get("status") == "success"

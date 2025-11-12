@@ -5,7 +5,9 @@ New backend for kann ich bohren
 
 ## Startup
 
-Create .env file and :warning: adapt values :warning
+Create .env file and :warning: adapt values :warning:
+
+Special attention to the ```ENVIRONMENT``` value, MUST never be set to ```DEV``` in production environnement
 
 ```cp env.example .env```
 
@@ -35,6 +37,11 @@ Run pre-commit manually
 ```bash
 pre-commit run --all-files
 ```
+
+
+Run dev server locally with fast api dev server
+
+```fastapi dev src/main.py```
 
 Run dev server locally with uvicorn
 

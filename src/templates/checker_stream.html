@@ -25,6 +25,13 @@
     }
     summary { cursor: pointer; font-weight: bold; }
     h2, h3 { margin-top: 20px; }
+    a.full-url {
+      color: #0056b3;
+      text-decoration: none;
+    }
+    a.full-url:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -58,8 +65,24 @@
         ? `✅ Success (HTTP ${data.status}) - ${data.url}`
         : `❌ Failed (HTTP ${data.status}) - ${data.url}`;
 
+      let fullUrlLink = "";
+      try {
+        const parsed = data.content ? JSON.parse(data.content) : null;
+        const fullUrl = parsed?.result_detail?.full_url;
+        if (fullUrl) {
+          fullUrlLink = `
+            <p><strong>Full request URL:</strong>
+            <a class="full-url" href="${fullUrl}" target="_blank" rel="noopener noreferrer">
+              ${fullUrl}
+            </a></p>`;
+        }
+      } catch (e) {
+        console.warn("Could not parse content JSON for full_url:", e);
+      }
+
       details.innerHTML = `
         <summary>${summaryText}</summary>
+        ${fullUrlLink}
         <pre>${data.error || data.content || ""}</pre>
       `;
 

@@ -109,34 +109,34 @@ CANTONS = {
                 {"sum": 60, "value": 1},
             ],
         },
-        # "ZG": {
-        #     "name": "ZG",
-        #     "exampleLocation": [
-        #     [2676912, 1228091, 1, "mit Standardauflagen zulässig"],
-        #     [2684565, 1225437, 2, "mit spezifischen Auflagen zulässig"],
-        #     [2686680, 1226360, 3, "unzulässig"],
-        #     [2690680, 1219207, 4]
-        #     ],
-        #     "wmsUrl": "https://services.geo.zg.ch:443/ows/Erdwaermenutzung",
-        #     "legendUrl": "",
-        #     "infoFormat": "application/vnd.ogc.gml",
-        #     "layers": [
-        #     {
-        #         "name": "zg.ews_zulaessigkeit",
-        #         "propertyName": "zulaessigkeit",
-        #         "propertyValues": [
-        #         { "name": "mit Standardauflagen zulässig", "summand": 1 },
-        #         { "name": "mit spezifischen Auflagen zulässig", "summand": 2 },
-        #         { "name": "unzulässig", "summand": 3 }
-        #         ]
-        #     }
-        #     ],
-        #     "harmonyMap": [
-        #     { "sum": 1, "value": 1 },
-        #     { "sum": 2, "value": 2 },
-        #     { "sum": 3, "value": 3 }
-        #     ]
-        # },
+        "ZG": {
+            "name": "ZG",
+            "exampleLocation": [
+                [2676912, 1228091, 1, "mit Standardauflagen zulässig"],
+                [2684565, 1225437, 2, "mit spezifischen Auflagen zulässig"],
+                [2686680, 1226360, 3, "unzulässig"],
+                [2690680, 1219207, 4],
+            ],
+            "wmsUrl": "https://services.geo.zg.ch:443/ows/Erdwaermenutzung",
+            "legendUrl": "",
+            "infoFormat": "application/vnd.ogc.gml",
+            "layers": [
+                {
+                    "name": "zg.ews_zulaessigkeit",
+                    "propertyName": "zulaessigkeit",
+                    "propertyValues": [
+                        {"name": "mit Standardauflagen zulässig", "summand": 1},
+                        {"name": "mit spezifischen Auflagen zulässig", "summand": 2},
+                        {"name": "unzulässig", "summand": 3},
+                    ],
+                }
+            ],
+            "harmonyMap": [
+                {"sum": 1, "value": 1},
+                {"sum": 2, "value": 2},
+                {"sum": 3, "value": 3},
+            ],
+        },
         "VS": {
             "name": "VS",
             "exampleLocation": [
