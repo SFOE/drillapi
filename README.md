@@ -5,6 +5,11 @@ New backend for kann ich bohren
 
 ## Startup
 
+Create .env file and :warning: adapt values :warning
+
+```cp env.example .env```
+
+
 Create python virtual environment
 
 ```python3 -m venv venv```
@@ -31,11 +36,9 @@ Run pre-commit manually
 pre-commit run --all-files
 ```
 
-Run dev server locally
+Run dev server locally with uvicorn
 
-```bash
-uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
-```
+```python -m src.main```
 
 Check everything is fine
 
@@ -51,6 +54,14 @@ Canton's configuration v1
 OpenAPI doc
 
 ```http://127.0.0.1:8000/docs```
+
+Run tests
+
+```python -m pytest -v```
+
+Run only service avaibility checker test
+
+```python -m pytest tests/test_services.py```
 
 
 ## Using Docker Compose
