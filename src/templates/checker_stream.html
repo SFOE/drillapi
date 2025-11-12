@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Service Availability Checker (Live)</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    pre { white-space: pre-wrap; }
+    .error-box {
+      width: 80vw;
+      margin: 10px auto;
+      background: #f8d7da;
+      padding: 10px;
+      overflow-x: auto;
+      font-size: 0.9em;
+      border: 1px solid #f5c6cb;
+    }
+    .success-box {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      width: 80vw;
+      margin: 10px auto;
+      padding: 10px;
+      overflow-x: auto;
+      font-size: 0.9em;
+    }
+    summary { cursor: pointer; font-weight: bold; }
+    h2, h3 { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h2>Service Availability Checker</h2>
+  <div id="results"></div>
+
+  <script>
+    const resultsDiv = document.getElementById("results");
+    const evtSource = new EventSource("/checker/stream");
+
+    evtSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      // Find or create a container for this canton
+      let cantonDiv = document.getElementById(`canton-${data.canton}`);
+      if (!cantonDiv) {
+        cantonDiv = document.createElement("div");
+        cantonDiv.id = `canton-${data.canton}`;
+        cantonDiv.innerHTML = `<h3>Checking service for ${data.canton}</h3>`;
+        resultsDiv.appendChild(cantonDiv);
+      }
+
+      // Create a new accordion entry
+      const details = document.createElement("details");
+      const success = data.success === true;
+      details.classList.add(success ? "success-box" : "error-box");
+
+      const summaryText = data.error
+        ? `❌ Request Error for ${data.url}`
+        : success
+        ? `✅ Success (HTTP ${data.status}) - ${data.url}`
+        : `❌ Failed (HTTP ${data.status}) - ${data.url}`;
+
+      details.innerHTML = `
+        <summary>${summaryText}</summary>
+        <pre>${data.error || data.content || ""}</pre>
+      `;
+
+      cantonDiv.appendChild(details);
+    };
+
+    evtSource.addEventListener("end", () => {
+      const done = document.createElement("h3");
+      done.textContent = "✅ All checks completed.";
+      resultsDiv.appendChild(done);
+      evtSource.close();
+    });
+  </script>
+</body>
+</html>
