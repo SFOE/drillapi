@@ -7,7 +7,7 @@ New backend for kann ich bohren
 
 Create .env file and :warning: adapt values :warning
 
-```cp .env.example .env```
+```cp env.example .env```
 
 
 Create python virtual environment
