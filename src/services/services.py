@@ -77,113 +77,109 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
       - ESRI REST Feature Service (infoFormat='arcgis/json'), or
       - WMS GetFeatureInfo for other formats.
 
-    Returns: list of normalized feature dicts
+    Returns:
+        dict: {
+            "features": [...],
+            "full_url": str,
+            "error": Optional[str]
+        }
     """
     info_format = config["infoFormat"].lower()
     features = []
+    full_url = ""
+    error_message = None
 
     async with httpx.AsyncClient(timeout=20.0) as client:
+        try:
+            # ---------- ESRI REST Feature Service ----------
+            if info_format == "arcgis/json":
+                for layer in config["layers"]:
+                    layer_name = layer["name"]
+                    esri_url = f"{config['wmsUrl'].rstrip('/')}/{layer_name}/query"
+                    params = {
+                        "geometry": f"{coord_x},{coord_y}",
+                        "geometryType": "esriGeometryPoint",
+                        "spatialRel": "esriSpatialRelIntersects",
+                        "outFields": "*",
+                        "f": "json",
+                    }
 
-        # ---------- ESRI REST Feature Service ----------
-        if info_format == "arcgis/json":
-            for layer in config["layers"]:
-                layer_name = layer["name"]
-                esri_url = f"{config['wmsUrl'].rstrip('/')}/{layer_name}/query"
-                params = {
-                    "geometry": f"{coord_x},{coord_y}",
-                    "geometryType": "esriGeometryPoint",
-                    "spatialRel": "esriSpatialRelIntersects",
-                    "outFields": "*",
-                    "f": "json",
+                    try:
+                        resp = await client.get(esri_url, params=params)
+                        full_url = str(resp.request.url)
+                        resp.raise_for_status()
+                    except Exception as e:
+                        error_message = f"ESRI request failed: {e}"
+                        logger.error("%s — URL: %s", error_message, full_url)
+                        continue
+
+                    try:
+                        data = resp.json()
+                    except Exception as e:
+                        snippet = resp.text[:200]
+                        error_message = f"Invalid JSON for {full_url}: {e} ({snippet})"
+                        logger.error(error_message)
+                        continue
+
+                    raw_features = data.get("features", [])
+                    for feat in raw_features:
+                        if isinstance(feat, dict):
+                            attr = feat.get("attributes", {})
+                            features.append(normalize_feature(attr))
+
+            # ---------- WMS GetFeatureInfo ----------
+            else:
+                delta = 10
+                bbox = f"{coord_x - delta},{coord_y - delta},{coord_x + delta},{coord_y + delta}"
+                layers_list = ",".join([layer["name"] for layer in config["layers"]])
+                params_wms = {
+                    "SERVICE": "WMS",
+                    "VERSION": "1.3.0",
+                    "REQUEST": "GetFeatureInfo",
+                    "QUERY_LAYERS": layers_list,
+                    "LAYERS": layers_list,
+                    "INFO_FORMAT": config["infoFormat"],
+                    "I": "50",
+                    "J": "50",
+                    "CRS": "EPSG:2056",
+                    "WIDTH": "101",
+                    "HEIGHT": "101",
+                    "BBOX": bbox,
                 }
 
-                logger.info("ESRI request: %s %s", esri_url, params)
-                resp = await client.get(esri_url, params=params)
-
-                if resp.status_code != 200:
-                    logger.warning(
-                        "ESRI request failed (%s): %s", resp.status_code, esri_url
-                    )
-                    continue
+                wms_url = config["wmsUrl"]
+                try:
+                    resp = await client.get(wms_url, params=params_wms)
+                    full_url = str(resp.request.url)
+                    resp.raise_for_status()
+                except Exception as e:
+                    error_message = f"WMS request failed: {e}"
+                    logger.error("%s — URL: %s", error_message, full_url)
+                    return {
+                        "features": [],
+                        "full_url": full_url,
+                        "error": error_message,
+                    }
 
                 try:
-                    data = resp.json()
-                except Exception:
-                    snippet = resp.text[:200]
-                    logger.error("Non-JSON ESRI response for %s: %s", esri_url, snippet)
-                    continue
-
-                raw_features = data.get("features", [])
-                if not raw_features:
-                    logger.warning(
-                        "ESRI returned no features for layer '%s'", layer_name
+                    raw_features = await parse_wms_getfeatureinfo(
+                        resp.content, config["infoFormat"]
                     )
-                else:
-                    logger.info(
-                        "ESRI returned %d features for '%s'",
-                        len(raw_features),
-                        layer_name,
-                    )
+                    features.extend([normalize_feature(f) for f in raw_features])
+                except Exception as e:
+                    error_message = f"Failed to parse WMS response: {e}"
+                    logger.error("%s — URL: %s", error_message, full_url)
 
-                for feat in raw_features:
-                    if isinstance(feat, dict):
-                        attr = feat.get("attributes", {})
-                        features.append(normalize_feature(attr))
+        except Exception as e:
+            error_message = f"Unexpected error in fetch_features_for_point: {e}"
+            logger.exception(error_message)
 
-        # ---------- WMS GetFeatureInfo ----------
-        else:
-            delta = 10
-            bbox = f"{coord_x - delta},{coord_y - delta},{coord_x + delta},{coord_y + delta}"
-            layers_list = ",".join([layer["name"] for layer in config["layers"]])
-            params_wms = {
-                "SERVICE": "WMS",
-                "VERSION": "1.3.0",
-                "REQUEST": "GetFeatureInfo",
-                "QUERY_LAYERS": layers_list,
-                "LAYERS": layers_list,
-                "INFO_FORMAT": config["infoFormat"],
-                "I": "50",
-                "J": "50",
-                "CRS": "EPSG:2056",
-                "WIDTH": "101",
-                "HEIGHT": "101",
-                "BBOX": bbox,
-            }
-            wms_url = config["wmsUrl"]
-            logger.info("WMS request: %s %s", wms_url, params_wms)
-
-            resp = await client.get(wms_url, params=params_wms)
-            if resp.status_code != 200:
-                logger.warning("WMS request failed (%s): %s", resp.status_code, wms_url)
-                return []
-
-            snippet = resp.text[:200]
-            logger.debug("WMS raw response snippet: %s", snippet)
-
-            try:
-                raw_features = await parse_wms_getfeatureinfo(
-                    resp.content, config["infoFormat"]
-                )
-            except Exception as e:
-                logger.error("Failed to parse WMS response: %s", e)
-                return []
-
-            if not raw_features:
-                logger.warning("WMS returned empty features for URL: %s", wms_url)
-            else:
-                logger.info("WMS returned %d features", len(raw_features))
-
-            features.extend([normalize_feature(f) for f in raw_features])
-
-    if not features:
-        logger.error(
-            "No features found for coords (%s, %s) using infoFormat '%s'.",
-            coord_x,
-            coord_y,
-            info_format,
-        )
-
-    return features
+    # Always return structured result (even if empty)
+    return {
+        "features": features,
+        "full_url": full_url,
+        "error": error_message,
+    }
 
 
 # ============================================================

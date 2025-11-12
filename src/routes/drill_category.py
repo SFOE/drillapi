@@ -32,16 +32,22 @@ async def get_drill_category(
         )
 
     # --- Fetch features (WMS or ESRI REST) ---
-    features = await services.fetch_features_for_point(coord_x, coord_y, config)
-
+    result = await services.fetch_features_for_point(coord_x, coord_y, config)
+    features = result["features"]
     if not features:
         status = "error"
-        error_detail = {
+        result_detail = {
             "message": "No features returned from WMS or ESRI service",
+            "full_url": result["full_url"],
+            "detail": result["error"],
         }
     else:
         status = "success"
-        error_detail = None
+        result_detail = {
+            "message": "Success",
+            "full_url": result["full_url"],
+            "detail": result["error"],
+        }
         # --- Process features into ground category ---
         features = services.process_ground_category(
             features, config["layers"], config["harmonyMap"]
@@ -53,5 +59,5 @@ async def get_drill_category(
         "canton": code_canton,
         "ground_category": features,
         "status": status,
-        "error": error_detail,
+        "result_detail": result_detail,
     }
