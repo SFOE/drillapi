@@ -36,6 +36,11 @@ Run pre-commit manually
 pre-commit run --all-files
 ```
 
+
+Run dev server locally with fast api dev server
+
+```fastapi dev src/main.py```
+
 Run dev server locally with uvicorn
 
 ```python -m src.main```
