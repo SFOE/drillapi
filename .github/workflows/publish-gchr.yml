@@ -1,8 +1,10 @@
-name: Publish Docker Image to GHCR on PR
+name: Publish Docker Image to GHCR on PR and Release
 
 on:
   pull_request:
     types: [opened, synchronize]
+  release:
+    types: [published]
 
 jobs:
   build-and-push:
@@ -23,12 +25,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Docker image
+      - name: Build and push Docker image (PR)
+        if: github.event_name == 'pull_request'
         run: |
           IMAGE_NAME=$(echo "ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           docker build -t $IMAGE_NAME:pr-${{ github.event.pull_request.number }} .
+          docker push $IMAGE_NAME:pr-${{ github.event.pull_request.number }}
 
-      - name: Push Docker image
+      - name: Build and push Docker image (Release)
+        if: github.event_name == 'release'
         run: |
           IMAGE_NAME=$(echo "ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          docker push $IMAGE_NAME:pr-${{ github.event.pull_request.number }}
+          VERSION_TAG=${{ github.event.release.tag_name }}
+          docker build -t $IMAGE_NAME:$VERSION_TAG -t $IMAGE_NAME:latest .
+          docker push $IMAGE_NAME:$VERSION_TAG
+          docker push $IMAGE_NAME:latest
