@@ -1,9 +1,28 @@
-# drillapi
 [![CI](https://github.com/SFOE/drillapi/actions/workflows/ci.yml/badge.svg)](https://github.com/SFOE/drillapi/actions/workflows/ci.yml)
 
-New backend for kann ich bohren
+# drillapi - geothermal drilling
 
-## Setup
+⚠️this project is under construction ⚠️
+
+***Query the cantonal geoservices to know whether a site in Switzerland is suitable for a geothermal drilling.***
+
+What does this [FastAPI](https://fastapi.tiangolo.com/) project do ?
+
+- take x/y coordinates in EPSG:2056 on route ```/v1/x/y```
+- find in which canton the coordinates are and retrieve specific geoservice configuration
+- send request to corresponding cantonal geoservices, depending on location
+- process and reclass the results
+- return reponse used by [drill-frontend](https://github.com/sfOE/drill-frontend) vuejs web app
+
+## Run
+
+This project runs in docker:
+- Latest image: ```docker run --rm ghcr.io/sfoe/drillapi:latest```
+- Latest image: ```docker run --rm ghcr.io/sfoe/drillapi:<vx.y.z>```
+
+ Default port is ***8000***
+
+## Local setup for development
 
 Create .env file and :warning: adapt values :warning:
 
@@ -102,14 +121,13 @@ Run only service avaibility checker test
 python -m pytest tests/test_services.py
 ```
 
-## Deploy
+## Running local docker image
 
 ### Using Docker Compose
 
 ```bash
 docker compose up -d --build && docker compose logs -f fastapi-app
 ```
-
 
 ### Using Docker
 
