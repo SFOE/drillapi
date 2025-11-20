@@ -145,6 +145,7 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                     "WIDTH": "101",
                     "HEIGHT": "101",
                     "BBOX": bbox,
+                    "STYLES": "default",
                 }
 
                 wms_url = config["wmsUrl"]
