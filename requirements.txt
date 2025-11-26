@@ -10,7 +10,7 @@ distlib==0.4.0
 dnspython==2.8.0
 email-validator==2.3.0
 fastapi==0.120.1
-fastapi-cli==0.0.14
+fastapi-cli==0.0.16
 fastapi-cloud-cli==0.3.1
 filelock==3.20.0
 geopandas==1.1.1
