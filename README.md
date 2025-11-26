@@ -109,6 +109,12 @@ Checker that sends predefined calls to all configured cantons - IP restricted �
 http://127.0.0.1:8000/checker
 ```
 
+Or check one canton only - IP restricted ⚠️
+
+```bash
+http://127.0.0.1:8000/checker/VD
+```
+
 Main route v1
 
 ```bash
