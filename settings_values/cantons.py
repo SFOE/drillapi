@@ -10,6 +10,7 @@ CANTONS = {
                 # [2690680, 1219207, 4]
             ],
             "wmsUrl": "https://sitn.ne.ch/mapserv_proxy?ogcserver=private-png",
+            "thematic_geoportal_url": "",
             "legendUrl": "https://sitn.ne.ch/mapserv_proxy?ogcserver=private-png&cache_version=aba7524205e1498bb54f6c63b29dd14e&FORMAT=image%2Fpng&TRANSPARENT=true&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&LAYER=eg36_geotherm_carte_finale&SCALE=357142.1428571427",
             "infoFormat": "application/vnd.ogc.gml",
             "layers": [
@@ -45,8 +46,12 @@ CANTONS = {
                 [2679004, 1247702, 2, "Auflagen & waermenutzung-zone-d"],
                 [2684200, 1244025, 1, "waermenutzung-zone-f"],
                 [2689003, 1274084, 3, "waermenutzung-zone-a"],
+                [2685543, 1256696, 3, "waermenutzung-zone-b"],
+                [2684610, 1256659, 3, "waermenutzung-zone-d"],
+                [2684909, 1249849, 3, "waermenutzung-zone-e"],
             ],
-            "wmsUrl": "http://wms.zh.ch/AwelGSWaermewwwZHWMS",
+            "wmsUrl": "https://wms.zh.ch/AwelGSWaermewwwZHWMS",
+            "thematic_geoportal_url": "https://maps.zh.ch/?topic=AwelGSWaermewwwZH&x=2685104.6444391827&y=1252283.9396742217&scale=70517.93063503089",
             "legendUrl": "",
             "infoFormat": "application/vnd.ogc.gml",
             "layers": [
@@ -122,6 +127,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://services.geo.zg.ch:443/ows/Erdwaermenutzung",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
             "layers": [
                 {
@@ -154,6 +160,7 @@ CANTONS = {
             "wmsUrl": "https://sit.vs.ch/arcgis/services/ENVIRONNEMENT/MapServer/WMSServer",
             "wmsUrlEsriLayer": "3",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "",
             "layers": [
                 {
@@ -207,6 +214,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://www.ogc.vd.ch/public/services/OGC/wmsVD/Mapserver/WMSServer",
             "legendUrl": "https://www.ogc.vd.ch/public/services/OGC/wmsVD/Mapserver/WMSServer?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&FORMAT=image%2Fpng&LAYER=vd.admissibilite_indicative_sonde_geothermique",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/geo+json",
             "layers": [
                 {
@@ -243,6 +251,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://geo.ur.ch/webmercator/wms",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
             "layers": [
                 {
@@ -282,6 +291,7 @@ CANTONS = {
             "exampleLocation": [[2715738, 1125797, 3], [2713214, 1131638, 1]],
             "wmsUrl": "https://wms.geo.ti.ch/service",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
             "layers": [
                 {
@@ -328,6 +338,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://ows.geo.tg.ch/geofy_access_proxy/erdwaerme",
             "legendUrl": "https://map.geo.tg.ch/services/geofy_chsdi3/static/images/legends/erdwaerme_eignung_de.png",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
             "layers": [
                 {
@@ -368,6 +379,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://map.geo.sz.ch/mapserv_proxy",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
             "layers": [
                 {
@@ -402,6 +414,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://wms.geo.sh.ch/wms",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
             "layers": [
                 {
@@ -448,6 +461,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://services.geo.sg.ch/wss/service/SG00025_WMS/guest",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/geo+json",
             "layers": [
                 {
@@ -491,6 +505,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://www.gis-daten.ch/wms/bfe_kann_ich_bohren/service",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/json",
             "layers": [
                 {
@@ -553,6 +568,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://www.gis-daten.ch/wms/bfe_kann_ich_bohren/service",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/json",
             "layers": [
                 {
@@ -618,6 +634,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://public.geo.lu.ch/ogd/services/managed/EWNUTZXX_COL_V3_MP/MapServer/WMSServer",
             "legendUrl": "https://github.com/SFOE/SuitabilityGeothermalDrillingSwitzerland/raw/main/images/legend_lu.png",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/geo+json",
             "loopLayers": True,
             "layers": [
@@ -665,6 +682,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://wms.geo.gr.ch/erdwaermenutzung",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
             "layers": [
                 {
@@ -692,6 +710,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://wms.geo.gl.ch/",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
             "layers": [
                 {
@@ -724,6 +743,7 @@ CANTONS = {
             "legendUrl": "",
             "wmsUrlEsriLayer": "22",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "arcgis/json",
             "layers": [
                 {
@@ -759,6 +779,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://map.geo.fr.ch/arcgis/rest/services/PortailCarto/Theme_environnement/MapServer/17",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "arcgis/json",
             "layers": [
                 {
@@ -797,6 +818,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://geowms.bl.ch/",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
             "layers": [
                 {
@@ -851,6 +873,8 @@ CANTONS = {
                 [2621040, 1171911, 4, "undefined", "im Thunersee"],
             ],
             "wmsUrl": "https://www.geoservice.apps.be.ch/geoservice3/services/a42geo/of_utilitiescommunication01_de_ms_wms/MapServer/WMSServer?",
+            "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/geo+json",
             "layers": [
                 {
@@ -892,6 +916,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://www.geoportal.ch/services/wms/ktar",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/json",
             "layers": [
                 {
@@ -933,6 +958,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://www.geoportal.ch/services/wms/ktai",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/json",
             "layers": [
                 {
@@ -966,6 +992,7 @@ CANTONS = {
             ],
             "wmsUrl": "https://www.ag.ch/geoportal/services/afu_erdwaerme/MapServer/WMSServer",
             "legendUrl": "",
+            "thematic_geoportal_url": "",
             "infoFormat": "application/geo+json",
             "layers": [
                 {
