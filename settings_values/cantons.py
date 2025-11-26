@@ -13,6 +13,7 @@ CANTONS = {
             "thematic_geoportal_url": "",
             "legendUrl": "https://sitn.ne.ch/mapserv_proxy?ogcserver=private-png&cache_version=aba7524205e1498bb54f6c63b29dd14e&FORMAT=image%2Fpng&TRANSPARENT=true&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&LAYER=eg36_geotherm_carte_finale&SCALE=357142.1428571427",
             "infoFormat": "application/vnd.ogc.gml",
+            "style": "",
             "layers": [
                 {
                     "name": "eg38_geotherm_canepo_statut",
@@ -54,6 +55,7 @@ CANTONS = {
             "thematic_geoportal_url": "https://maps.zh.ch/?topic=AwelGSWaermewwwZH&x=2685104.6444391827&y=1252283.9396742217&scale=70517.93063503089",
             "legendUrl": "",
             "infoFormat": "application/vnd.ogc.gml",
+            "style": "",
             "layers": [
                 {
                     "name": "erdwaermesonden-auflagen",
@@ -129,6 +131,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
+            "style": "default",
             "layers": [
                 {
                     "name": "zg.ews_zulaessigkeit",
@@ -161,6 +164,7 @@ CANTONS = {
             "legendUrl": "https://sit.vs.ch/arcgis/services/ENVIRONNEMENT/MapServer/WMSServer?request=GetLegendGraphic%26version=1.3.0%26format=image/png%26layer=29",
             "thematic_geoportal_url": "",
             "infoFormat": "application/geo+json",
+            "style": "",
             "layers": [
                 {
                     "name": "29",
@@ -215,6 +219,7 @@ CANTONS = {
             "legendUrl": "https://www.ogc.vd.ch/public/services/OGC/wmsVD/Mapserver/WMSServer?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&FORMAT=image%2Fpng&LAYER=vd.admissibilite_indicative_sonde_geothermique",
             "thematic_geoportal_url": "",
             "infoFormat": "application/geo+json",
+            "style": "",
             "layers": [
                 {
                     "name": "vd.admissibilite_indicative_sonde_geothermique",
@@ -241,6 +246,7 @@ CANTONS = {
             ],
         },
         "UR": {
+            "style": "",
             "active": True,
             "name": "UR",
             "exampleLocation": [
@@ -252,6 +258,8 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
+            "style": "",
+            "style": "",
             "layers": [
                 {
                     "name": "umwelt:wnk_zulaessigkeitsbereiche_erdsonden",
@@ -292,6 +300,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
+            "style": "",
             "layers": [
                 {
                     "name": "ac_059_1_v1_0_idoneita_sonde_geotermiche",
@@ -339,6 +348,7 @@ CANTONS = {
             "legendUrl": "https://map.geo.tg.ch/services/geofy_chsdi3/static/images/legends/erdwaerme_eignung_de.png",
             "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
+            "style": "",
             "layers": [
                 {
                     "name": "Eignungszonen",
@@ -380,6 +390,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
+            "style": "",
             "layers": [
                 {
                     "name": "ch.sz.a034c.waermenutzung.erdwaerme.technisch",
@@ -415,6 +426,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
+            "style": "",
             "layers": [
                 {
                     "name": "sh.energie.erdsonden.eignung",
@@ -462,6 +474,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/geo+json",
+            "style": "",
             "layers": [
                 {
                     "name": "Zulaessigkeitsbereich",
@@ -506,6 +519,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/json",
+            "style": "",
             "layers": [
                 {
                     "name": "ch.ow.ews_zulaessigkeit",
@@ -569,6 +583,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/json",
+            "style": "",
             "layers": [
                 {
                     "name": "ch.nw.waermenutzungsbereiche",
@@ -635,6 +650,7 @@ CANTONS = {
             "legendUrl": "https://github.com/SFOE/SuitabilityGeothermalDrillingSwitzerland/raw/main/images/legend_lu.png",
             "thematic_geoportal_url": "",
             "infoFormat": "application/geo+json",
+            "style": "",
             "loopLayers": True,
             "layers": [
                 {
@@ -683,6 +699,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
+            "style": "",
             "layers": [
                 {
                     "name": "Erdwaermenutzung_Zulaessigkeit",
@@ -711,6 +728,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
+            "style": "",
             "layers": [
                 {
                     "name": "ch.gl.utilities.erdsondenausschlussbereich",
@@ -740,6 +758,7 @@ CANTONS = {
             "wmsUrl": "https://app2.ge.ch/tergeoservices/rest/services/Hosted/GOL_EXPLOITATION_GEOTHERMIE/FeatureServer/0",
             "mapServerUrl": "https://app2.ge.ch/tergeoservices/rest/services/Hosted/GOL_EXPLOITATION_GEOTHERMIE/MapServer/0",
             "legendUrl": "",
+            "style": "",
             "wmsUrlEsriLayer": "22",
             "legendUrl": "",
             "thematic_geoportal_url": "",
@@ -780,6 +799,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "arcgis/json",
+            "style": "",
             "layers": [
                 {
                     "name": "all:17",
@@ -819,6 +839,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/vnd.ogc.gml",
+            "style": "",
             "layers": [
                 {
                     "name": "erdwaerme_uebersicht_ohne_a",
@@ -875,6 +896,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/geo+json",
+            "style": "",
             "layers": [
                 {
                     "name": "ERDSOND_ERDSOND_VW_16828",
@@ -917,6 +939,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/json",
+            "style": "",
             "layers": [
                 {
                     "name": "ch.geoportal.ver_entsorgung_kommunikation.29.0.erdwaermesonden_kt",
@@ -959,6 +982,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/json",
+            "style": "",
             "layers": [
                 {
                     "name": "ch.geoportal.ver_entsorgung_kommunikation.29.0.erdwaermesonden_kt",
@@ -993,6 +1017,7 @@ CANTONS = {
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "application/geo+json",
+            "style": "",
             "layers": [
                 {
                     "name": "Eignung_Erdwärmenutzung55223",
