@@ -6,6 +6,13 @@ from src.config import settings
 router = APIRouter()
 
 
+def filter_active_cantons(cantons):
+    """
+    return a new dict containing only those cantons whose 'active' key is True.
+    """
+    return {key: value for key, value in cantons.items() if value.get("active") is True}
+
+
 def get_cantons_data():
     return cantons.CANTONS["cantons_configurations"]
 
@@ -57,3 +64,24 @@ async def get_canton_by_code(
     if code not in data:
         raise HTTPException(404, f"Canton '{code}' not found")
     return {code: data[code]}
+
+
+@router.get(
+    "/v1/avalaible-cantons",
+    summary="Get canton that are configured and available",
+    response_description="List of available canton codes",
+)
+@limiter.limit(settings.RATE_LIMIT)
+async def get_available_cantons(request: Request):
+    """
+    Retrieve the available cantons code for which a working geoservice exists and is configured.
+
+
+    **Returns:**
+    - `list[str]`: Canton code as list
+
+    """
+
+    data = list(filter_active_cantons(get_cantons_data()).keys())
+
+    return data

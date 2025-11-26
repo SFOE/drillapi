@@ -1,6 +1,7 @@
 CANTONS = {
     "cantons_configurations": {
         "NE": {
+            "active": False,
             "name": "NE",
             "exampleLocation": [
                 [2555501, 1206134, 1, "OK"],
@@ -38,6 +39,7 @@ CANTONS = {
             ],
         },
         "ZH": {
+            "active": True,
             "name": "ZH",
             "exampleLocation": [
                 [2679004, 1247702, 2, "Auflagen & waermenutzung-zone-d"],
@@ -110,6 +112,7 @@ CANTONS = {
             ],
         },
         "ZG": {
+            "active": True,
             "name": "ZG",
             "exampleLocation": [
                 [2676912, 1228091, 1, "mit Standardauflagen zulässig"],
@@ -138,6 +141,7 @@ CANTONS = {
             ],
         },
         "VS": {
+            "active": True,
             "name": "VS",
             "exampleLocation": [
                 [2578159, 1112802, 1, "CLASSGV 1"],
@@ -194,6 +198,7 @@ CANTONS = {
             ],
         },
         "VD": {
+            "active": True,
             "name": "VD",
             "exampleLocation": [
                 [2536682, 1156974, 1, "Admissible sous conditions"],
@@ -229,6 +234,7 @@ CANTONS = {
             ],
         },
         "UR": {
+            "active": True,
             "name": "UR",
             "exampleLocation": [
                 [2703052, 1180378, 1, "B"],
@@ -271,6 +277,7 @@ CANTONS = {
             ],
         },
         "TI": {
+            "active": True,
             "name": "TI",
             "exampleLocation": [[2715738, 1125797, 3], [2713214, 1131638, 1]],
             "wmsUrl": "https://wms.geo.ti.ch/service",
@@ -301,6 +308,7 @@ CANTONS = {
             ],
         },
         "TG": {
+            "active": True,
             "name": "TG",
             "exampleLocation": [
                 [2747716.6, 1262056.4, 3, "EWS grundsätzlich unzulässig"],
@@ -351,6 +359,7 @@ CANTONS = {
             ],
         },
         "SZ": {
+            "active": True,
             "name": "SZ",
             "exampleLocation": [
                 [2707885, 1226453, 1],
@@ -382,6 +391,7 @@ CANTONS = {
             ],
         },
         "SH": {
+            "active": True,
             "name": "SH",
             "exampleLocation": [
                 [2690343, 1289821, 1, "3"],
@@ -429,6 +439,7 @@ CANTONS = {
             ],
         },
         "SG": {
+            "active": True,
             "name": "SG",
             "exampleLocation": [
                 [2733447, 1241435, 2, "1"],
@@ -468,6 +479,7 @@ CANTONS = {
             ],
         },
         "OW": {
+            "active": True,
             "name": "OW",
             "exampleLocation": [
                 [2664351, 1193538, 1, "zulaessig"],
@@ -527,6 +539,7 @@ CANTONS = {
             ],
         },
         "NW": {
+            "active": True,
             "name": "NW",
             "exampleLocation": [
                 [2671744, 1196809, 3, "bautechnisch_bauverbot"],
@@ -594,6 +607,7 @@ CANTONS = {
             ],
         },
         "LU": {
+            "active": True,
             "name": "LU",
             "exampleLocation": [
                 [2665393, 1217714, 1, "ews_zulaessig"],
@@ -642,6 +656,7 @@ CANTONS = {
             ],
         },
         "GR": {
+            "active": True,
             "name": "GR",
             "exampleLocation": [
                 [2745188, 1187042, 1, "zulässig"],
@@ -669,6 +684,7 @@ CANTONS = {
             ],
         },
         "GL": {
+            "active": True,
             "name": "GL",
             "exampleLocation": [
                 [2724237, 1206147, 3, "Erdsondenausschlussgebiet"],
@@ -690,6 +706,7 @@ CANTONS = {
             "harmonyMap": [{"sum": 2, "value": 2}, {"sum": 3, "value": 3}],
         },
         "GE": {
+            "active": True,
             "name": "GE",
             "exampleLocation": [
                 [
@@ -725,6 +742,7 @@ CANTONS = {
                     ],
                 }
             ],
+            "active": True,
             "harmonyMap": [
                 {"sum": 1, "value": 1},
                 {"sum": 2, "value": 2},
@@ -732,6 +750,7 @@ CANTONS = {
             ],
         },
         "FR": {
+            "active": True,
             "name": "FR",
             "exampleLocation": [
                 [2582124, 1164966, 1, "SGV autorisées"],
@@ -767,6 +786,7 @@ CANTONS = {
             ],
         },
         "BL": {
+            "active": True,
             "name": "BL",
             "exampleLocation": [
                 [2622256, 1258565, 1, "BC"],
@@ -812,6 +832,7 @@ CANTONS = {
                     ],
                 }
             ],
+            "active": True,
             "harmonyMap": [
                 {"sum": 1, "value": 1},
                 {"sum": 2, "value": 2},
@@ -820,6 +841,7 @@ CANTONS = {
             ],
         },
         "BE": {
+            "active": True,
             "name": "BE",
             "exampleLocation": [
                 [2599525, 1201544, 1, "1"],
@@ -861,6 +883,7 @@ CANTONS = {
             ],
         },
         "AR": {
+            "active": True,
             "name": "AR",
             "exampleLocation": [
                 [2755488, 1249846, 1, "zulässig (siehe Erläuterungen)"],
@@ -901,6 +924,7 @@ CANTONS = {
             ],
         },
         "AI": {
+            "active": True,
             "name": "AI",
             "exampleLocation": [
                 [2751274, 1244545, 1, "zulässig (siehe Erläuterungen)"],
@@ -931,6 +955,7 @@ CANTONS = {
             ],
         },
         "AG": {
+            "active": True,
             "name": "AG",
             "exampleLocation": [
                 [2655805, 1258983, 2, "3"],

@@ -9,6 +9,7 @@ if ROOT not in sys.path:
 from fastapi.testclient import TestClient
 
 from src.main import app
+from src.routes.cantons import get_cantons_data, filter_active_cantons
 
 
 client = TestClient(app)
@@ -76,3 +77,31 @@ def test_coord_y_out_of_range_returns_422():
     # coord_y must be > 1070000 per path annotation
     resp = client.get("/v1/drill-category/2600000/1000000")
     assert resp.status_code == 422
+
+
+def test_filter_active_cantons_returns_only_active():
+    all_cantons = get_cantons_data()
+    filtered = filter_active_cantons(all_cantons)
+
+    # Ensure none of the returned cantons has active = False
+    for code, cfg in filtered.items():
+        assert cfg.get("active") is True
+
+    # Check that at least one known active and one known inactive behave as expected
+    assert "ZH" in filtered  # ZH is active in your sample
+    assert "NE" not in filtered  # NE is inactive in your sample
+
+
+def test_get_available_cantons_endpoint():
+    response = client.get("/v1/avalaible-cantons")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert isinstance(data, list)
+    # Should include ZH, ZG, etc (all active ones) but not NE
+    assert "ZH" in data
+    assert "NE" not in data
+
+    # Optionally, ensure no duplicates and result matches filter_active_cantons
+    expected = sorted(list(filter_active_cantons(get_cantons_data()).keys()))
+    assert sorted(data) == expected
