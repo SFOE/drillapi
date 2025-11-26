@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Service Availability Checker (Live)</title>
+  <title>Service Availability Checker</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
     pre { white-space: pre-wrap; }
@@ -29,23 +29,55 @@
       color: #0056b3;
       text-decoration: none;
     }
-    a.full-url:hover {
-      text-decoration: underline;
-    }
+    a.full-url:hover { text-decoration: underline; }
   </style>
 </head>
+
 <body>
   <h2>Service Availability Checker</h2>
+  <p>For single canton check, add path parameter containing  canton's code. For instance /checker/ZG</p>
   <div id="results"></div>
 
   <script>
     const resultsDiv = document.getElementById("results");
-    const evtSource = new EventSource("/checker/stream");
 
-    evtSource.onmessage = (event) => {
+    // canton value sent from backend
+    const canton = "{{ canton | default('') }}";
+
+    // Build WebSocket URL—always use ws:// or wss:// depending on site
+    const wsUrl = (location.protocol === "https:" ? "wss://" : "ws://") +
+                  location.host + "/checker/ws";
+
+    console.log("🔌 Connecting to WebSocket:", wsUrl);
+
+    const socket = new WebSocket(wsUrl);
+
+    socket.onopen = () => {
+      // Send chosen canton to backend
+      socket.send(JSON.stringify({ canton }));
+      console.log("📤 Sent canton filter:", canton);
+    };
+
+    socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      console.log("📨 Received:", data);
 
-      // Find or create a container for this canton
+      if (data.event === "end") {
+        const done = document.createElement("h3");
+        done.textContent = "✅ All checks completed.";
+        resultsDiv.appendChild(done);
+        return;
+      }
+
+      if (data.error) {
+        const errBox = document.createElement("div");
+        errBox.classList.add("error-box");
+        errBox.innerHTML = `<strong>Error:</strong> ${data.error}`;
+        resultsDiv.appendChild(errBox);
+        return;
+      }
+
+      // Group by canton
       let cantonDiv = document.getElementById(`canton-${data.canton}`);
       if (!cantonDiv) {
         cantonDiv = document.createElement("div");
@@ -54,7 +86,6 @@
         resultsDiv.appendChild(cantonDiv);
       }
 
-      // Create a new accordion entry
       const details = document.createElement("details");
       const success = data.success === true;
       details.classList.add(success ? "success-box" : "error-box");
@@ -67,8 +98,7 @@
 
       let fullUrlLink = "";
       try {
-        const parsed = data.content ? JSON.parse(data.content) : null;
-        const fullUrl = parsed?.result_detail?.full_url;
+        const fullUrl = data?.content?.result_detail?.full_url;
         if (fullUrl) {
           fullUrlLink = `
             <p><strong>Full request URL:</strong>
@@ -76,25 +106,24 @@
               ${fullUrl}
             </a></p>`;
         }
-      } catch (e) {
-        console.warn("Could not parse content JSON for full_url:", e);
-      }
+      } catch (e) {}
 
       details.innerHTML = `
         <summary>${summaryText}</summary>
         ${fullUrlLink}
-        <pre>${data.error || data.content || ""}</pre>
+        <pre>${JSON.stringify(data.content || data.error || "", null, 2)}</pre>
       `;
 
       cantonDiv.appendChild(details);
     };
 
-    evtSource.addEventListener("end", () => {
-      const done = document.createElement("h3");
-      done.textContent = "✅ All checks completed.";
-      resultsDiv.appendChild(done);
-      evtSource.close();
-    });
+    socket.onerror = (event) => {
+      console.error("🔥 WebSocket error", event);
+    };
+
+    socket.onclose = () => {
+      console.log("🔌 WebSocket closed");
+    };
   </script>
 </body>
 </html>

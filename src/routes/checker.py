@@ -1,75 +1,99 @@
-from fastapi import APIRouter, Request, Depends
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi import (
+    APIRouter,
+    WebSocket,
+    WebSocketDisconnect,
+    Request,
+)
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from settings_values import cantons
+
+import httpx
+import asyncio
+import json
+
 from src.services.security import verify_ip
-import httpx, json, asyncio
+from src.routes.cantons import get_cantons_data, filter_active_cantons
 
 router = APIRouter()
 templates = Jinja2Templates(directory="src/templates")
 
 
-@router.get("/checker/", response_class=HTMLResponse, dependencies=[Depends(verify_ip)])
-async def checker_page(request: Request):
+@router.get("/checker/", response_class=HTMLResponse)
+@router.get("/checker/{canton}", response_class=HTMLResponse)
+async def checker_page(request: Request, canton: str | None = None):
+
+    canton = canton.upper() if canton else ""
+
+    return templates.TemplateResponse(
+        "checker_ws.html", {"request": request, "canton": canton}
+    )
+
+
+@router.websocket("/checker/ws")
+async def checker_websocket(ws: WebSocket):
     """
-    Renders the main Service Availability Checker page.
-
-    This page loads the shell HTML (`checker_stream.html`) and starts the
-    streaming process via the `/checker/stream` endpoint using SSE (Server-Sent Events).
-
-    - **request**: FastAPI Request object
-    - Returns: HTML page
+    WebSocket endpoint:
+        - accepts: {"canton": "VD"} or {"canton": ""}
+        - streams JSON results as checks are performed
     """
-    return templates.TemplateResponse("checker_stream.html", {"request": request})
+    # accept connection only from whitelisted IP
+    await verify_ip(ws)
 
+    await ws.accept()
 
-@router.get("/checker/stream", dependencies=[Depends(verify_ip)])
-async def checker_stream():
-    """
-    Streams service availability check results as Server-Sent Events (SSE).
+    try:
+        init_msg = await ws.receive_text()
+        payload = json.loads(init_msg)
+        canton = payload.get("canton", "").strip().upper()
 
-    Acess is restricted to whitelisted IP addresses
+        full_config = get_cantons_data()
+        active_config = filter_active_cantons(full_config)
 
-    For each configured canton and example location:
-    - Calls `/v1/drill-category/{coord_x}/{coord_y}`
-    - Returns JSON data for each check:
-        - `canton`: Canton code
-        - `url`: Service URL checked
-        - `status`: HTTP status code
-        - `success`: True/False based on service response
-        - `content`: JSON content of the response
-        - `error`: Error message if request failed
+        if canton:
+            if canton not in active_config:
+                await ws.send_json(
+                    {"error": f"Canton '{canton}' not found or inactive."}
+                )
+                await ws.close()
+                return
+            config = {canton: active_config[canton]}
+        else:
+            config = active_config
 
-    Sends an `end` event when all checks are completed.
-    """
-    config = cantons.CANTONS["cantons_configurations"]
-
-    async def event_generator():
         async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
-            for canton, data in config.items():
+            for canton_code, data in config.items():
                 for location in data["exampleLocation"]:
-                    url = f"/v1/drill-category/{location[0]}/{location[1]}"
-                    result = {"canton": canton, "url": url}
+                    x = location[0]
+                    y = location[1]
+                    url = f"/v1/drill-category/{x}/{y}"
+                    result = {"canton": canton_code, "url": url}
 
                     try:
                         resp = await client.get(url, timeout=60.0)
                         result["status"] = resp.status_code
-                        if (
-                            resp.status_code == 200
-                            and resp.json().get("status") == "success"
-                        ):
-                            result["success"] = True
-                        else:
-                            result["success"] = False
 
-                        result["content"] = json.dumps(resp.json(), indent=2)
+                        try:
+                            body = resp.json()
+                        except:
+                            body = {}
+
+                        result["success"] = (
+                            resp.status_code == 200 and body.get("status") == "success"
+                        )
+
+                        result["content"] = body
+
                     except Exception as e:
                         result["error"] = str(e)
 
-                    # Send each result as JSON
-                    yield f"data: {json.dumps(result)}\n\n"
-                    await asyncio.sleep(0.1)
+                    await ws.send_json(result)
+                    await asyncio.sleep(0.05)
 
-        yield "event: end\ndata: done\n\n"
+        await ws.send_json({"event": "end"})
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    except WebSocketDisconnect:
+        pass
+
+    except Exception as e:
+        await ws.send_json({"error": f"Server error: {e}"})
+        await ws.close()
