@@ -755,16 +755,15 @@ CANTONS = {
                 [2502640, 1113946, 3, "Interdiction de géothermie"],
                 [2494984, 1116373, 3, "Géothermie sur nappe (système ouvert)"],
             ],
-            "wmsUrl": "https://app2.ge.ch/tergeoservices/rest/services/Hosted/GOL_EXPLOITATION_GEOTHERMIE/FeatureServer/0",
-            "mapServerUrl": "https://app2.ge.ch/tergeoservices/rest/services/Hosted/GOL_EXPLOITATION_GEOTHERMIE/MapServer/0",
+            "wmsUrl": "https://app2.ge.ch/tergeoservices/rest/services/Hosted/GOL_EXPLOITATION_GEOTHERMIE/FeatureServer",
+            "mapServerUrl": "https://app2.ge.ch/tergeoservices/rest/services/Hosted/GOL_EXPLOITATION_GEOTHERMIE/MapServer",
             "legendUrl": "",
             "style": "",
-            "wmsUrlEsriLayer": "22",
-            "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "arcgis/json",
             "layers": [
                 {
+                    "id": 0,
                     "name": "GOL_EXPLOITATION_GEOTHERMIE",
                     "rootName": "features",
                     "nodeName": "attributes",
@@ -780,7 +779,6 @@ CANTONS = {
                     ],
                 }
             ],
-            "active": True,
             "harmonyMap": [
                 {"sum": 1, "value": 1},
                 {"sum": 2, "value": 2},
@@ -795,14 +793,16 @@ CANTONS = {
                 [2582392, 1164789, 2, "SGV avec demande préalable obligatoire"],
                 [2582439, 1165031, 3, "SGV interdites"],
             ],
-            "wmsUrl": "https://map.geo.fr.ch/arcgis/rest/services/PortailCarto/Theme_environnement/MapServer/17",
+            # Base MapServer URL (layer = 17)
+            "wmsUrl": "https://map.geo.fr.ch/arcgis/rest/services/PortailCarto/Theme_environnement/MapServer",
             "legendUrl": "",
             "thematic_geoportal_url": "",
             "infoFormat": "arcgis/json",
             "style": "",
             "layers": [
                 {
-                    "name": "all:17",
+                    "id": 17,  # Required: ESRI REST layer ID
+                    "name": "Admissibilite_SGV",
                     "desc": "Admissibilite des sondes geothermiques SGV",
                     "rootName": "features",
                     "rootName2": "results",

@@ -91,41 +91,35 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
 
     async with httpx.AsyncClient(timeout=20.0) as client:
         try:
-            # ---------- ESRI REST Feature Service ----------
-            if info_format == "arcgis/json":
+            if "arcgis" in info_format:
                 for layer in config["layers"]:
-                    layer_name = layer["name"]
-                    esri_url = f"{config['wmsUrl'].rstrip('/')}/{layer_name}/query"
+                    layer_id = layer.get("id")
+                    if layer_id is None:
+                        raise RuntimeError(
+                            "Layer config missing 'id' for ESRI REST service"
+                        )
+
+                    esri_url = f"{config['wmsUrl'].rstrip('/')}/{layer_id}/query"
+
                     params = {
                         "geometry": f"{coord_x},{coord_y}",
                         "geometryType": "esriGeometryPoint",
                         "spatialRel": "esriSpatialRelIntersects",
                         "outFields": "*",
+                        "returnGeometry": "false",
                         "f": "json",
                     }
 
-                    try:
-                        resp = await client.get(esri_url, params=params)
-                        full_url = str(resp.request.url)
-                        resp.raise_for_status()
-                    except Exception as e:
-                        error_message = f"ESRI request failed: {e}"
-                        logger.error("%s — URL: %s", error_message, full_url)
-                        continue
+                    resp = await client.get(esri_url, params=params)
+                    full_url = str(resp.request.url)
+                    resp.raise_for_status()
 
-                    try:
-                        data = resp.json()
-                    except Exception as e:
-                        snippet = resp.text[:200]
-                        error_message = f"Invalid JSON for {full_url}: {e} ({snippet})"
-                        logger.error(error_message)
-                        continue
+                    data = resp.json()
+                    features_raw = data.get("features") or []
 
-                    raw_features = data.get("features", [])
-                    for feat in raw_features:
-                        if isinstance(feat, dict):
-                            attr = feat.get("attributes", {})
-                            features.append(normalize_feature(attr))
+                    for feat in features_raw:
+                        if isinstance(feat, dict) and "attributes" in feat:
+                            features.append(normalize_feature(feat["attributes"]))
 
             # ---------- WMS GetFeatureInfo ----------
             else:
@@ -151,8 +145,6 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                 wms_url = config["wmsUrl"]
                 try:
                     resp = await client.get(wms_url, params=params_wms)
-                    print("************************")
-                    print(resp.text)
                     full_url = str(resp.request.url)
                     resp.raise_for_status()
                 except Exception as e:
@@ -176,7 +168,6 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
         except Exception as e:
             error_message = f"Unexpected error in fetch_features_for_point: {e}"
             logger.exception(error_message)
-
     # Always return structured result (even if empty)
     return {
         "features": features,
@@ -190,83 +181,108 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
 # ============================================================
 async def parse_wms_getfeatureinfo(content: bytes, info_format: str):
     """
-    Parse WMS GetFeatureInfo (GML/XML) or ESRI REST JSON into Python dicts.
-    Supports MapServer's msGMLOutput (<*_feature>) and standard GML
-    (<gml:featureMember>).
+    Unified parser for:
+    • ESRI REST (arcgis/json, application/json, json)
+    • WMS GetFeatureInfo (GML/XML)
+    • MapServer msGMLOutput (<*_feature>)
+    • Standard GML (<gml:featureMember>)
     """
     text = content.decode("utf-8", errors="ignore")
-    info_format = info_format.lower()
+    info_format = (info_format or "").lower().strip()
 
-    try:
-        # ------------------------------------------------------------------
-        # JSON / ESRI
-        # ------------------------------------------------------------------
-        if "json" in info_format:
+    # ----------------------------------------------------------------------
+    # JSON / ESRI REST PARSING
+    # ----------------------------------------------------------------------
+    if "json" in info_format or "arcgis" in info_format:
+        try:
             data = json.loads(text)
-            features = []
+        except Exception as e:
+            raise HTTPException(500, f"Invalid JSON: {e}")
 
-            # ESRI REST format
-            if isinstance(data, dict) and "features" in data:
-                for feat in data["features"]:
-                    attr = feat.get("attributes", {}) if isinstance(feat, dict) else {}
-                    features.append(attr)
+        features = []
 
-            # Plain array of features
-            elif isinstance(data, list):
-                features = data
+        # (A) ArcGIS FeatureServer standard response
+        # ------------------------------------------------
+        if isinstance(data, dict) and "features" in data:
+            feats = data.get("features") or []  # may be null
+            for feat in feats:
+                if not isinstance(feat, dict):
+                    continue
 
-            else:
-                features = [data] if data else []
-
+                # typical structure: { "attributes": {..}, "geometry": {...} }
+                if "attributes" in feat and isinstance(feat["attributes"], dict):
+                    features.append(feat["attributes"])
+                else:
+                    # fallback: flatten feature
+                    features.append(
+                        {k: v for k, v in feat.items() if not isinstance(v, dict)}
+                    )
             return features
 
-        # ------------------------------------------------------------------
-        # GML / XML
-        # ------------------------------------------------------------------
-        elif "gml" in info_format or "xml" in info_format:
-            root = ET.fromstring(text)
-            ns = {"gml": "http://www.opengis.net/gml"}
-            features = []
+        # (B) Single ESRI feature: { "attributes": {...} }
+        # ------------------------------------------------
+        if isinstance(data, dict) and "attributes" in data:
+            return [data["attributes"]]
 
-            # 1) Standard GML features: <gml:featureMember>
-            gml_feature_members = root.findall(".//gml:featureMember", ns)
-            for fm in gml_feature_members:
-                fdict = {}
-                for child in fm.iter():
-                    tag = child.tag.split("}", 1)[-1]
-                    if tag in ("boundedBy", "geometry", "Polygon", "MultiPolygon"):
-                        continue
-                    if child.text and child.text.strip():
-                        fdict[tag] = child.text.strip()
-                if fdict:
-                    features.append(fdict)
+        # (C) Plain JSON list of objects
+        # ------------------------------------------------
+        if isinstance(data, list):
+            out = []
+            for item in data:
+                if isinstance(item, dict) and "attributes" in item:
+                    out.append(item["attributes"])
+                else:
+                    out.append(item)
+            return out
 
-            # 2) MapServer msGMLOutput features: <something_feature>
-            #    Example: <Eignungszonen_feature>
-            import re
+        # (D) fallback → return raw object
+        return [data]
 
-            for elem in root.iter():
-                if re.search(r"_feature$", elem.tag):
-                    fdict = {}
-                    for child in elem:
-                        tag = child.tag.split("}", 1)[-1]
-                        if tag in ("boundedBy", "geometry"):
-                            continue
-                        val = child.text.strip() if child.text else None
-                        if val:
-                            fdict[tag] = val
-                    if fdict:
-                        features.append(fdict)
-
-            return features
-
-        # ------------------------------------------------------------------
-        else:
-            raise ValueError(f"Unsupported infoFormat: {info_format}")
-
+    # ----------------------------------------------------------------------
+    # XML/GML WMS GetFeatureInfo PARSING
+    # ----------------------------------------------------------------------
+    try:
+        root = ET.fromstring(text)
     except Exception as e:
-        logger.error("Error parsing WMS/ESRI response: %s", e)
-        raise HTTPException(500, detail=f"Failed to parse WMS/ESRI response: {e}")
+        raise HTTPException(500, f"Invalid XML/GML: {e}")
+
+    ns = {"gml": "http://www.opengis.net/gml"}
+    features = []
+
+    # ----------------------------------------------------------------------
+    # (1) Standard GML <gml:featureMember>
+    # ----------------------------------------------------------------------
+    for fm in root.findall(".//gml:featureMember", ns):
+        fdict = {}
+        for el in fm.iter():
+            tag = el.tag.split("}", 1)[-1]
+            # skip geometry
+            if tag.lower() in ("boundedby", "geometry", "polygon", "multipolygon"):
+                continue
+            if el.text and el.text.strip():
+                fdict[tag] = el.text.strip()
+        if fdict:
+            features.append(fdict)
+
+    # ----------------------------------------------------------------------
+    # (2) MapServer msGMLOutput  <*_feature>
+    # ----------------------------------------------------------------------
+    import re
+
+    for elem in root.iter():
+        if re.search(r"_feature$", elem.tag):
+            fdict = {}
+            for child in elem:
+                tag = child.tag.split("}", 1)[-1]
+                if tag.lower() in ("boundedby", "geometry"):
+                    continue
+                val = child.text.strip() if child.text else None
+                if val:
+                    fdict[tag] = val
+            if fdict:
+                features.append(fdict)
+
+    return features
 
 
 # ============================================================
