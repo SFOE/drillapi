@@ -347,19 +347,40 @@ def process_ground_category(
     layer_results = []
     mapping_sum = 0
 
+
+def process_ground_category(
+    ground_features: list, config_layers: list, harmony_map: list
+):
+    """
+    Reclass canton response into normalized values.
+    """
+
+    # -----------------------------------------------------------
+    # No features → harmonized value = 4
+    # -----------------------------------------------------------
+    if not ground_features:
+        return {
+            "layer_results": [],
+            "mapping_sum": 0,
+            "harmonized_value": 4,
+            "note": "No features found; fallback to harmonized category 4.",
+        }
+
+    layer_results = []
+    mapping_sum = 0
+
     for layer_cfg in config_layers:
         layer_name = layer_cfg.get("name")
         property_name = layer_cfg.get("propertyName")
-        property_values = layer_cfg.get("propertyValues", [])
+        property_values = layer_cfg.get("propertyValues")
 
         layer_summand = 0
         description = None
         last_value = None
 
         for feature in ground_features:
-
+            # ESRI REST support
             if isinstance(feature, dict):
-                # ESRI REST feature: attributes inside 'attributes'
                 if "attributes" in feature and isinstance(feature["attributes"], dict):
                     value = feature["attributes"].get(property_name)
                 else:
@@ -367,20 +388,20 @@ def process_ground_category(
             else:
                 value = feature
 
-            if not value:
-                continue
-
             value = normalize_string(value)
             last_value = value
 
-            # exact match search
-            for item in property_values:
-                if item.get("name") == value:
-                    layer_summand += item.get("summand", 0)
-                    description = item.get("desc")
-                    break
+            # -------------------------
+            # TODO: check summand logic!
+            # -------------------------
+            if property_values:
+                for item in property_values:
+                    if item.get("name") == value:
+                        layer_summand = item.get("summand", 0)
+                        description = item.get("desc")
+                        break
 
-        mapping_sum += layer_summand
+        mapping_sum = layer_summand
 
         layer_results.append(
             {
@@ -392,15 +413,21 @@ def process_ground_category(
             }
         )
 
+    harmonized_value = None
     if harmony_map:
-        match = next((h["value"] for h in harmony_map if h["sum"] == mapping_sum), None)
+        for h in harmony_map:
+            if h.get("sum") == mapping_sum:
+                harmonized_value = h.get("value")
+                break
 
-        if match is not None:
-            harmonized_value = match
-        else:
-            # JS fallback: sum=0 → 4
-            harmonized_value = 4 if mapping_sum == 0 else None
+        if harmonized_value is None:
+            # fallback sum=0 → 4
+            if mapping_sum == 0:
+                harmonized_value = 4
+            else:
+                harmonized_value = None
     else:
+        # fallback when no harmony map
         harmonized_value = 4 if mapping_sum == 0 else None
 
     return {
