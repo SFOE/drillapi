@@ -155,10 +155,9 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                     }
 
                 try:
-                    raw_features = await parse_wms_getfeatureinfo(
+                    features = await parse_wms_getfeatureinfo(
                         resp.content, config["infoFormat"]
                     )
-                    features.extend([normalize_feature(f) for f in raw_features])
                 except Exception as e:
                     error_message = f"Failed to parse WMS response: {e}"
                     logger.error("%s — URL: %s", error_message, full_url)
