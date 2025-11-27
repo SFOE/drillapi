@@ -82,6 +82,23 @@ async def checker_websocket(ws: WebSocket):
                         )
 
                         result["content"] = body
+                        if body.get("ground_category"):
+                            calculated_harmonized_value = body.get(
+                                "ground_category"
+                            ).get("harmonized_value")
+                            control_harmonized_value = location[2]
+                            if control_harmonized_value == calculated_harmonized_value:
+
+                                result["control_harmonized_values"] = "success"
+                                result["control_harmonized_values_message"] = (
+                                    "Harmonized value matches control value."
+                                )
+                            else:
+                                result["control_harmonized_values"] = "error"
+                                result["control_harmonized_values_message"] = (
+                                    f"❌ Harmonized value mismatch at coordinates ({x},{y}): "
+                                    f"expected '{control_harmonized_value}', got '{calculated_harmonized_value}'"
+                                )
 
                     except Exception as e:
                         result["error"] = str(e)

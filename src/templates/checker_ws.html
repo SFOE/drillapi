@@ -87,14 +87,15 @@
       }
 
       const details = document.createElement("details");
-      const success = data.success === true;
-      details.classList.add(success ? "success-box" : "error-box");
 
-      const summaryText = data.error
-        ? `❌ Request Error for ${data.url}`
-        : success
-        ? `✅ Success (HTTP ${data.status}) - ${data.url}`
-        : `❌ Failed (HTTP ${data.status}) - ${data.url}`;
+      // Consider it an error if success is false OR control_harmonized_values is "error"
+      const isError = !data.success || data.control_harmonized_values === "error";
+
+      details.classList.add(isError ? "error-box" : "success-box");
+
+      const summaryText = isError
+        ? `❌ Request/Error for ${data.url}`
+        : `✅ Success (HTTP ${data.status}) - ${data.url}`;
 
       let fullUrlLink = "";
       try {
@@ -110,11 +111,13 @@
 
       details.innerHTML = `
         <summary>${summaryText}</summary>
-        ${fullUrlLink}
+        ${fullUrlLink}<br>
+        <b>${data.control_harmonized_values_message}</b>
         <pre>${JSON.stringify(data.content || data.error || "", null, 2)}</pre>
       `;
 
       cantonDiv.appendChild(details);
+
     };
 
     socket.onerror = (event) => {
