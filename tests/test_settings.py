@@ -4,7 +4,7 @@ from settings_values.cantons import CANTONS
 
 
 class PropertyValue(BaseModel):
-    name: Union[int, str]
+    name: str
     summand: int
 
 

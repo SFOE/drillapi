@@ -302,7 +302,6 @@ def process_ground_category(
                 value = feature
 
             value = normalize_string(value)
-
             if property_values:
                 for item in property_values:
                     # Match with values for layers that have a defined mapping
@@ -310,7 +309,7 @@ def process_ground_category(
                     if item.get("name") == value:
                         mapped_values.append(item.get("summand"))
                         description = item.get("desc")
-                        # break
+
             # For some cantons, only the presence or absence of feature is used to define suitability
             else:
                 if layer_cfg.get("propertyName") == feature.get("layerName"):
@@ -327,6 +326,7 @@ def process_ground_category(
         )
 
     # property_values variable contains the mapping between attribute value and drillapi categories (1,2,3)
+
     if mapped_values:
         harmonized_value = max(mapped_values)
 

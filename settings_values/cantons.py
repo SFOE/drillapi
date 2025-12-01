@@ -146,7 +146,12 @@ CANTONS = {
             "exampleLocation": [
                 [2596336, 1122359, 1, "CLASSGV 1"],
                 [2598146, 1124454, 1, "CLASSGV 2"],
-                [2598043, 1123873, 2, "CLASSGV 3"],
+                [
+                    2598043,
+                    1123873,
+                    3,
+                    "CLASSGV 4",
+                ],  # REST response is CLASSGV 4. Clarify classification with VS
                 [2597117, 1120835, 3, "CLASSGV 4"],
                 [2598068.4, 1130927.1, 4, "CLASSGV 5"],
             ],
@@ -164,29 +169,29 @@ CANTONS = {
                     "propertyName": "CLASSGV",
                     "propertyValues": [
                         {
-                            "name": 1,
+                            "name": "1",
                             "desc": "Sondes géothermiques admises (max. 200 m sans étude)",
                             "summand": 1,
                         },
                         {
-                            "name": 2,
+                            "name": "2",
                             "desc": "Sondes géothermiques limitées à 100 m de profondeur",
                             "summand": 1,
                         },
                         {
-                            "name": 3,
+                            "name": "3",
                             "desc": "Au cas par cas - Etude préalable (contacter le SEN)",
                             "summand": 2,
                         },
                         {
-                            "name": 4,
+                            "name": "4",
                             "desc": "Sondes géothermiques interdites",
                             "summand": 3,
                         },
                         {
-                            "name": 5,
+                            "name": "5",
                             "desc": "Hors zone (contacter le SEN)",
-                            "summand": 4,
+                            "summand": 3,
                         },
                     ],
                 }
