@@ -42,9 +42,7 @@ async def get_drill_category(
         "detail": result["error"],
     }
     # --- Process features into ground category ---
-    features = services.process_ground_category(
-        features, canton_config["layers"], canton_config["harmonyMap"]
-    )
+    features = services.process_ground_category(features, canton_config["layers"])
 
     return {
         "coord_x": coord_x,

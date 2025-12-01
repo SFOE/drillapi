@@ -4,7 +4,7 @@ from settings_values.cantons import CANTONS
 
 
 class PropertyValue(BaseModel):
-    name: Union[int, str]
+    name: str
     summand: int
 
 
@@ -15,12 +15,7 @@ class Layer(BaseModel):
     summand: Optional[int] = None
 
 
-class HarmonyMapItem(BaseModel):
-    sum: int
-    value: int
-
-
-class Region(BaseModel):
+class Cantonconfig(BaseModel):
     active: bool
     name: str
     exampleLocation: List[List[Union[int, float, str]]]
@@ -30,7 +25,6 @@ class Region(BaseModel):
     infoFormat: str
     style: Optional[str]
     layers: List[Layer]
-    harmonyMap: List[HarmonyMapItem]
 
     @field_validator("layers")
     @classmethod
@@ -54,7 +48,7 @@ def test_cantons_configuration_integrity():
     """
     for canton_name, canton_data in CANTONS["cantons_configurations"].items():
         # Pydantic validation
-        region = Region(**canton_data)
+        region = Cantonconfig(**canton_data)
 
 
 if __name__ == "__main__":

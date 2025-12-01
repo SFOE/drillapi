@@ -1,5 +1,6 @@
 import httpx
 import json
+import re
 import xml.etree.ElementTree as ET
 from fastapi import HTTPException
 import logging
@@ -181,12 +182,7 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
 
 async def parse_wms_getfeatureinfo(content: bytes, info_format: str):
     """
-    Fully unified parser for:
-    • ESRI REST  (arcgis/json, application/json, json)
-    • GeoJSON    (FeatureCollection, Feature)
-    • WMS GML    (gml:featureMember)
-    • MapServer  (msGMLOutput via <*_feature>)
-    • Fallbacks  (single object, list objects)
+    Parser for differents geoservices outputs
     """
 
     text = content.decode("utf-8", errors="ignore")
@@ -202,67 +198,17 @@ async def parse_wms_getfeatureinfo(content: bytes, info_format: str):
             raise HTTPException(500, f"Invalid JSON: {e}")
 
         # -------------------------------
-        # 1) GeoJSON FeatureCollection
+        # GeoJSON FeatureCollection
         # -------------------------------
         if isinstance(data, dict) and data.get("type") == "FeatureCollection":
-            feats = []
-            print(data)
-            for feat in data.get("features", []):
-                props = feat.get("properties", {})
+            features = []
+
+            for feature in data.get("features", []):
+                props = feature.get("properties", {})
+                props["layerName"] = feature.get("layerName")
                 if isinstance(props, dict):
-                    feats.append(props)
-            return feats
-
-        # -------------------------------
-        # 2) GeoJSON single Feature
-        # -------------------------------
-        if isinstance(data, dict) and data.get("type") == "Feature":
-            props = data.get("properties", {})
-            return [props] if isinstance(props, dict) else [{}]
-
-        # -------------------------------
-        # 3) ArcGIS FeatureServer array
-        # -------------------------------
-        if isinstance(data, dict) and "features" in data:
-            feats = []
-            for feat in data.get("features") or []:
-                if isinstance(feat, dict):
-                    if isinstance(feat.get("attributes"), dict):
-                        feats.append(feat["attributes"])
-                    else:
-                        # flatten fallback
-                        feats.append(
-                            {k: v for k, v in feat.items() if not isinstance(v, dict)}
-                        )
-            return feats
-
-        # -------------------------------
-        # 4) ArcGIS single element
-        # -------------------------------
-        if isinstance(data, dict) and isinstance(data.get("attributes"), dict):
-            return [data["attributes"]]
-
-        # -------------------------------
-        # 5) Plain JSON array
-        # -------------------------------
-        if isinstance(data, list):
-            out = []
-            for item in data:
-                if isinstance(item, dict):
-                    if "attributes" in item and isinstance(item["attributes"], dict):
-                        out.append(item["attributes"])
-                    elif "properties" in item and isinstance(item["properties"], dict):
-                        out.append(item["properties"])
-                    else:
-                        out.append(item)
-                else:
-                    out.append(item)
-            return out
-
-        # -------------------------------
-        # 6) Fallback single object
-        # -------------------------------
-        return [data]
+                    features.append(props)
+            return features
 
     # ----------------------------------------------------------------------
     # GML / XML PARSING  (OWSLib-compatible)
@@ -295,7 +241,6 @@ async def parse_wms_getfeatureinfo(content: bytes, info_format: str):
     # ----------------------------------------------------------------------
     # 2) MapServer msGMLOutput   <*_feature>
     # ----------------------------------------------------------------------
-    import re
 
     for elem in root.iter():
         if re.search(r"_feature$", elem.tag):
@@ -314,7 +259,8 @@ async def parse_wms_getfeatureinfo(content: bytes, info_format: str):
 
 
 def process_ground_category(
-    ground_features: list, config_layers: list, harmony_map: list
+    ground_features: list,
+    config_layers: list,
 ):
     """
     Reclass canton response into normalized values.
@@ -325,22 +271,25 @@ def process_ground_category(
     if not ground_features:
         return {
             "layer_results": [],
-            "mapping_sum": 0,
             "harmonized_value": 4,
-            "note": "No features found; fallback to harmonized category 4.",
         }
 
     layer_results = []
-    mapping_sum = 0
 
+    mapped_values = []
+    harmonized_value = None
+
+    # For each canton, multiple layers are requested (single request to WMS / ESRI)
+    # The returned feature(s) are then compared with mapping values defined for:
+    #  - Each layer
+    #  - Each possible value in each layer
+    #  - Some geoservices associate one layer to one category. In this case, layer names are compared, not attribute values
     for layer_cfg in config_layers:
         layer_name = layer_cfg.get("name")
         property_name = layer_cfg.get("propertyName")
         property_values = layer_cfg.get("propertyValues")
 
-        layer_summand = 0
         description = None
-        last_value = None
 
         for feature in ground_features:
             # ESRI REST support
@@ -353,49 +302,39 @@ def process_ground_category(
                 value = feature
 
             value = normalize_string(value)
-            last_value = value
-
-            # -------------------------
-            # TODO: check summand logic!
-            # -------------------------
             if property_values:
                 for item in property_values:
+                    # Match with values for layers that have a defined mapping
+
                     if item.get("name") == value:
-                        layer_summand = item.get("summand", 0)
+                        mapped_values.append(item.get("summand"))
                         description = item.get("desc")
-                        break
 
-        mapping_sum = layer_summand
+            # For some cantons, only the presence or absence of feature is used to define suitability
+            else:
+                if layer_cfg.get("propertyName") == feature.get("layerName"):
+                    mapped_values.append(layer_cfg.get("summand"))
 
+        # Helping function to identify issues. Only "harmonized_value is useful for frontend application"
         layer_results.append(
             {
                 "layer": layer_name,
                 "propertyName": property_name,
-                "value": last_value,
-                "summand": layer_summand,
+                "value": value,
                 "description": description,
             }
         )
 
-    harmonized_value = None
-    if harmony_map:
-        for h in harmony_map:
-            if h.get("sum") == mapping_sum:
-                harmonized_value = h.get("value")
-                break
+    # property_values variable contains the mapping between attribute value and drillapi categories (1,2,3)
 
-        if harmonized_value is None:
-            # fallback sum=0 → 4
-            if mapping_sum == 0:
-                harmonized_value = 4
-            else:
-                harmonized_value = None
-    else:
-        # fallback when no harmony map
-        harmonized_value = 4 if mapping_sum == 0 else None
+    if mapped_values:
+        harmonized_value = max(mapped_values)
+
+    # If no value is found, fallback value is = 4
+    if not harmonized_value:
+        harmonized_value = 4
 
     return {
         "layer_results": layer_results,
-        "mapping_sum": mapping_sum,
         "harmonized_value": harmonized_value,
     }
