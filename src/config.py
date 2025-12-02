@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: List[str]
     ENVIRONMENT: str
 
+
 # Define test variables here
 class SettingsTest(BaseSettings):
     RATE_LIMIT: str = "1000/minute"
