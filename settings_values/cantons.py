@@ -68,7 +68,7 @@ CANTONS = {
             ],
             "wms_url": "https://geoservices.jura.ch/wms",
             "thematic_geoportal_url": "https://geo.jura.ch/theme/POI?lang=fr&map_x=2580390&map_y=1242845&map_zoom=1&tree_groups=Geologie%2CPoint%20d%27interets%20-%20Exclusive&tree_group_layers_Point%20d%27interets%20-%20Exclusive=sdt_09_08_fermeture_provisoire%2Cpoc_20_03_points_rencontre_urgence%2Crea_19_03_defibrillateurs%2Csdt_17_01_points_interets_administration&baselayer_ref=sdt_01_03_mensuration_officielle&baselayer_opacity=0&tree_enable_env_18_06_cadastre_geologique=false&tree_enable_env_18_03_geothermie_limitation_forages_sondes_geothermiques=true",
-            "legend_url": "https://geoservices.jura.ch/wms?version=1.3.0&service=WMS&request=GetLegendGraphic&sld_version=1.1.0&layer=ju.env_18_01_geotopes_geomorphologiques_point&format=image/png&STYLE=default",
+            "legend_url": "https://geoservices.jura.ch/wms?version=1.3.0&service=WMS&request=GetLegendGraphic&sld_version=1.1.0&layer=ju.env_18_03_geothermie_limitation_forages_sondes_geothermiques&format=image/png&STYLE=default",
             "info_format": "application/vnd.ogc.gml",
             "style": "",
             "layers": [
