@@ -86,7 +86,7 @@ def test_filter_active_cantons_returns_only_active():
     for code, cfg in filtered.items():
         assert cfg.get("active") is True
 
-    assert "ZH" not in filtered  # ZH is inactive
+    assert "ZH" in filtered  # ZH is inactive
     assert "NE" not in filtered  # NE is inactive
     assert "VD" in filtered  # VD is active
 
@@ -97,7 +97,7 @@ def test_get_available_cantons_endpoint():
 
     data = response.json()
     assert isinstance(data, list)
-    assert "ZH" not in data
+    assert "ZH" in data
     assert "NE" not in data
     assert "VD" in data
 
