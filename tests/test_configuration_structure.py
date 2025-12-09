@@ -42,7 +42,6 @@ class Cantonconfig(BaseModel):
         return v
 
 
-
 def test_cantons_configuration_integrity():
     """
     Ensure all cantons configuration entries respect the Region structure

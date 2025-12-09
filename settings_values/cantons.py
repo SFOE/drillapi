@@ -283,8 +283,6 @@ CANTONS = {
             "layers": [
                 {
                     "name": "29",
-                    "rootName": "features",
-                    "nodeName": "attributes",
                     "property_name": "CLASSGV",
                     "property_values": [
                         {
@@ -629,8 +627,6 @@ CANTONS = {
             "layers": [
                 {
                     "name": "ch.ow.ews_zulaessigkeit",
-                    "rootName": "features",
-                    "nodeName": "properties",
                     "property_name": "Zulaessigkeit",
                     "property_values": [
                         {
@@ -690,8 +686,6 @@ CANTONS = {
             "layers": [
                 {
                     "name": "ch.nw.waermenutzungsbereiche",
-                    "rootName": "features",
-                    "nodeName": "properties",
                     "property_name": "Art",
                     "property_values": [
                         {
@@ -876,8 +870,6 @@ CANTONS = {
                 {
                     "id": 0,
                     "name": "GOL_EXPLOITATION_GEOTHERMIE",
-                    "rootName": "features",
-                    "nodeName": "attributes",
                     "property_name": "secteur",
                     "property_values": [
                         {
@@ -909,9 +901,9 @@ CANTONS = {
                 [2582439, 1165031, 3, "SGV interdites"],
             ],
             # Base MapServer URL (layer = 17)
-            "wms_url": "https://map.geo.fr.ch/arcgis/rest/services/PortailCarto/Theme_environnement/MapServer",
+            "wms_url": "https://map.geo.fr.ch/arcgis/services/PortailCarto/Theme_environnement/MapServer/WmsServer",
             "query_url": "https://map.geo.fr.ch/arcgis/rest/services/PortailCarto/Theme_environnement/MapServer",
-            "legend_url": "",
+            "legend_url": "https://map.geo.fr.ch/arcgis/services/PortailCarto/Theme_environnement/MapServer/WmsServer?SERVICE=WMS&VERSION=1.1.3&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=Admissibilite_des_sondes_geothermiques_SGV37370",
             "thematic_geoportal_url": "https://map.geo.fr.ch/?share=a526a596-5cde-491e-b22d-6d692e78f25b",
             "info_format": "arcgis/json",
             "bbox_delta": 10,
@@ -919,13 +911,9 @@ CANTONS = {
             "layers": [
                 {
                     "id": 17,  # Required: ESRI REST layer ID
-                    "name": "Admissibilite_SGV",
+                    "name": "Admissibilite_des_sondes_geothermiques_SGV37370",
                     "desc": "Admissibilite des sondes geothermiques SGV",
-                    "rootName": "features",
-                    "rootName2": "results",
-                    "nodeName": "attributes",
                     "property_name": "DA_SGV_DESC",
-                    "property_name2": "Admissibilité",
                     "property_values": [
                         {"name": "SGV autorisées", "target_harmonized_value": 1},
                         {
