@@ -1,8 +1,6 @@
 name: Publish Docker Image to AWS ECR
 
 on:
-  pull_request:
-    types: [opened, synchronize]
   release:
     types: [published]
   push:
