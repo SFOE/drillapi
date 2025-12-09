@@ -12,6 +12,7 @@ CANTONS = {
             "thematic_geoportal_url": "https://sitn.ne.ch/",
             "legend_url": "https://sitn.ne.ch/mapserv_proxy?ogcserver=private-png&cache_version=aba7524205e1498bb54f6c63b29dd14e&FORMAT=image%2Fpng&TRANSPARENT=true&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&LAYER=eg36_geotherm_carte_finale&SCALE=357142.1428571427",
             "info_format": "application/vnd.ogc.gml",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -72,6 +73,7 @@ CANTONS = {
             "thematic_geoportal_url": "https://geo.jura.ch/theme/POI?lang=fr&map_x=2580390&map_y=1242845&map_zoom=1&tree_groups=Geologie%2CPoint%20d%27interets%20-%20Exclusive&tree_group_layers_Point%20d%27interets%20-%20Exclusive=sdt_09_08_fermeture_provisoire%2Cpoc_20_03_points_rencontre_urgence%2Crea_19_03_defibrillateurs%2Csdt_17_01_points_interets_administration&baselayer_ref=sdt_01_03_mensuration_officielle&baselayer_opacity=0&tree_enable_env_18_06_cadastre_geologique=false&tree_enable_env_18_03_geothermie_limitation_forages_sondes_geothermiques=true",
             "legend_url": "https://geoservices.jura.ch/wms?version=1.3.0&service=WMS&request=GetLegendGraphic&sld_version=1.1.0&layer=ju.env_18_03_geothermie_limitation_forages_sondes_geothermiques&format=image/png&STYLE=default",
             "info_format": "application/vnd.ogc.gml",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -110,80 +112,116 @@ CANTONS = {
             "active": True,
             "name": "ZH",
             "ground_control_point": [
-                [2674790, 1259760, 2, "Auflagen & waermenutzung-zone-d"],
-                [2689003, 1274084, 3, "waermenutzung-zone-a"],
-                [2681001, 1260920, 3, "waermenutzung-zone-b"],
-                [2689003, 1274084, 3, "waermenutzung-zone-c"],
-                [2684610, 1256659, 3, "waermenutzung-zone-d"],
-                [2684909, 1249849, 3, "waermenutzung-zone-e"],
-                [2684200, 1244025, 1, "waermenutzung-zone-f"],
+                [2677790, 1260185, 2, "Auflagen & waermenutzung-zone-d"],
+                [2688561, 1274977, 3, "Zone A (Schutzzonen und Schutzareale)"],
+                [
+                    2681563,
+                    1248410,
+                    2,
+                    "Zone B (Schotter-Grundwasservorkommen, geeignet für Trinkwassergewinnung)",
+                ],
+                [
+                    2680649,
+                    1246765,
+                    2,
+                    "Zone C (Schotter-Grundwasservorkommen, ungeeignet für Trinkwassergewinnung)",
+                ],
+                [
+                    2692350,
+                    1275334,
+                    2,
+                    "Zone D (Schotter-Grundwasservorkommen, ungeeignet für Trinkwassergewinnung)",
+                ],
+                [
+                    2693733,
+                    1238583,
+                    2,
+                    "Zone E (Quellwassergebiete, geeignet für Trinkwassergewinnung)",
+                ],
             ],
             "wms_url": "https://wms.zh.ch/AwelGSWaermewwwZHWMS",
             "query_url": "https://wms.zh.ch/AwelGSWaermewwwZHWMS",
             "thematic_geoportal_url": "https://maps.zh.ch/?topic=AwelGSWaermewwwZH&x=2685104.6444391827&y=1252283.9396742217&scale=70517.93063503089",
-            "legend_url": "",
+            "legend_url": "https://wms.zh.ch/AwelGSWaermewwwZHWMS?version=1.3.0&service=WMS&request=GetLegendGraphic&sld_version=1.1.0&layer=erdwaermesonden-auflagen&format=image/png&STYLE=default",
             "info_format": "application/vnd.ogc.gml",
+            "bbox_delta": 30,
             "style": "",
             "layers": [
                 {
                     "name": "erdwaermesonden-auflagen",
                     "property_name": "zonen",
                     "property_values": [
-                        {"name": "undefined", "target_harmonized_value": 0},
+                        {"name": "undefined", "target_harmonized_value": 4},
                         {"name": "Auflagen", "target_harmonized_value": 1},
-                        {"name": "Verbot", "target_harmonized_value": 2},
+                        {"name": "Verbot", "target_harmonized_value": 3},
                     ],
                 },
                 {
                     "name": "waermenutzung-zone-a",
-                    "property_name": "geodb_oid",
-                    "target_harmonized_value": 10,
+                    "property_name": "name",
+                    "target_harmonized_value": 2,
+                    "property_values": [
+                        {
+                            "name": "Zone A (Schutzzonen und Schutzareale)",
+                            "target_harmonized_value": 3,
+                        },
+                    ],
                 },
                 {
                     "name": "waermenutzung-zone-b",
-                    "property_name": "geodb_oid",
-                    "target_harmonized_value": 20,
+                    "property_name": "name",
+                    "target_harmonized_value": 2,
+                    "property_values": [
+                        {
+                            "name": "Zone B (Schotter-Grundwasservorkommen, geeignet für Trinkwassergewinnung)",
+                            "target_harmonized_value": 2,
+                        },
+                    ],
                 },
                 {
                     "name": "waermenutzung-zone-c",
-                    "property_name": "geodb_oid",
-                    "target_harmonized_value": 30,
+                    "property_name": "name",
+                    "target_harmonized_value": 2,
+                    "property_values": [
+                        {
+                            "name": "Zone C (Schotter-Grundwasservorkommen, ungeeignet für Trinkwassergewinnung)",
+                            "target_harmonized_value": 2,
+                        },
+                    ],
                 },
                 {
                     "name": "waermenutzung-zone-d",
-                    "property_name": "geodb_oid",
-                    "target_harmonized_value": 40,
+                    "property_name": "name",
+                    "target_harmonized_value": 2,
+                    "property_values": [
+                        {
+                            "name": "Zone D (Schotter-Grundwasservorkommen, ungeeignet für Trinkwassergewinnung)",
+                            "target_harmonized_value": 2,
+                        },
+                    ],
                 },
                 {
                     "name": "waermenutzung-zone-e",
-                    "property_name": "geodb_oid",
-                    "target_harmonized_value": 50,
+                    "property_name": "name",
+                    "target_harmonized_value": 2,
+                    "property_values": [
+                        {
+                            "name": "Zone E (Quellwassergebiete, geeignet für Trinkwassergewinnung)",
+                            "target_harmonized_value": 2,
+                        },
+                    ],
                 },
                 {
                     "name": "waermenutzung-zone-f",
-                    "property_name": "geodb_oid",
-                    "target_harmonized_value": 60,
+                    "property_name": "name",
+                    "target_harmonized_value": 2,
+                    "property_values": [
+                        {
+                            "name": "Zone F (Ausserhalb nutzbarer Grundwasservorkommen)",
+                            "target_harmonized_value": 2,
+                        },
+                    ],
                 },
-            ],
-            "harmonyMap": [
-                {"sum": 10, "value": 3},
-                {"sum": 11, "value": 3},
-                {"sum": 12, "value": 3},
-                {"sum": 20, "value": 3},
-                {"sum": 21, "value": 3},
-                {"sum": 22, "value": 3},
-                {"sum": 32, "value": 3},
-                {"sum": 42, "value": 3},
-                {"sum": 52, "value": 3},
-                {"sum": 62, "value": 3},
-                {"sum": 30, "value": 2},
-                {"sum": 31, "value": 2},
-                {"sum": 41, "value": 2},
-                {"sum": 50, "value": 2},
-                {"sum": 51, "value": 2},
-                {"sum": 61, "value": 2},
-                {"sum": 40, "value": 1},
-                {"sum": 60, "value": 1},
             ],
         },
         "ZG": {
@@ -200,6 +238,7 @@ CANTONS = {
             "legend_url": "",
             "thematic_geoportal_url": "https://zugmap.ch/bmcl/?project=ZugMap.ch&legend=alle%20Themen&rotation=0.00&scale=26941&center=2681358,1225229&layers=6585bde8-1bc8-499c-a4b8-21ec30a0e426",
             "info_format": "application/vnd.ogc.gml",
+            "bbox_delta": 10,
             "style": "default",
             "layers": [
                 {
@@ -239,6 +278,7 @@ CANTONS = {
             "legend_url": "https://sit.vs.ch/arcgis/services/ENVIRONNEMENT/MapServer/WMSServer?request=GetLegendGraphic%26version=1.3.0%26format=image/png%26layer=29",
             "thematic_geoportal_url": "https://sitonline.vs.ch/environnement/eso_admissibilite_PAC/#/?lang=fr",
             "info_format": "application/geo+json",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -290,6 +330,7 @@ CANTONS = {
             "legend_url": "https://www.ogc.vd.ch/public/services/OGC/wmsVD/Mapserver/WMSServer?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&FORMAT=image%2Fpng&LAYER=vd.admissibilite_indicative_sonde_geothermique",
             "thematic_geoportal_url": "https://www.geo.vd.ch/?visiblelayers=%7B%22GEO_THEME_ENERG%22%3A%5B%22Potentiel%20thermique%20global%22%2C%22Type%20de%20site%22%5D%7D&share=4c196dee-a011-479e-abd1-2a805f1b34a3",
             "info_format": "application/geo+json",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -328,6 +369,7 @@ CANTONS = {
             "legend_url": "",
             "thematic_geoportal_url": "https://geo.ur.ch/?center=962589%2C5922132&layers=Zul%C3%A4ssigkeit%20Grundwasserw%C3%A4rmepumpen&opacity=0.3&visibility=true&zoom=12",
             "info_format": "application/vnd.ogc.gml",
+            "bbox_delta": 10,
             "style": "",
             "style": "",
             "layers": [
@@ -366,6 +408,7 @@ CANTONS = {
             "legend_url": "https://www4.ti.ch/fileadmin/GENERALE/IGDAC/ccgeo/legends/ac_059_1_v1_0/ac_059_1_v1_0_idoneita_sonde_geotermiche_.png",
             "thematic_geoportal_url": "https://map.geo.ti.ch/?lang=it&baselayer_ref=Carta%20Nazionale%20%28bianco%20e%20nero%29&tree_group_layers_Idoneit%C3%A0%20sonde%20geotermiche=Idoneit%C3%A0%20sonde%20geotermiche&tree_groups=Idoneit%C3%A0%20sonde%20geotermiche",
             "info_format": "application/vnd.ogc.gml",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -410,6 +453,7 @@ CANTONS = {
             "legend_url": "https://map.geo.tg.ch/services/geofy_chsdi3/static/images/legends/erdwaerme_eignung_de.png",
             "thematic_geoportal_url": "https://map.geo.tg.ch/apps/mf-geoadmin3/?lang=de&topic=geologieboden&E=2718775.00&N=1270425.00&zoom=1&layers_opacity=1,1,0.9&layers=erdwaerme_eignung,erdwaerme_erdwaermesondenbohrungen,grundwasserkarte-fassung",
             "info_format": "application/vnd.ogc.gml",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -448,6 +492,7 @@ CANTONS = {
             "legend_url": "",
             "thematic_geoportal_url": "https://map.geo.sz.ch/?lang=fr&map_x=2697700&map_y=1213275&map_zoom=0&baselayer_ref=Landeskarte%20(farbig)&tree_groups=grp_Energie_Erdw%C3%A4rmenutzung%2Cgrp_Energie_Frei_Leitungskataster%2Cgrp_Energie_Netzgebiete%2Cgrp_Energie_Solarenergie%2Cgrp_Energie_Wasserw%C3%A4rmenutzung&tree_group_layers_grp_Energie_Erdw%C3%A4rmenutzung=ch.sz.a034c.waermenutzung.erdwaermeanlage.erdwaermesonde%2Cch.sz.a034c.waermenutzung.erdwaermeanlage.erdwaermesonde_nicht_bewilligungsfaehig%2Cch.sz.a034c.waermenutzung.erdwaermeanlage.energiepfahl%2Cch.sz.a034c.waermenutzung.erdwaermeanlage.energiekorb%2Cch.sz.a034c.waermenutzung.erdwaermeanlage.erdregister%2Cch.sz.a034c.waermenutzung.erdwaerme",
             "info_format": "application/vnd.ogc.gml",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -488,6 +533,7 @@ CANTONS = {
             "legend_url": "",
             "thematic_geoportal_url": "https://map.geo.sh.ch/geoportal/?project=Geoportal%20Schaffhausen&legend=Legende&rotation=0.00&scale=90202&center=2692188,1282000&layers=0bf7129c-2c80-4371-941f-556c4a6ba1f1",
             "info_format": "application/vnd.ogc.gml",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -536,6 +582,7 @@ CANTONS = {
             "legend_url": "",
             "thematic_geoportal_url": "https://www.geoportal.ch/ktsg/map/29?y=2743944.00&x=1231900.00&scale=300000&rotation=0",
             "info_format": "application/geo+json",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -577,6 +624,7 @@ CANTONS = {
             "legend_url": "",
             "thematic_geoportal_url": "https://www.gis-daten.ch/map/ow_waermenutzung",
             "info_format": "application/json",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -637,6 +685,7 @@ CANTONS = {
             "legend_url": "",
             "thematic_geoportal_url": "https://www.gis-daten.ch/map/nw_waermenutzung",
             "info_format": "application/json",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -708,6 +757,7 @@ CANTONS = {
             "legend_url": "https://github.com/SFOE/SuitabilityGeothermalDrillingSwitzerland/raw/main/images/legend_lu.png",
             "thematic_geoportal_url": "https://map.geo.lu.ch/gebaeudeenergie/erdwaerme/",
             "info_format": "application/geo+json",
+            "bbox_delta": 10,
             "style": "",
             "loopLayers": True,
             # no property values for this canton, only layers are matched if request hits a polygon
@@ -759,6 +809,7 @@ CANTONS = {
             "legend_url": "https://map.geo.gr.ch/mapserv_proxy?ogcserver=Kanton+Graub%C3%BCnden%2C+Energie&cache_version=6cf674ab2fb648a0ac60156e614e4bbe&FORMAT=image%2Fpng&TRANSPARENT=true&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&LAYERTITLE=FALSE&Itemfontsize=10&LAYER=uGSP_Zulaessigkeit&SCALE=499998.9999999998",
             "thematic_geoportal_url": "https://map.geo.gr.ch/public/theme/uGSP_Energie?tree_group_layers_layer4gmf24.uGSP_Grundstueckabfrage_Grundstueckabfrage_AGGR=layer4gmf24.uGSP_Grundstueckabfrage_AGGR&lang=fr&map_x=2760071&map_y=1169982&map_zoom=1&baselayer_ref=Karte%20grau&tree_group_layers_uGSP_Nutzungsplanung_Kommunaler_Darstellungsdienst.uGSP_Nutzungsplanung_Genereller_Erschliessungsplan=uGSP_Nutzungsplanung_Kommunaler_Darstellungsdienst.uGSP_GEP_Energie_AGGR&theme=uGSP_Energie&tree_groups=uGSP_Energie_Waermepumpen_Netzgebiete_Globalstrahlung_WWK.uGSP_Globalstrahlung_jaehrlich%2CuGSP_Energie_Waermepumpen_Netzgebiete_Globalstrahlung_WWK.uGSP_Globalstrahlung_Vollzug%2CuGSP_Energie_Waermepumpen_Netzgebiete_Globalstrahlung_WWK.uGSP_Netzgebiet_Elektroversorgung_AGGR%2CuGSP_Energie.uGSP_Erdwaermenutzung%2CuGSP_Energie_Waermepumpen_Netzgebiete_Globalstrahlung_WWK.uGSP_Waermepumpe_Luft_Wasser%2CuGSP_Energie_Waermepumpen_Netzgebiete_Globalstrahlung_WWK.uGSP_Wasserwerkkataster_AGGR%2Clayer4gmf24.uGSP_Grundstueckabfrage_Grundstueckabfrage_AGGR&tree_group_layers_uGSP_Energie.uGSP_Erdwaermenutzung=uGSP_Energie.uGSP_Zulaessigkeit",
             "info_format": "application/vnd.ogc.gml",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -784,6 +835,7 @@ CANTONS = {
             "legend_url": "https://map.geo.gl.ch/api/v1/legend/mainmap?VERSION=1.3.0&SERVICE=WMS&REQUEST=GetLegendGraphic&FORMAT=image%2Fpng&CRS=EPSG%3A2056&SRS=EPSG%3A2056&SLD_VERSION=1.1.0&WIDTH=200&HEIGHT=200&LAYER=ch.gl.utilities.erdsondenausschlussbereich&FILTER=",
             "thematic_geoportal_url": "https://map.geo.gl.ch/?t=default&l=ch.gl.utilities.erdsondenausschlussbereich%2Cch.gl.basemaps.kantonsmaske%5B40%5D&bl=pixelkarte&c=2726296%2C1208537&s=40000",
             "info_format": "application/vnd.ogc.gml",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -819,6 +871,7 @@ CANTONS = {
             "style": "",
             "thematic_geoportal_url": "https://map.sitg.ge.ch/app/?portalresources=GOL_EXPLOITATION_GEOTHERMIE",
             "info_format": "arcgis/json",
+            "bbox_delta": 10,
             "layers": [
                 {
                     "id": 0,
@@ -861,6 +914,7 @@ CANTONS = {
             "legend_url": "",
             "thematic_geoportal_url": "https://map.geo.fr.ch/?share=a526a596-5cde-491e-b22d-6d692e78f25b",
             "info_format": "arcgis/json",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -898,6 +952,7 @@ CANTONS = {
             "legend_url": "https://geoview.bl.ch/main/wsgi/mapserv_proxy?cache_version=5d00dfedcd27448bbae53376d44c94e1&FORMAT=image%2Fpng&TRANSPARENT=TRUE&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&EXCEPTIONS=application%2Fvnd.ogc.se_xml&LAYER=erdwaerme_uebersicht_group&SCALE=188975.99999999997",
             "thematic_geoportal_url": "https://geoview.bl.ch/?map_x=2632500&map_y=1245475&map_zoom=2&tree_group_layers_Oberfl%C3%A4chennahe%20Erdw%C3%A4rme=erdwaerme_uebersicht_group&tree_groups=Oberfl%C3%A4chennahe%20Erdw%C3%A4rme",
             "info_format": "application/vnd.ogc.gml",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -948,6 +1003,7 @@ CANTONS = {
             "legend_url": "",
             "thematic_geoportal_url": "https://www.topo.apps.be.ch/pub/map/?lang=de&gpk=ERDSOND_GPK",
             "info_format": "application/geo+json",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -991,6 +1047,7 @@ CANTONS = {
             "legend_url": "",
             "thematic_geoportal_url": "https://www.geoportal.ch/ktar/map/29?y=2728824.00&x=1243710.00&scale=100000&rotation=0",
             "info_format": "application/json",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -1036,6 +1093,7 @@ CANTONS = {
             "legend_url": "",
             "thematic_geoportal_url": "https://www.geoportal.ch/ktai/map/29?y=2728824.00&x=1243710.00&scale=100000&rotation=0",
             "info_format": "application/json",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
@@ -1073,6 +1131,7 @@ CANTONS = {
             "legend_url": "",
             "thematic_geoportal_url": "https://www.ag.ch/geoportal/apps/onlinekarten/?basemap=base_landeskarten_sw::topicmaps.geo.ag.ch,1,true&center=2652503.58,1250363.05&z=3&layers=afu_erdwaerme::topicmaps.geo.ag.ch;1;true",
             "info_format": "application/geo+json",
+            "bbox_delta": 10,
             "style": "",
             "layers": [
                 {

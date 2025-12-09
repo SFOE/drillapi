@@ -112,7 +112,7 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
 
             # ---------- WMS GetFeatureInfo ----------
             else:
-                delta = 10
+                delta = config["bbox_delta"]
                 width = 101
                 height = 101
 
@@ -158,7 +158,7 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
 
                 try:
                     features = await parse_wms_getfeatureinfo(
-                        resp.content, config["info_format"]
+                        resp.content, config["info_format"], config
                     )
                 except Exception as e:
                     error_message = f"Failed to parse WMS response: {e}"
@@ -180,7 +180,7 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
 # ============================================================
 
 
-async def parse_wms_getfeatureinfo(content: bytes, info_format: str):
+async def parse_wms_getfeatureinfo(content: bytes, info_format: str, config: dict):
     """
     Parser for differents geoservices outputs
     """
@@ -255,6 +255,13 @@ async def parse_wms_getfeatureinfo(content: bytes, info_format: str):
             if fdict:
                 features.append(fdict)
 
+    # ZH geoservice is a special and unique case
+    # It only returns a GML without atttibute but containing the layer that was found at location
+    if not features and config["name"] == "ZH":
+        name_elem = root.find(".//gml:name", ns)
+        if name_elem is not None and name_elem.text and name_elem.text.strip():
+            fdict = {"name": name_elem.text.strip()}
+            features.append(fdict)
     return features
 
 
@@ -305,7 +312,6 @@ def process_ground_category(
             if property_values:
                 for item in property_values:
                     # Match with values for layers that have a defined mapping
-
                     if item.get("name") == value:
                         mapped_values.append(item.get("target_harmonized_value"))
                         description = item.get("desc")
