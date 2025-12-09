@@ -92,7 +92,7 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                             "Layer config missing 'id' for ESRI REST service"
                         )
 
-                    esri_url = f"{config['wms_url'].rstrip('/')}/{layer_id}/query"
+                    esri_url = f"{config['query_url'].rstrip('/')}/{layer_id}/query"
 
                     params = {
                         "geometry": f"{coord_x},{coord_y}",
@@ -142,9 +142,9 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                     "FEATURE_COUNT": config.get("feature_count", 10),
                 }
 
-                wms_url = config["wms_url"]
+                query_url = config["query_url"]
                 try:
-                    resp = await client.get(wms_url, params=params_wms)
+                    resp = await client.get(query_url, params=params_wms)
                     full_url = str(resp.request.url)
                     resp.raise_for_status()
                 except Exception as e:
