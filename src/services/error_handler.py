@@ -7,7 +7,7 @@ from src.config import settings
 logger = logging.getLogger(__name__)
 
 
-async def handle_errors(func):
+def handle_errors(func):
     """
     Decorator to catch exceptions in endpoints and async sub-functions.
     Logs full traceback in DEV, returns minimal message in PROD.

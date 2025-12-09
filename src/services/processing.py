@@ -45,7 +45,7 @@ async def get_canton_from_coordinates(coord_x: float, coord_y: float):
     }
 
     try:
-        async with httpx.Client(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.get(url, params=params)
             resp.raise_for_status()
             payload = resp.json()
@@ -157,7 +157,7 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                     }
 
                 try:
-                    features = await parse_wms_getfeatureinfo(
+                    features = parse_wms_getfeatureinfo(
                         resp.content, config["info_format"], config
                     )
                 except Exception as e:
