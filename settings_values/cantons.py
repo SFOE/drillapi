@@ -859,11 +859,11 @@ CANTONS = {
                 [2502640, 1113946, 3, "Interdiction de géothermie"],
                 [2494984, 1116373, 3, "Géothermie sur nappe (système ouvert)"],
             ],
-            "wms_url": "https://app2.ge.ch/tergeoservices/rest/services/Hosted/GOL_EXPLOITATION_GEOTHERMIE/MapServer",
+            "wms_url": "https://app2.ge.ch/tergeoservices/rest/services/Hosted/GOL_EXPLOITATION_GEOTHERMIE/MapServer/WmsServer",
             "query_url": "https://app2.ge.ch/tergeoservices/rest/services/Hosted/GOL_EXPLOITATION_GEOTHERMIE/FeatureServer",
             "legend_url": "",
             "style": "",
-            "thematic_geoportal_url": "https://map.sitg.ge.ch/app/?portalresources=GOL_EXPLOITATION_GEOTHERMIE",
+            "thematic_geoportal_url": "https://map.sitg.ge.ch/app/?mapresources=GEOTHERMIE",
             "info_format": "arcgis/json",
             "bbox_delta": 10,
             "layers": [
