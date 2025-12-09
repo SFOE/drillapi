@@ -1,0 +1,6 @@
+black
+pytest
+pre-commit
+pytest
+requests
+-r requirements.txt

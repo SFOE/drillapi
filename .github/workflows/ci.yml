@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.12]
+        python-version: [3.14]
 
     steps:
       - name: Checkout
@@ -34,9 +34,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi
-          # install test/dev tools if present
-          if [ -f requirements-dev.txt ]; then python -m pip install -r requirements-dev.txt; else python -m pip install pytest requests pre-commit; fi
+          python -m pip install -r requirements.txt
+          python -m pip install -r requirements_dev.txt;
 
       - name: Check code formatting (pre-commit)
         run: |
