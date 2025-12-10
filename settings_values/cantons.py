@@ -9,8 +9,8 @@ CANTONS = {
             ],
             "wms_url": "https://sitn.ne.ch/mapserv_proxy?ogcserver=private-png",
             "query_url": "https://sitn.ne.ch/mapserv_proxy?ogcserver=private-png",
-            "thematic_geoportal_url": "https://sitn.ne.ch/",
-            "legend_url": "https://sitn.ne.ch/mapserv_proxy?ogcserver=private-png&cache_version=aba7524205e1498bb54f6c63b29dd14e&FORMAT=image%2Fpng&TRANSPARENT=true&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&LAYER=eg36_geotherm_carte_finale&SCALE=357142.1428571427",
+            "thematic_geoportal_url": "https://sitn.ne.ch/theme/environnement?lang=fr&map_x=2550050&map_y=1204950&map_zoom=1&baselayer_ref=blank&tree_group_layers_gp_photos_360=&theme=environnement&tree_groups=gp_mesures_meteo%2Cgp_mo_cadastre_partiel%2Cgp_antennes%2Cgp_environnement%2Cgp_base_layers&tree_enable_eg36_geotherm_carte_finale=true&tree_enable_eg37_geotherm_zones_exclues=true&tree_enable_eg38_geotherm_canepo_statut=true",
+            "legend_url": "https://sitn.ne.ch/mapserv_proxy?ogcserver=private-png&cache_version=ffa494693bec4c5bb5ba67f8641a590e&FORMAT=image%2Fpng&TRANSPARENT=true&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&LAYER=eg36_geotherm_carte_finale&SCALE=357142.1428571427",
             "info_format": "application/vnd.ogc.gml",
             "bbox_delta": 10,
             "style": "",
@@ -20,29 +20,16 @@ CANTONS = {
                     "property_name": "profondeur",
                     "property_values": [
                         {
-                            "name": "mit Standardauflagen zulässig",
+                            "name": "TEST",
+                            "desc": "TEST",
                             "target_harmonized_value": 1,
                         },
                         {
-                            "name": "mit spezifischen Auflagen zulässig",
+                            "name": "TEST",
+                            "desc": "TEST",
                             "target_harmonized_value": 2,
                         },
-                        {"name": "unzulässig", "target_harmonized_value": 3},
-                    ],
-                },
-                {
-                    "name": "eg37_geotherm_zones_exclues",
-                    "property_name": "profondeur",
-                    "property_values": [
-                        {
-                            "name": "mit Standardauflagen zulässig",
-                            "target_harmonized_value": 1,
-                        },
-                        {
-                            "name": "mit spezifischen Auflagen zulässig",
-                            "target_harmonized_value": 2,
-                        },
-                        {"name": "unzulässig", "target_harmonized_value": 3},
+                        {"name": "TEST", "desc": "TEST", "target_harmonized_value": 3},
                     ],
                 },
             ],
@@ -82,26 +69,32 @@ CANTONS = {
                     "property_values": [
                         {
                             "name": "Autorisé",
+                            "desc": "Autorisé",
                             "target_harmonized_value": 1,
                         },
                         {
                             "name": "A évaluer (prendre contact avec ENV)",
+                            "desc": "A évaluer (prendre contact avec ENV)",
                             "target_harmonized_value": 2,
                         },
                         {
                             "name": "Autorisé avec restriction de profondeur de 150m",
+                            "desc": "Autorisé avec restriction de profondeur de 150m",
                             "target_harmonized_value": 2,
                         },
                         {
                             "name": "Autorisé avec restriction de profondeur de 100m",
+                            "desc": "Autorisé avec restriction de profondeur de 100m",
                             "target_harmonized_value": 2,
                         },
                         {
                             "name": "Autorisé avec restriction de profondeur de 70m",
+                            "desc": "Autorisé avec restriction de profondeur de 70m",
                             "target_harmonized_value": 2,
                         },
                         {
                             "name": "Interdit",
+                            "desc": "Interdit",
                             "target_harmonized_value": 3,
                         },
                     ],
@@ -151,9 +144,21 @@ CANTONS = {
                     "name": "erdwaermesonden-auflagen",
                     "property_name": "zonen",
                     "property_values": [
-                        {"name": "undefined", "target_harmonized_value": 4},
-                        {"name": "Auflagen", "target_harmonized_value": 1},
-                        {"name": "Verbot", "target_harmonized_value": 3},
+                        {
+                            "name": "undefined",
+                            "desc": "undefined",
+                            "target_harmonized_value": 4,
+                        },
+                        {
+                            "name": "Auflagen",
+                            "desc": "Auflagen",
+                            "target_harmonized_value": 1,
+                        },
+                        {
+                            "name": "Verbot",
+                            "desc": "Verbot",
+                            "target_harmonized_value": 3,
+                        },
                     ],
                 },
                 {
@@ -163,6 +168,7 @@ CANTONS = {
                     "property_values": [
                         {
                             "name": "Zone A (Schutzzonen und Schutzareale)",
+                            "desc": "Zone A (Schutzzonen und Schutzareale)",
                             "target_harmonized_value": 3,
                         },
                     ],
@@ -174,6 +180,7 @@ CANTONS = {
                     "property_values": [
                         {
                             "name": "Zone B (Schotter-Grundwasservorkommen, geeignet für Trinkwassergewinnung)",
+                            "desc": "Zone B (Schotter-Grundwasservorkommen, geeignet für Trinkwassergewinnung)",
                             "target_harmonized_value": 2,
                         },
                     ],
@@ -185,6 +192,7 @@ CANTONS = {
                     "property_values": [
                         {
                             "name": "Zone C (Schotter-Grundwasservorkommen, ungeeignet für Trinkwassergewinnung)",
+                            "desc": "Zone C (Schotter-Grundwasservorkommen, ungeeignet für Trinkwassergewinnung)",
                             "target_harmonized_value": 2,
                         },
                     ],
@@ -196,6 +204,7 @@ CANTONS = {
                     "property_values": [
                         {
                             "name": "Zone D (Schotter-Grundwasservorkommen, ungeeignet für Trinkwassergewinnung)",
+                            "desc": "Zone D (Schotter-Grundwasservorkommen, ungeeignet für Trinkwassergewinnung)",
                             "target_harmonized_value": 2,
                         },
                     ],
@@ -207,6 +216,7 @@ CANTONS = {
                     "property_values": [
                         {
                             "name": "Zone E (Quellwassergebiete, geeignet für Trinkwassergewinnung)",
+                            "desc": "Zone E (Quellwassergebiete, geeignet für Trinkwassergewinnung)",
                             "target_harmonized_value": 2,
                         },
                     ],
@@ -218,6 +228,7 @@ CANTONS = {
                     "property_values": [
                         {
                             "name": "Zone F (Ausserhalb nutzbarer Grundwasservorkommen)",
+                            "desc": "Zone F (Ausserhalb nutzbarer Grundwasservorkommen)",
                             "target_harmonized_value": 2,
                         },
                     ],
@@ -236,7 +247,7 @@ CANTONS = {
             "wms_url": "https://services.geo.zg.ch/ows/Erdwaermenutzung",
             "query_url": "https://services.geo.zg.ch/ows/Erdwaermenutzung",
             "legend_url": "",
-            "thematic_geoportal_url": "https://zugmap.ch/bmcl/?project=ZugMap.ch&legend=alle%20Themen&rotation=0.00&scale=26941&center=2681358,1225229&layers=6585bde8-1bc8-499c-a4b8-21ec30a0e426",
+            "thematic_geoportal_url": "https://zugmap.ch/",
             "info_format": "application/vnd.ogc.gml",
             "bbox_delta": 10,
             "style": "default",
@@ -247,13 +258,19 @@ CANTONS = {
                     "property_values": [
                         {
                             "name": "mit Standardauflagen zulässig",
+                            "desc": "mit Standardauflagen zulässig",
                             "target_harmonized_value": 1,
                         },
                         {
                             "name": "mit spezifischen Auflagen zulässig",
+                            "desc": "mit spezifischen Auflagen zulässig",
                             "target_harmonized_value": 2,
                         },
-                        {"name": "unzulässig", "target_harmonized_value": 3},
+                        {
+                            "name": "unzulässig",
+                            "desc": "unzulässig",
+                            "target_harmonized_value": 3,
+                        },
                     ],
                 }
             ],
@@ -337,18 +354,25 @@ CANTONS = {
                     "property_values": [
                         {
                             "name": "Admissible sous conditions",
+                            "desc": "Admissible sous conditions",
                             "target_harmonized_value": 1,
                         },
                         {
                             "name": "Admissible aux conditions standard, jusqu’à 300 mètres",
+                            "desc": "Admissible aux conditions standard, jusqu’à 300 mètres",
                             "target_harmonized_value": 1,
                         },
                         {"name": "Limitation", "target_harmonized_value": 2},
                         {
                             "name": "Limitation, soumis à des conditions spéciales",
+                            "desc": "Limitation, soumis à des conditions spéciales",
                             "target_harmonized_value": 2,
                         },
-                        {"name": "Interdiction", "target_harmonized_value": 3},
+                        {
+                            "name": "Interdiction",
+                            "desc": "Interdiction",
+                            "target_harmonized_value": 3,
+                        },
                     ],
                 }
             ],
@@ -377,20 +401,17 @@ CANTONS = {
                     "property_values": [
                         {
                             "name": "B",
-                            "desc": "grüner Zulässigkeitsbereich",
-                            "desc2": "Zulässig unter allgemeinen Auflagen",
+                            "desc": "Zulässig unter allgemeinen Auflagen",
                             "target_harmonized_value": 1,
                         },
                         {
                             "name": "C",
-                            "desc": "gelber Zulässigkeitsbereich",
-                            "desc2": "Zulässig unter zusätzlichen Schutzmassnahmen",
+                            "desc": "Zulässig unter zusätzlichen Schutzmassnahmen",
                             "target_harmonized_value": 2,
                         },
                         {
                             "name": "A",
                             "desc": "roter Zulässigkeitsbereich / nicht zulässig",
-                            "desc2": "Nicht zulässig",
                             "target_harmonized_value": 3,
                         },
                     ],
@@ -758,25 +779,25 @@ CANTONS = {
             "layers": [
                 {
                     "name": "3",
-                    "desc": "ews_zulaessig",
+                    "desc": "Erdwärmenutzung zulässig",
                     "property_name": "Erdwärmenutzung zulässig",
                     "target_harmonized_value": 1,
                 },
                 {
                     "name": "1",
-                    "desc": "ews_vorabklaeren",
+                    "desc": "Erdwärmenutzung zulässig mit Auflagen",
                     "property_name": "Erdwärmenutzung zulässig mit Auflagen",
                     "target_harmonized_value": 2,
                 },
                 {
                     "name": "2",
-                    "desc": "ews_zulaessig_auflagen",
+                    "desc": "Erdwärmenutzung zulässig mit Auflagen",
                     "property_name": "Erdwärmenutzung zulässig mit Auflagen",
                     "target_harmonized_value": 2,
                 },
                 {
                     "name": "0",
-                    "desc": "ews_nicht_zulaessig",
+                    "desc": "Erdwärmenutzung nicht zulässig",
                     "property_name": "Erdwärmenutzung nicht zulässig",
                     "target_harmonized_value": 3,
                 },
@@ -810,9 +831,21 @@ CANTONS = {
                     "name": "Erdwaermenutzung_Zulaessigkeit",
                     "property_name": "zulaessigkeit",
                     "property_values": [
-                        {"name": "zulässig", "target_harmonized_value": 1},
-                        {"name": "bedingt zulässig", "target_harmonized_value": 2},
-                        {"name": "nicht zulässig", "target_harmonized_value": 3},
+                        {
+                            "name": "zulässig",
+                            "desc": "zulässig",
+                            "target_harmonized_value": 1,
+                        },
+                        {
+                            "name": "bedingt zulässig",
+                            "desc": "bedingt zulässig",
+                            "target_harmonized_value": 2,
+                        },
+                        {
+                            "name": "nicht zulässig",
+                            "desc": "nicht zulässig",
+                            "target_harmonized_value": 3,
+                        },
                     ],
                 }
             ],
@@ -836,9 +869,14 @@ CANTONS = {
                     "name": "ch.gl.utilities.erdsondenausschlussbereich",
                     "property_name": "art",
                     "property_values": [
-                        {"name": "undefined", "target_harmonized_value": 2},
+                        {
+                            "name": "undefined",
+                            "desc": "undefined",
+                            "target_harmonized_value": 2,
+                        },
                         {
                             "name": "Erdsondenausschlussgebiet",
+                            "desc": "Erdsondenausschlussgebiet",
                             "target_harmonized_value": 3,
                         },
                     ],
@@ -874,18 +912,22 @@ CANTONS = {
                     "property_values": [
                         {
                             "name": "Sondes géothermiques verticales (système fermé)",
+                            "desc": "Sondes géothermiques verticales (système fermé)",
                             "target_harmonized_value": 1,
                         },
                         {
                             "name": "Demande de renseignement",
+                            "desc": "Demande de renseignement",
                             "target_harmonized_value": 2,
                         },
                         {
                             "name": "Interdiction de géothermie",
+                            "desc": "Interdiction de géothermie",
                             "target_harmonized_value": 3,
                         },
                         {
                             "name": "Géothermie sur nappe (système ouvert)",
+                            "desc": "Géothermie sur nappe (système ouvert)",
                             "target_harmonized_value": 3,
                         },
                     ],
@@ -915,12 +957,21 @@ CANTONS = {
                     "desc": "Admissibilite des sondes geothermiques SGV",
                     "property_name": "DA_SGV_DESC",
                     "property_values": [
-                        {"name": "SGV autorisées", "target_harmonized_value": 1},
+                        {
+                            "name": "SGV autorisées",
+                            "desc": "SGV autorisées",
+                            "target_harmonized_value": 1,
+                        },
                         {
                             "name": "SGV avec demande préalable obligatoire",
+                            "desc": "SGV avec demande préalable obligatoire",
                             "target_harmonized_value": 2,
                         },
-                        {"name": "SGV interdites", "target_harmonized_value": 3},
+                        {
+                            "name": "SGV interdites",
+                            "desc": "SGV interdites",
+                            "target_harmonized_value": 3,
+                        },
                     ],
                 }
             ],
@@ -1044,26 +1095,35 @@ CANTONS = {
                     "property_values": [
                         {
                             "name": "zulässig (siehe Erläuterungen)",
+                            "desc": "zulässig (siehe Erläuterungen)",
                             "target_harmonized_value": 1,
                         },
                         {"name": "zulässig", "target_harmonized_value": 1},
                         {
                             "name": "bedingt zulässig (siehe Erläuterungen)",
+                            "desc": "bedingt zulässig (siehe Erläuterungen)",
                             "target_harmonized_value": 2,
                         },
                         {
                             "name": "bedingt zulässig aufgrund: Hydrogeologie",
+                            "desc": "bedingt zulässig aufgrund: Hydrogeologie",
                             "target_harmonized_value": 2,
                         },
                         {
                             "name": "bedingt zulässig aufgrund: Hydrogeologie, problematische Bohrung",
+                            "desc": "bedingt zulässig aufgrund: Hydrogeologie, problematische Bohrung",
                             "target_harmonized_value": 2,
                         },
                         {
                             "name": "nicht zulässig (siehe Erläuterungen)",
+                            "desc": "nicht zulässig (siehe Erläuterungen)",
                             "target_harmonized_value": 3,
                         },
-                        {"name": "unzulässig", "target_harmonized_value": 3},
+                        {
+                            "name": "unzulässig",
+                            "desc": "unzulässig",
+                            "target_harmonized_value": 3,
+                        },
                     ],
                 }
             ],
@@ -1090,14 +1150,17 @@ CANTONS = {
                     "property_values": [
                         {
                             "name": "zulässig (siehe Erläuterungen)",
+                            "desc": "zulässig (siehe Erläuterungen)",
                             "target_harmonized_value": 1,
                         },
                         {
                             "name": "bedingt zulässig (siehe Erläuterungen)",
+                            "desc": "bedingt zulässig (siehe Erläuterungen)",
                             "target_harmonized_value": 2,
                         },
                         {
                             "name": "nicht zulässig (siehe Erläuterungen)",
+                            "desc": "nicht zulässig (siehe Erläuterungen)",
                             "target_harmonized_value": 3,
                         },
                     ],

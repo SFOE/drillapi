@@ -315,8 +315,7 @@ def process_ground_category(
                     # Match with values for layers that have a defined mapping
                     if item.get("name") == value:
                         mapped_values.append(item.get("target_harmonized_value"))
-                        source_values.append(item.get("name"))
-                        description = item.get("desc")
+                        source_values.append(item.get("desc"))
 
             # For some cantons, only the presence or absence of feature is used to define suitability
             else:
@@ -329,7 +328,6 @@ def process_ground_category(
                 "layer": layer_name,
                 "property_name": property_name,
                 "value": value,
-                "description": description,
             }
         )
 
