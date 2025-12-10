@@ -284,6 +284,7 @@ def process_ground_category(
     layer_results = []
 
     mapped_values = []
+    source_values = []
     harmonized_value = None
 
     # For each canton, multiple layers are requested (single request to WMS / ESRI)
@@ -314,6 +315,7 @@ def process_ground_category(
                     # Match with values for layers that have a defined mapping
                     if item.get("name") == value:
                         mapped_values.append(item.get("target_harmonized_value"))
+                        source_values.append(item.get("name"))
                         description = item.get("desc")
 
             # For some cantons, only the presence or absence of feature is used to define suitability
@@ -321,7 +323,7 @@ def process_ground_category(
                 if layer_cfg.get("property_name") == feature.get("layerName"):
                     mapped_values.append(layer_cfg.get("target_harmonized_value"))
 
-        # Helping function to identify issues. Only "harmonized_value is useful for frontend application"
+        # Helping dict useful to identify issues. Only "harmonized_value is useful for frontend application"
         layer_results.append(
             {
                 "layer": layer_name,
@@ -332,7 +334,6 @@ def process_ground_category(
         )
 
     # property_values variable contains the mapping between attribute value and drillapi categories (1,2,3)
-
     if mapped_values:
         harmonized_value = max(mapped_values)
 
@@ -343,4 +344,5 @@ def process_ground_category(
     return {
         "layer_results": layer_results,
         "harmonized_value": harmonized_value,
+        "source_values": ",".join(source_values),
     }
