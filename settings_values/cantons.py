@@ -1250,16 +1250,16 @@ CANTONS = {
                 [2556890, 1206292, 2, "RESTRICTION"],
             ],
             "cantonal_energy_service_url": "https://so.ch/erdwaermegeothermie/erdwaermesonden-ews/",
-            "wms_url": "https://test.test",
-            "query_url": "https://test.test",
-            "thematic_geoportal_url": "https://test.test",
-            "legend_url": "https://test.test",
+            "wms_url": "https://so.ch/",
+            "query_url": "https://so.ch/",
+            "thematic_geoportal_url": "https://geo.so.ch/map/",
+            "legend_url": "https://so.ch/",
             "info_format": "application/vnd.ogc.gml",
             "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
-                    "name": "https://test-url.test",
+                    "name": "test",
                     "property_name": "profondeur",
                     "property_values": [
                         {
@@ -1285,16 +1285,16 @@ CANTONS = {
                 [2556890, 1206292, 2, "RESTRICTION"],
             ],
             "cantonal_energy_service_url": "https://www.aue.bs.ch/wasser/grundwasser/bohrungen-in-das-grundwasser.html",
-            "wms_url": "https://test.test",
-            "query_url": "https://test.test",
-            "thematic_geoportal_url": "https://test.test",
-            "legend_url": "https://test.test",
+            "wms_url": "https://bs.ch/",
+            "query_url": "https://bs.ch/",
+            "thematic_geoportal_url": "https://map.geo.bs.ch",
+            "legend_url": "https://map.geo.bs.ch",
             "info_format": "application/vnd.ogc.gml",
             "bbox_delta": 10,
             "style": "",
             "layers": [
                 {
-                    "name": "https://test-url.test",
+                    "name": "test",
                     "property_name": "profondeur",
                     "property_values": [
                         {
