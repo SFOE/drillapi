@@ -22,6 +22,7 @@ class Cantonconfig(BaseModel):
     wms_url: HttpUrl
     query_url: HttpUrl
     thematic_geoportal_url: Optional[HttpUrl]
+    cantonal_energy_service_url: Optional[HttpUrl]
     legend_url: str
     info_format: str
     style: Optional[str]
@@ -34,7 +35,7 @@ class Cantonconfig(BaseModel):
             raise ValueError("There must be at least one layer")
         return v
 
-    @field_validator("wms_url", "thematic_geoportal_url", "query_url", mode="before")
+    @field_validator("wms_url", "thematic_geoportal_url", "cantonal_energy_service_url", "query_url", mode="before")
     @classmethod
     def allow_empty_urls(cls, v):
         if v == "":
