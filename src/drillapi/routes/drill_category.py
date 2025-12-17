@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Path, HTTPException
-from settings_values import cantons
+from drillapi.cantons_configuration import cantons
 from ..services import processing, security
 from ..services.error_handler import handle_errors  # your decorator
 from ..config import settings
