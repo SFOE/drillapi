@@ -2,7 +2,7 @@ import functools
 import traceback
 import logging
 from fastapi import HTTPException
-from src.config import settings
+from ..config import settings
 
 logger = logging.getLogger(__name__)
 

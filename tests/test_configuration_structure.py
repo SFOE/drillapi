@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 from pydantic import BaseModel, HttpUrl, field_validator, ValidationError, conlist
-from settings_values.cantons import CANTONS
+from drillapi.cantons_configuration.cantons import CANTONS
 
 
 class PropertyValue(BaseModel):

@@ -1,5 +1,5 @@
 import pytest
-from src.config import Settings, settings as global_settings
+from drillapi.config import Settings, settings as global_settings
 
 
 @pytest.fixture(autouse=True, scope="session")

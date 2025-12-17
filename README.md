@@ -64,13 +64,13 @@ source venv/bin/activate
 Install dependencies
 
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
 
 For **dev** install dev requirements
 
 ```bash
-pip install -r requirements_dev.txt
+pip install -e ".[dev]"
 ```
 
 Install pre-commit and activate it
@@ -87,16 +87,16 @@ pre-commit run --all-files
 
 ## Start
 
-Run dev server locally with fast api dev server
+Run dev server
 
 ```bash
-fastapi dev src/main.py
+uvicorn drillapi.app:app --reload
 ```
 
-Run dev server locally with uvicorn
+Run project
 
 ```bash
-python -m src.main
+python -m drillapi
 ```
 
 ## Explore
@@ -142,7 +142,7 @@ http://127.0.0.1:8000/v1/cantons/NE
 Install dev requirements
 
 ```bash
-pip install -r requirements_dev.txt
+pip install -e ".[dev]"
 ```
 
 Run tests
@@ -151,18 +151,12 @@ Run tests
 python -m pytest -v
 ```
 
-Run only service avaibility checker test
-
-```bash
-python -m pytest tests/test_services.py
-```
-
 ## Running local docker image
 
 ### Using Docker Compose
 
 ```bash
-docker compose up -d --build && docker compose logs -f fastapi-app
+docker compose up -d --build && docker compose logs -f drillapi
 ```
 
 ### Using Docker
@@ -170,12 +164,24 @@ docker compose up -d --build && docker compose logs -f fastapi-app
 Build local image
 
 ```bash
-docker build -t fastapi-app .
+docker build -t drillapi .
 ```
 
 Run container
 
+```bash
+docker run -d -p 8000:8000 --name drillapi_container drillapi
+```
+
+View logs
 
 ```bash
-docker run -d -p 8000:8000 --name fastapi_container fastapi-app
+docker logs -f drillapi_container
+```
+
+Stop container
+
+```bash
+docker stop drillapi_container
+docker rm drillapi_container
 ```

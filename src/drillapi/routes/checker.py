@@ -11,11 +11,13 @@ import httpx
 import asyncio
 import json
 
-from src.services.security import verify_ip
-from src.routes.cantons import get_cantons_data, filter_active_cantons
+from ..services.security import verify_ip
+from ..routes.cantons import get_cantons_data, filter_active_cantons
+from ..config import settings
 
 router = APIRouter()
-templates = Jinja2Templates(directory="src/templates")
+
+templates = Jinja2Templates(directory=str(settings.TEMPLATES_DIR))
 
 
 @router.get("/checker/", response_class=HTMLResponse)
