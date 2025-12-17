@@ -1,9 +1,10 @@
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from src.routes import drill_category, cantons, checker
-from src.services.security import limiter, rate_limit_handler, RateLimitExceeded
-from src.config import settings
+from .routes import drill_category, cantons, checker
+from .services.security import limiter, rate_limit_handler, RateLimitExceeded
+from .config import settings
 
 
 app = FastAPI()
@@ -21,9 +22,6 @@ app.add_middleware(
 app.include_router(drill_category.router)
 app.include_router(cantons.router)
 app.include_router(checker.router)
-
-# Templates
-templates = Jinja2Templates(directory="src/templates")
 
 # Limiter
 app.state.limiter = limiter

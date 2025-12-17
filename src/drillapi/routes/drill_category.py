@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Request, Path, HTTPException
 from settings_values import cantons
-from src.services import processing, security
-from src.services.error_handler import handle_errors  # your decorator
-from src.config import settings
+from ..services import processing, security
+from ..services.error_handler import handle_errors  # your decorator
+from ..config import settings
 import logging
 
 router = APIRouter()

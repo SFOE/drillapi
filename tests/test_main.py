@@ -8,8 +8,8 @@ if ROOT not in sys.path:
 
 from fastapi.testclient import TestClient
 
-from src.main import app
-from src.routes.cantons import get_cantons_data, filter_active_cantons
+from drillapi.app import app
+from drillapi.routes.cantons import get_cantons_data, filter_active_cantons
 
 client = TestClient(app)
 
