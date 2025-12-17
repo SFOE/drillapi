@@ -1,5 +1,4 @@
-# Use LOCAL_DEV=1 to run uvicorn for local deployment
-FROM public.ecr.aws/lambda/python:3.14
+FROM python:3.14-slim
 
 WORKDIR /app
 
@@ -11,4 +10,4 @@ RUN pip install --no-cache-dir -e .
 
 EXPOSE 8000
 
-CMD ["drillapi.app.handler"]
+CMD ["uvicorn", "drillapi.app:app", "--host", "0.0.0.0", "--port", "8000"]

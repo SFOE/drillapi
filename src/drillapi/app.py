@@ -2,7 +2,6 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from mangum import Mangum
 from .routes import drill_category, cantons, checker
 from .services.security import limiter, rate_limit_handler, RateLimitExceeded
 from .config import settings
@@ -27,6 +26,3 @@ app.include_router(checker.router)
 # Limiter
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
-
-# Lambda entrypoint
-handler = Mangum(app)

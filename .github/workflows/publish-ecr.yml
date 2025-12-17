@@ -38,7 +38,7 @@ jobs:
           ECR_REPOSITORY: drillapi
           IMAGE_TAG: pr-${{ github.event.pull_request.number }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -f Dockerfile.lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Build and push Docker image (Main branch)
@@ -48,7 +48,7 @@ jobs:
           ECR_REPOSITORY: drillapi
           IMAGE_TAG: latest
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -f Dockerfile.lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Build and push Docker image (Release)
@@ -58,6 +58,6 @@ jobs:
           ECR_REPOSITORY: drillapi
           VERSION_TAG: ${{ github.event.release.tag_name }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker build -f Dockerfile.lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
