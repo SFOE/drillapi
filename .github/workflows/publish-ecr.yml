@@ -16,6 +16,7 @@ permissions:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    environment: prometheon-access
 
     steps:
       - name: Checkout code
@@ -24,7 +25,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::412040338616:role/SFOE-drillapi-pipeline-role
+          role-to-assume: ${{ vars.SFOE_DRILLAPI_PIPELINE_ROLE }}
           aws-region: eu-central-1
 
       - name: Login to Amazon ECR
