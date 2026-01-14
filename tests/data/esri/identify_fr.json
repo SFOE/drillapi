@@ -1,0 +1,36 @@
+{
+    "displayFieldName": "DA_SGV_DESC",
+    "fieldAliases": {
+      "OBJECTID": "OBJECTID",
+      "DA_SGV_DESC": "Admissibilité",
+      "DA_SGV": "Admissibilité (code)"
+    },
+    "fields": [
+      {
+        "name": "OBJECTID",
+        "type": "esriFieldTypeOID",
+        "alias": "OBJECTID"
+      },
+      {
+        "name": "DA_SGV_DESC",
+        "type": "esriFieldTypeString",
+        "alias": "Admissibilité",
+        "length": 255
+      },
+      {
+        "name": "DA_SGV",
+        "type": "esriFieldTypeString",
+        "alias": "Admissibilité (code)",
+        "length": 255
+      }
+    ],
+    "features": [
+      {
+        "attributes": {
+          "OBJECTID": 415,
+          "DA_SGV_DESC": "SGV autorisées",
+          "DA_SGV": "SGVaut"
+        }
+      }
+    ]
+  }

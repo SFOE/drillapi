@@ -68,6 +68,8 @@ dev = [
   "pytest",
   "pre-commit",
   "requests",
+  "respx",
+  "pytest-asyncio",
 ]
 
 [project.scripts]
