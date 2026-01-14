@@ -341,7 +341,7 @@ def process_ground_category(
 
     source_values_str = ""
     if source_values:
-        source_values_str = ",".join(source_values)        
+        source_values_str = ",".join(source_values)
     return {
         "layer_results": layer_results,
         "harmonized_value": harmonized_value,
