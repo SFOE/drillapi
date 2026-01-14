@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Service Availability Checker</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    pre { white-space: pre-wrap; word-wrap: break-word; }
+    .error-box { width: 80vw; margin: 10px auto; background: #f8d7da; padding: 10px; overflow-x: auto; font-size: 0.9em; border: 1px solid #f5c6cb; }
+    .success-box { width: 80vw; margin: 10px auto; background: #d4edda; padding: 10px; overflow-x: auto; font-size: 0.9em; border: 1px solid #c3e6cb; }
+    summary { cursor: pointer; font-weight: bold; }
+    h2, h3 { margin-top: 20px; }
+    a.full-url { color: #0056b3; text-decoration: none; }
+    a.full-url:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h2>Service Availability Checker</h2>
+
+  {% if canton %}
+    <p>Filtered by canton: <strong>{{ canton }}</strong></p>
+  {% endif %}
+
+  {% if error_msg %}
+    <div class="error-box"><strong>Error:</strong> {{ error_msg }}</div>
+  {% endif %}
+
+  {% if results %}
+    {% set canton_groups = {} %}
+    {% for r in results %}
+      {% set _ = canton_groups.update({r["canton"]: (canton_groups.get(r["canton"], []) + [r])}) %}
+    {% endfor %}
+
+    {% for canton_code, items in canton_groups.items() %}
+      <div id="canton-{{ canton_code }}">
+        <h3>Checking services for {{ canton_code }}</h3>
+
+        {% for data in items %}
+          {% set is_error = (not data.get("success")) or (data.get("control_harmonized_values") == 'error') %}
+          <details class="{{ 'error-box' if is_error else 'success-box' }}">
+            <summary>
+              {% if is_error %}
+                ❌ Request/Error for {{ data.get("url") }}
+              {% else %}
+                ✅ Success (HTTP {{ data.get("status", "N/A") }}) - {{ data.get("url") }}
+              {% endif %}
+            </summary>
+
+            {% if data.get("content") and data["content"].get("result_detail") and data["content"]["result_detail"].get("full_url") %}
+              <p><strong>Full request URL:</strong>
+                <a class="full-url" href="{{ data["content"]["result_detail"]["full_url"] }}" target="_blank" rel="noopener noreferrer">
+                  {{ data["content"]["result_detail"]["full_url"] }}
+                </a>
+              </p>
+            {% endif %}
+
+            {% if data.get("control_harmonized_values_message") %}
+              <p><b>{{ data["control_harmonized_values_message"] }}</b></p>
+            {% endif %}
+
+            {% if data.get("content") %}
+              <pre>{{ data["content"] | tojson(indent=2) }}</pre>
+            {% endif %}
+
+            {% if data.get("error") %}
+              <pre><strong>Error:</strong> {{ data["error"] }}</pre>
+            {% endif %}
+          </details>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No results available.</p>
+  {% endif %}
+
+</body>
+</html>
