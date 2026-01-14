@@ -107,13 +107,13 @@ OpenAPI doc
 http://127.0.0.1:8000/docs
 ```
 
-Checker that sends predefined calls to all configured cantons - IP restricted ⚠️
+Checker that sends predefined calls to all configured cantons
 
 ```bash
 http://127.0.0.1:8000/checker
 ```
 
-Or check one canton only - IP restricted ⚠️
+Or check one canton only
 
 ```bash
 http://127.0.0.1:8000/checker/VD

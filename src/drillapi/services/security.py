@@ -15,25 +15,3 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
         detail="Rate limit exceeded",
     )
 
-
-# IP verification dependency
-async def verify_ip(conn):
-    """
-    Verifies that the client IP is allowed.
-    Raises HTTP 403 if not allowed.
-    """
-    # Get the client IP (works behind proxies if you configure X-Forwarded-For)
-    client_ip = (
-        conn.client.host
-    )  # We change to conn so that it accepts both Request and WebSocket
-    # Optional: check for headers if behind a proxy/load balancer
-    # client_ip = request.headers.get("X-Forwarded-For", client_ip).split(",")[0].strip()
-
-    if client_ip not in settings.ALLOWED_IPS:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"IP {client_ip} is not allowed",
-        )
-
-    # Optionally return the IP if downstream code needs it
-    return client_ip

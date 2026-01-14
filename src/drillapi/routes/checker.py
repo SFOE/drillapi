@@ -6,12 +6,12 @@ from fastapi import (
 )
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from ..services import security
 
 import httpx
 import asyncio
 import json
 
-from ..services.security import verify_ip
 from ..routes.cantons import get_cantons_data, filter_active_cantons
 from ..config import settings
 
@@ -21,6 +21,7 @@ templates = Jinja2Templates(directory=str(settings.TEMPLATES_DIR))
 
 
 @router.get("/checker/", response_class=HTMLResponse)
+@security.limiter.limit(settings.RATE_LIMIT)
 @router.get("/checker/{canton}", response_class=HTMLResponse)
 async def checker_page(request: Request, canton: str | None = None):
 
@@ -38,8 +39,6 @@ async def checker_websocket(ws: WebSocket):
         - accepts: {"canton": "VD"} or {"canton": ""}
         - streams JSON results as checks are performed
     """
-    # accept connection only from whitelisted IP
-    await verify_ip(ws)
 
     await ws.accept()
 
