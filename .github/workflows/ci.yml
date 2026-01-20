@@ -19,33 +19,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
 
-      - name: Cache pre-commit
+      - name: Cache UV
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pre-commit
-          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[dev]"
+          uv sync --extra dev
 
       - name: Check code formatting (pre-commit)
         run: |
           # Run pre-commit hooks across the repo. This will fail the job if hooks detect issues.
-          python -m pre_commit run --all-files
+          uv run pre-commit run --all-files
 
       - name: Check code style (black)
         run: |
           # run black in check mode; CI will fail if formatting issues are present
-          python -m black --check .
+          uv run black --check .
 
       - name: Run pytest
         run: |
-          python -m pytest -v
+          uv run python -m pytest -v

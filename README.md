@@ -4,6 +4,8 @@
 
 ***Query the cantonal geoservices to know whether a site in Switzerland is suitable for a geothermal drilling.***
 
+This project uses [UV](https://github.com/astral-sh/uv) for dependency management.
+
 What does this [FastAPI](https://fastapi.tiangolo.com/) project do ?
 
 - take x/y coordinates in EPSG:2056 on route ```/v1/x/y```
@@ -50,39 +52,27 @@ Special attention to the ```ENVIRONMENT``` value, MUST never be set to ```DEV```
 cp env.example .env
 ```
 
-Create python virtual environment
+Install dependencies using UV
 
 ```bash
-python3 -m venv venv
-```
-
-Activate python virtual environment
-```bash
-source venv/bin/activate
-```
-
-Install dependencies
-
-```bash
-pip install -e .
+uv sync
 ```
 
 For **dev** install dev requirements
 
 ```bash
-pip install -e ".[dev]"
+uv sync --extra dev
 ```
 
-Install pre-commit and activate it
+Activate pre-commit
 
 ```bash
-pip install pre-commit
-pre-commit install
+uv run pre-commit install
 ```
 
 Run pre-commit manually
 ```bash
-pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
 ## Start
@@ -90,13 +80,13 @@ pre-commit run --all-files
 Run dev server
 
 ```bash
-uvicorn drillapi.app:app --reload
+uv run uvicorn drillapi.app:app --reload
 ```
 
 Run project
 
 ```bash
-python -m drillapi
+uv run python -m drillapi
 ```
 
 ## Explore
@@ -142,13 +132,13 @@ http://127.0.0.1:8000/v1/cantons/NE
 Install dev requirements
 
 ```bash
-pip install -e ".[dev]"
+uv sync --extra dev
 ```
 
 Run tests
 
 ```bash
-python -m pytest -v
+uv run python -m pytest -v
 ```
 
 ## Running local docker image
@@ -173,7 +163,18 @@ Run container
 docker run -d -p 8000:8000 --name drillapi_container drillapi
 ```
 
-View logs
+Build lambda image locally
+
+```bash
+sudo docker build -t drillapi-lambda .
+```
+
+Run lambda image locally
+```bash
+docker run -p 9000:8000 drillapi-lambda
+```
+
+View logs for docker image
 
 ```bash
 docker logs -f drillapi_container
