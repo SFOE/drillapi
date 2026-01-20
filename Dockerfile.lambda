@@ -1,11 +1,14 @@
 FROM public.ecr.aws/lambda/python:3.14
- 
+
+# Install UV
+RUN pip install --no-cache-dir uv
+
 # Copy requirements and install dependencies
-COPY pyproject.toml README.md LICENSE ./
+COPY pyproject.toml uv.lock README.md LICENSE ./
 COPY src/drillapi ${LAMBDA_TASK_ROOT}/drillapi
 COPY tests ${LAMBDA_TASK_ROOT}/tests
- 
-RUN pip install --no-cache-dir -e .
- 
+
+RUN uv sync --no-install-project
+
 # Set the CMD to your handler
 CMD ["drillapi.lambda_handler.handler"]

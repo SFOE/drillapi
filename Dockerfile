@@ -2,11 +2,14 @@ FROM python:3.14-slim
 
 WORKDIR /app
 
-COPY pyproject.toml README.md LICENSE ./
+# Install UV
+RUN pip install --no-cache-dir uv
+
+COPY pyproject.toml uv.lock README.md LICENSE ./
 COPY src/drillapi ./drillapi
 COPY tests ./tests
 
-RUN pip install --no-cache-dir -e .
+RUN uv sync --no-install-project
 
 EXPOSE 8000
 
