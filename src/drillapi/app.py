@@ -6,7 +6,6 @@ from .routes import drill_category, cantons, checker
 from .services.security import limiter, rate_limit_handler, RateLimitExceeded
 from .config import settings
 
-
 app = FastAPI()
 
 # CORS configuration
