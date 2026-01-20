@@ -8,7 +8,6 @@ from drillapi.app import app
 def override_global_settings():
     test_settings = Settings(
         RATE_LIMIT="100/min",
-        ALLOWED_IPS=["127.0.0.1"],
         ALLOWED_ORIGINS=["*"],
         ENVIRONMENT="TEST",
     )

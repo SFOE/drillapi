@@ -24,7 +24,6 @@ This project can run in docker:
 docker run -d \
   -p 8000:8000 \
   -e RATE_LIMIT="1000/minute" \
-  -e ALLOWED_IPS='["127.0.0.1","192.168.1.10"]' \
   -e ALLOWED_ORIGINS='["http://localhost:5173","https://www.uvek-gis.admin.ch/"]' \
   -e ENVIRONMENT=PROD \
   ghcr.io/sfoe/drillapi:latest
@@ -36,7 +35,6 @@ docker run -d \
 docker run -d \
   -p 8000:8000 \
   -e RATE_LIMIT="1000/minute" \
-  -e ALLOWED_IPS='["127.0.0.1","192.168.1.10"]' \
   -e ALLOWED_ORIGINS='["http://localhost:5173","https://www.uvek-gis.admin.ch/"]' \
   -e ENVIRONMENT=PROD \
   ghcr.io/sfoe/drillapi:<vx.y.z>
