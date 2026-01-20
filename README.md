@@ -163,7 +163,18 @@ Run container
 docker run -d -p 8000:8000 --name drillapi_container drillapi
 ```
 
-View logs
+Build lambda image locally
+
+```bash
+sudo docker build -t drillapi-lambda .
+```
+
+Run lambda image locally
+```bash
+docker run -p 9000:8000 drillapi-lambda
+```
+
+View logs for docker image
 
 ```bash
 docker logs -f drillapi_container
