@@ -59,6 +59,5 @@ jobs:
           ECR_REPOSITORY: drillapi
           VERSION_TAG: ${{ github.event.release.tag_name }}
         run: |
-          docker build -f Dockerfile.lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker build -f Dockerfile.lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
