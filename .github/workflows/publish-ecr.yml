@@ -18,6 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     environment: prometheon-access
 
+    strategy:
+      matrix:
+        env:
+          - name: dev
+            role: SFOE_DRILLAPI_PIPELINE_ROLE_DEV
+          - name: prod
+            role: SFOE_DRILLAPI_PIPELINE_ROLE_PROD
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,7 +33,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ vars.SFOE_DRILLAPI_PIPELINE_ROLE }}
+          role-to-assume: ${{ vars[matrix.env.role] }}
           aws-region: eu-central-1
 
       - name: Login to Amazon ECR
