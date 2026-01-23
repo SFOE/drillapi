@@ -182,8 +182,6 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
 
 
 # PARSE WMS or REST responses
-
-
 def parse_wms_getfeatureinfo(content: bytes, info_format: str, config: dict):
     """
     Parser for differents geoservices outputs
@@ -277,12 +275,6 @@ def process_ground_category(
     """
     Reclass canton response into normalized values.
     """
-    # No features → harmonized value = 4
-    if not ground_features:
-        return {
-            "layer_results": [],
-            "harmonized_value": 4,
-        }
 
     layer_results = []
 
@@ -300,23 +292,23 @@ def process_ground_category(
         property_name = layer_cfg.get("property_name")
         property_values = layer_cfg.get("property_values")
 
-        description = None
+        property_name_value = None
 
         for feature in ground_features:
             # ESRI REST support
             if isinstance(feature, dict):
                 if "attributes" in feature and isinstance(feature["attributes"], dict):
-                    value = feature["attributes"].get(property_name)
+                    property_name_value = feature["attributes"].get(property_name)
                 else:
-                    value = feature.get(property_name)
+                    property_name_value = feature.get(property_name)
             else:
-                value = feature
+                property_name_value = feature
 
-            value = normalize_string(value)
+            property_name_value = normalize_string(property_name_value)
             if property_values:
                 for item in property_values:
                     # Match with values for layers that have a defined mapping
-                    if item.get("name") == value:
+                    if item.get("name") == property_name_value:
                         mapped_values.append(item.get("target_harmonized_value"))
                         source_values.append(item.get("desc"))
 
@@ -325,14 +317,15 @@ def process_ground_category(
                 if layer_cfg.get("property_name") == feature.get("layerName"):
                     mapped_values.append(layer_cfg.get("target_harmonized_value"))
 
-        # Helping dict useful to identify issues. Only "harmonized_value is useful for frontend application"
-        layer_results.append(
-            {
-                "layer": layer_name,
-                "property_name": property_name,
-                "value": value,
-            }
-        )
+        # Helping dict useful to identify issues. Only "harmonized_value" is useful for frontend application
+        if property_name_value:
+            layer_results.append(
+                {
+                    "layer": layer_name,
+                    "property_name": property_name,
+                    "value": property_name_value,
+                }
+            )
 
     # property_values variable contains the mapping between attribute value and drillapi categories (1,2,3)
     if mapped_values:

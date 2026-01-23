@@ -51,18 +51,15 @@ async def checker_page(request: Request, canton: str | None = None):
             result = {"canton": canton_code, "url": url}
 
             try:
-                # Call the drill category endpoint
                 feature = await get_drill_category(
                     request=request,
                     coord_x=x,
                     coord_y=y,
                 )
 
-                # ✅ Ensure ground_category is a Pydantic model
                 if isinstance(feature.ground_category, dict):
                     feature.ground_category = GroundCategory(**feature.ground_category)
 
-                # Use a plain dict for template
                 feature_dict = feature.model_dump()
 
                 result.update(
@@ -71,7 +68,6 @@ async def checker_page(request: Request, canton: str | None = None):
                     content_for_template=feature_dict,
                 )
 
-                # Harmonized value
                 calculated = (
                     feature.ground_category.harmonized_value
                     if feature.ground_category
@@ -81,7 +77,7 @@ async def checker_page(request: Request, canton: str | None = None):
                 if calculated == control_harmonized_value:
                     result["control_harmonized_values"] = "success"
                     result["control_harmonized_values_message"] = (
-                        "Harmonized value matches control value."
+                        f"Harmonized {control_harmonized_value} value matches control value {calculated}."
                     )
                 else:
                     result["control_harmonized_values"] = "error"
@@ -99,7 +95,6 @@ async def checker_page(request: Request, canton: str | None = None):
 
             results.append(result)
 
-    # ✅ Simplified canton grouping
     canton_groups = {}
     for r in results:
         canton_groups.setdefault(r["canton"], []).append(r)

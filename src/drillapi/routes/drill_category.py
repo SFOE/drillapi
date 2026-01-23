@@ -68,19 +68,22 @@ async def get_drill_category(
         )
         return suitability_feature
 
-    # --- Fetch features (WMS or ESRI REST) ---
+    # Fill canton data
+    suitability_feature.canton = code_canton
+    suitability_feature.canton_config = canton_config
+
+    # Fetch features (WMS or ESRI REST) and process into feature
     result = await processing.fetch_features_for_point(
         coord_x, coord_y, canton_config
     )
 
+    # Feature(s) found, process to reclassification
     processed_ground_category = processing.process_ground_category(
         result["features"],
         canton_config["layers"],
     )
 
-    # --- Success: fill the model ---
-    suitability_feature.canton = code_canton
-    suitability_feature.canton_config = canton_config
+    # Fill the model
     suitability_feature.ground_category = processed_ground_category
     suitability_feature.status = "success"
     suitability_feature.result_detail = ResultDetail(
