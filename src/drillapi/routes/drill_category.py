@@ -40,7 +40,7 @@ async def get_drill_category(
         ),
     )
 
-    # Determine canton from coordinates using GeoadminAPI   
+    # Determine canton from coordinates using GeoadminAPI
     canton_result = await processing.get_canton_from_coordinates(coord_x, coord_y)
 
     if not canton_result:
