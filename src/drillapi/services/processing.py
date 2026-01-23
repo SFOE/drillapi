@@ -78,9 +78,11 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
     error_message = None
 
     async with httpx.AsyncClient(timeout=20.0) as client:
-        try:
+
+            # ESRI REST
             if "arcgis" in info_format:
                 for layer in config["layers"]:
+        
                     layer_id = layer.get("id")
                     if layer_id is None:
                         raise RuntimeError(
@@ -97,15 +99,22 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                         "returnGeometry": "false",
                         "f": "json",
                     }
+                    try:
+                        resp = await client.get(esri_url, params=params)
+                        full_url = str(resp.request.url)
+                        resp.raise_for_status()
 
-                    resp = await client.get(esri_url, params=params)
-                    full_url = str(resp.request.url)
-                    resp.raise_for_status()
+                        data = resp.json()
+                        features = data.get("features") or []
+                    except e:
+                        error_message = f"WMS request failed: {e}"
+                        logger.error("%s — URL: %s", error_message, full_url)
+                        raise HTTPException(
+                            status_code=502, 
+                            detail=f"{error_message} — URL: {full_url}"
+                        )
 
-                    data = resp.json()
-                    features = data.get("features") or []
-
-            # ---------- WMS GetFeatureInfo ----------
+            # WMS GetFeatureInfo
             else:
                 delta = config["bbox_delta"]
                 width = 101
@@ -145,34 +154,32 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                 except Exception as e:
                     error_message = f"WMS request failed: {e}"
                     logger.error("%s — URL: %s", error_message, full_url)
-                    return {
-                        "features": [],
-                        "full_url": full_url,
-                        "error": error_message,
-                    }
-
-                try:
-                    features = parse_wms_getfeatureinfo(
-                        resp.content, config["info_format"], config
+                    raise HTTPException(
+                        status_code=502, 
+                        detail=f"{error_message} — URL: {full_url}"
                     )
-                except Exception as e:
-                    error_message = f"Failed to parse WMS response: {e}"
-                    logger.error("%s — URL: %s", error_message, full_url)
 
-        except Exception as e:
-            error_message = f"Unexpected error in fetch_features_for_point: {e}"
-            logger.exception(error_message)
-    # Always return structured result (even if empty)
-    return {
-        "features": features,
-        "full_url": full_url,
-        "error": error_message,
-    }
+            try:
+                features = parse_wms_getfeatureinfo(
+                    resp.content, config["info_format"], config
+                )
+
+                return {
+                    "features": features,
+                    "full_url": full_url,
+                    "error": error_message,
+                }
+
+            except Exception as e:
+                error_message = f"Failed to parse WMS or ESRI REST response: {e}"
+                logger.error("%s — URL: %s", error_message, full_url)
+                raise HTTPException(
+                    status_code=502, 
+                    detail=f"{error_message} — URL: {full_url}"
+                )
 
 
-# ============================================================
 # PARSE WMS or REST responses
-# ============================================================
 
 
 def parse_wms_getfeatureinfo(content: bytes, info_format: str, config: dict):
@@ -183,81 +190,82 @@ def parse_wms_getfeatureinfo(content: bytes, info_format: str, config: dict):
     text = content.decode("utf-8", errors="ignore")
     info_format = (info_format or "").lower().strip()
 
-    # ----------------------------------------------------------------------
     # JSON / ESRI REST / GEOJSON PARSING
-    # ----------------------------------------------------------------------
     if "json" in info_format or "arcgis" in info_format:
         try:
             data = json.loads(text)
         except Exception as e:
             raise HTTPException(500, f"Invalid JSON: {e}")
 
-        # -------------------------------
+        features = []
         # GeoJSON FeatureCollection
-        # -------------------------------
         if isinstance(data, dict) and data.get("type") == "FeatureCollection":
-            features = []
-
             for feature in data.get("features", []):
                 props = feature.get("properties", {})
                 props["layerName"] = feature.get("layerName")
                 if isinstance(props, dict):
                     features.append(props)
-            return features
 
-    # ----------------------------------------------------------------------
-    # GML / XML PARSING  (OWSLib-compatible)
-    # ----------------------------------------------------------------------
-    try:
-        root = etree.fromstring(text.encode("utf-8"))
-    except Exception:
+        #  ESRI REST JSON
+        elif isinstance(data, dict) and "features" in data:
+            for feature in data["features"]:
+                # ESRI features usually have an "attributes" dict
+                attrs = feature.get("attributes", {})
+                # optionally add layerName if needed
+                attrs["layerName"] = feature.get("layerName")
+                features.append(attrs)
+
+        return features
+        
+    else:
+
+        # GML / XML PARSING  (OWSLib-compatible)
         try:
-            root = ET.fromstring(text)
-        except Exception as e:
-            raise HTTPException(500, f"Invalid XML/GML: {e}")
+            root = etree.fromstring(text.encode("utf-8"))
+        except Exception:
+            try:
+                root = ET.fromstring(text)
+            except Exception as e:
+                raise HTTPException(500, f"Invalid XML/GML: {e}")
 
-    features = []
-    ns = {"gml": "http://www.opengis.net/gml"}
+        features = []
+        ns = {"gml": "http://www.opengis.net/gml"}
 
-    # ----------------------------------------------------------------------
-    # 1) Standard GML <gml:featureMember>
-    # ----------------------------------------------------------------------
-    for fm in root.findall(".//gml:featureMember", ns):
-        fdict = {}
-        for el in fm.iter():
-            tag = el.tag.split("}", 1)[-1]
-            if tag.lower() in ("boundedby", "geometry", "polygon", "multipolygon"):
-                continue
-            if el.text and el.text.strip():
-                fdict[tag] = el.text.strip()
-        if fdict:
-            features.append(fdict)
-
-    # ----------------------------------------------------------------------
-    # 2) MapServer msGMLOutput   <*_feature>
-    # ----------------------------------------------------------------------
-
-    for elem in root.iter():
-        if re.search(r"_feature$", elem.tag):
+        # 1) Standard GML <gml:featureMember>
+        for fm in root.findall(".//gml:featureMember", ns):
             fdict = {}
-            for child in elem:
-                tag = child.tag.split("}", 1)[-1]
-                if tag.lower() in ("boundedby", "geometry"):
+            for el in fm.iter():
+                tag = el.tag.split("}", 1)[-1]
+                if tag.lower() in ("boundedby", "geometry", "polygon", "multipolygon"):
                     continue
-                val = child.text.strip() if child.text else None
-                if val:
-                    fdict[tag] = val
+                if el.text and el.text.strip():
+                    fdict[tag] = el.text.strip()
             if fdict:
                 features.append(fdict)
 
-    # ZH geoservice is a special and unique case
-    # It only returns a GML without atttibute but containing the layer that was found at location
-    if not features and config["name"] == "ZH":
-        name_elem = root.find(".//gml:name", ns)
-        if name_elem is not None and name_elem.text and name_elem.text.strip():
-            fdict = {"name": name_elem.text.strip()}
-            features.append(fdict)
-    return features
+        # 2) MapServer msGMLOutput   <*_feature>
+
+        for elem in root.iter():
+            if re.search(r"_feature$", elem.tag):
+                fdict = {}
+                for child in elem:
+                    tag = child.tag.split("}", 1)[-1]
+                    if tag.lower() in ("boundedby", "geometry"):
+                        continue
+                    val = child.text.strip() if child.text else None
+                    if val:
+                        fdict[tag] = val
+                if fdict:
+                    features.append(fdict)
+
+        # ZH geoservice is a special and unique case
+        # It only returns a GML without atttibute but containing the layer that was found at location
+        if not features and config["name"] == "ZH":
+            name_elem = root.find(".//gml:name", ns)
+            if name_elem is not None and name_elem.text and name_elem.text.strip():
+                fdict = {"name": name_elem.text.strip()}
+                features.append(fdict)
+        return features
 
 
 def process_ground_category(
@@ -267,9 +275,7 @@ def process_ground_category(
     """
     Reclass canton response into normalized values.
     """
-    # -----------------------------------------------------------
     # No features → harmonized value = 4
-    # -----------------------------------------------------------
     if not ground_features:
         return {
             "layer_results": [],

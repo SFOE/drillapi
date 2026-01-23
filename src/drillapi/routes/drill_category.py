@@ -21,8 +21,6 @@ async def get_drill_category(
 
     # --- Determine canton from coordinates ---
     canton_result = await processing.get_canton_from_coordinates(coord_x, coord_y)
-    if not canton_result:
-        raise HTTPException(404, detail="No canton found for these coordinates")
 
     code_canton = canton_result[0]["attributes"]["ak"]
     canton_config = cantons.CANTONS["cantons_configurations"].get(code_canton)
