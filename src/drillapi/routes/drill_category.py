@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @router.get(
     "/v1/drill-category/{coord_x}/{coord_y}",
-    response_model=SuitabilityFeature,  # 👈 enforce schema
+    response_model=SuitabilityFeature,
 )
 @security.limiter.limit(settings.RATE_LIMIT)
 @handle_errors
@@ -40,7 +40,7 @@ async def get_drill_category(
         ),
     )
 
-    # --- Determine canton from coordinates ---
+    # Determine canton from coordinates using GeoadminAPI   
     canton_result = await processing.get_canton_from_coordinates(coord_x, coord_y)
 
     if not canton_result:
