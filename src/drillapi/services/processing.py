@@ -9,9 +9,7 @@ from owslib.etree import etree
 logger = logging.getLogger(__name__)
 
 
-# ============================================================
 # STRING NORMALIZATION
-# ============================================================
 def normalize_string(value: str) -> str:
     """
     Fix common double-encoding issues from WMS or ESRI JSON responses.
@@ -26,14 +24,13 @@ def normalize_string(value: str) -> str:
         return value
 
 
-# ============================================================
 # CANTON LOOKUP (geo.admin.ch)
-# ============================================================
 async def get_canton_from_coordinates(coord_x: float, coord_y: float):
     """
     Query geo.admin.ch to find the canton (AK code) for EPSG:2056 coordinates.
     Returns: list of dicts (geo.admin.ch "results" array)
     """
+    
     url = "https://api3.geo.admin.ch/rest/services/ech/MapServer/identify"
     params = {
         "geometry": f"{coord_x},{coord_y}",
@@ -61,9 +58,7 @@ async def get_canton_from_coordinates(coord_x: float, coord_y: float):
     return results
 
 
-# ============================================================
 # FETCH WMS OR ESRI FEATURES
-# ============================================================
 async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict):
     """
     Fetch features for a coordinate using either:
