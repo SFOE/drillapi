@@ -46,15 +46,17 @@ async def get_canton_from_coordinates(coord_x: float, coord_y: float):
             resp = await client.get(url, params=params)
             resp.raise_for_status()
             payload = resp.json()
-    except Exception as e:
-        logger.error("Failed to fetch canton for (%.2f, %.2f): %s", coord_x, coord_y, e)
-        raise HTTPException(500, detail=f"Failed to fetch canton: {e}")
+            results = payload.get("results", [])
+    except httpx.RequestError as e:
+        logger.error("Network error fetching canton for (%.2f, %.2f): %s", coord_x, coord_y, e)
+        results = []
+    except httpx.HTTPStatusError as e:
+        logger.error("HTTP error %d for (%.2f, %.2f): %s", e.response.status_code, coord_x, coord_y, e)
+        results = []
+    except json.JSONDecodeError as e:
+        logger.error("Invalid JSON for (%.2f, %.2f): %s", coord_x, coord_y, e)
+        results = []
 
-    results = payload.get("results", [])
-    if not results:
-        logger.warning(
-            "No canton found for coordinates: (%.2f, %.2f)", coord_x, coord_y
-        )
     return results
 
 

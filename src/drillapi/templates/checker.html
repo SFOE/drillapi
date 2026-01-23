@@ -24,45 +24,41 @@
     <div class="error-box"><strong>Error:</strong> {{ error_msg }}</div>
   {% endif %}
 
-  {% if results %}
-    {% set canton_groups = {} %}
-    {% for r in results %}
-      {% set _ = canton_groups.update({r["canton"]: (canton_groups.get(r["canton"], []) + [r])}) %}
-    {% endfor %}
-
+  {% if canton_groups %}
     {% for canton_code, items in canton_groups.items() %}
       <div id="canton-{{ canton_code }}">
         <h3>Checking services for {{ canton_code }}</h3>
 
         {% for data in items %}
-          {% set is_error = (not data.get("success")) or (data.get("control_harmonized_values") == 'error') %}
+          {% set content = data.content_for_template %}
+          {% set is_error = (not data.success) or (data.control_harmonized_values == 'error') %}
           <details class="{{ 'error-box' if is_error else 'success-box' }}">
             <summary>
               {% if is_error %}
-                ❌ Request/Error for {{ data.get("url") }}
+                ❌ Request/Error for {{ data.url }}
               {% else %}
-                ✅ Success (HTTP {{ data.get("status", "N/A") }}) - {{ data.get("url") }}
+                ✅ Success (HTTP {{ data.status }}) - {{ data.url }}
               {% endif %}
             </summary>
 
-            {% if data.get("content") and data["content"].get("result_detail") and data["content"]["result_detail"].get("full_url") %}
+            {% if content and content.result_detail and content.result_detail.full_url %}
               <p><strong>Full request URL:</strong>
-                <a class="full-url" href="{{ data["content"]["result_detail"]["full_url"] }}" target="_blank" rel="noopener noreferrer">
-                  {{ data["content"]["result_detail"]["full_url"] }}
+                <a class="full-url" href="{{ content.result_detail.full_url }}" target="_blank">
+                  {{ content.result_detail.full_url }}
                 </a>
               </p>
             {% endif %}
 
-            {% if data.get("control_harmonized_values_message") %}
-              <p><b>{{ data["control_harmonized_values_message"] }}</b></p>
+            {% if data.control_harmonized_values_message %}
+              <p><b>{{ data.control_harmonized_values_message }}</b></p>
             {% endif %}
 
-            {% if data.get("content") %}
-              <pre>{{ data["content"] | tojson(indent=2) }}</pre>
+            {% if content %}
+              <pre>{{ content | tojson(indent=2) }}</pre>
             {% endif %}
 
-            {% if data.get("error") %}
-              <pre><strong>Error:</strong> {{ data["error"] }}</pre>
+            {% if data.error %}
+              <pre><strong>Error:</strong> {{ data.error }}</pre>
             {% endif %}
           </details>
         {% endfor %}
@@ -71,6 +67,5 @@
   {% else %}
     <p>No results available.</p>
   {% endif %}
-
 </body>
 </html>
