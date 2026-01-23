@@ -5,6 +5,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from .routes import drill_category, cantons, checker
 from .services.security import limiter, rate_limit_handler, RateLimitExceeded
 from .config import settings
+import logging
+
+LOG_LEVEL = logging.DEBUG if settings.ENVIRONMENT.upper() == "DEV" else logging.INFO
+
+logging.basicConfig(
+    level=LOG_LEVEL,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+
+uvicorn_logger = logging.getLogger("uvicorn")
+uvicorn_logger.setLevel(LOG_LEVEL)
 
 app = FastAPI()
 

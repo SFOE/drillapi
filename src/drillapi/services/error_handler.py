@@ -12,27 +12,30 @@ def handle_errors(func):
     Decorator to catch exceptions in endpoints and async sub-functions.
     Logs full traceback in DEV, returns minimal message in PROD.
     """
+    import traceback
+    import logging
+    from fastapi import HTTPException
+    from ..config import settings
+
+    logger = logging.getLogger(func.__module__)
+
+    import functools
 
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
         try:
             return await func(*args, **kwargs)
         except HTTPException:
-            # Let FastAPI handle HTTPExceptions normally
-            raise
+            raise  # Let FastAPI handle HTTPExceptions
         except Exception as e:
-            # Full traceback
             tb = traceback.format_exc()
             logger.error("Unhandled error in %s:\n%s", func.__name__, tb)
 
             if settings.ENVIRONMENT.upper() == "DEV":
-                # Reraise exception to see full traceback in FastAPI
-                raise
+                raise  # Full traceback in dev
             else:
-                # In PROD, return clean error
-                raise HTTPException(
-                    status_code=500,
-                    detail="An internal error occurred. Please contact support.",
-                )
+                # Optionally include the short exception message
+                detail_msg = str(e) if str(e) else "An internal error occurred."
+                raise HTTPException(status_code=500, detail=detail_msg)
 
     return wrapper

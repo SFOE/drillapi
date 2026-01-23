@@ -9,9 +9,7 @@ from owslib.etree import etree
 logger = logging.getLogger(__name__)
 
 
-# ============================================================
 # STRING NORMALIZATION
-# ============================================================
 def normalize_string(value: str) -> str:
     """
     Fix common double-encoding issues from WMS or ESRI JSON responses.
@@ -26,14 +24,13 @@ def normalize_string(value: str) -> str:
         return value
 
 
-# ============================================================
 # CANTON LOOKUP (geo.admin.ch)
-# ============================================================
 async def get_canton_from_coordinates(coord_x: float, coord_y: float):
     """
     Query geo.admin.ch to find the canton (AK code) for EPSG:2056 coordinates.
     Returns: list of dicts (geo.admin.ch "results" array)
     """
+
     url = "https://api3.geo.admin.ch/rest/services/ech/MapServer/identify"
     params = {
         "geometry": f"{coord_x},{coord_y}",
@@ -49,21 +46,29 @@ async def get_canton_from_coordinates(coord_x: float, coord_y: float):
             resp = await client.get(url, params=params)
             resp.raise_for_status()
             payload = resp.json()
-    except Exception as e:
-        logger.error("Failed to fetch canton for (%.2f, %.2f): %s", coord_x, coord_y, e)
-        raise HTTPException(500, detail=f"Failed to fetch canton: {e}")
-
-    results = payload.get("results", [])
-    if not results:
-        logger.warning(
-            "No canton found for coordinates: (%.2f, %.2f)", coord_x, coord_y
+            results = payload.get("results", [])
+    except httpx.RequestError as e:
+        logger.error(
+            "Network error fetching canton for (%.2f, %.2f): %s", coord_x, coord_y, e
         )
+        results = []
+    except httpx.HTTPStatusError as e:
+        logger.error(
+            "HTTP error %d for (%.2f, %.2f): %s",
+            e.response.status_code,
+            coord_x,
+            coord_y,
+            e,
+        )
+        results = []
+    except json.JSONDecodeError as e:
+        logger.error("Invalid JSON for (%.2f, %.2f): %s", coord_x, coord_y, e)
+        results = []
+
     return results
 
 
-# ============================================================
 # FETCH WMS OR ESRI FEATURES
-# ============================================================
 async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict):
     """
     Fetch features for a coordinate using either:
@@ -83,103 +88,105 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
     error_message = None
 
     async with httpx.AsyncClient(timeout=20.0) as client:
-        try:
-            if "arcgis" in info_format:
-                for layer in config["layers"]:
-                    layer_id = layer.get("id")
-                    if layer_id is None:
-                        raise RuntimeError(
-                            "Layer config missing 'id' for ESRI REST service"
-                        )
 
-                    esri_url = f"{config['query_url'].rstrip('/')}/{layer_id}/query"
+        # ESRI REST
+        if "arcgis" in info_format:
+            for layer in config["layers"]:
 
-                    params = {
-                        "geometry": f"{coord_x},{coord_y}",
-                        "geometryType": "esriGeometryPoint",
-                        "spatialRel": "esriSpatialRelIntersects",
-                        "outFields": "*",
-                        "returnGeometry": "false",
-                        "f": "json",
-                    }
+                layer_id = layer.get("id")
+                if layer_id is None:
+                    raise RuntimeError(
+                        "Layer config missing 'id' for ESRI REST service"
+                    )
 
+                esri_url = f"{config['query_url'].rstrip('/')}/{layer_id}/query"
+
+                params = {
+                    "geometry": f"{coord_x},{coord_y}",
+                    "geometryType": "esriGeometryPoint",
+                    "spatialRel": "esriSpatialRelIntersects",
+                    "outFields": "*",
+                    "returnGeometry": "false",
+                    "f": "json",
+                }
+                try:
                     resp = await client.get(esri_url, params=params)
                     full_url = str(resp.request.url)
                     resp.raise_for_status()
 
                     data = resp.json()
                     features = data.get("features") or []
-
-            # ---------- WMS GetFeatureInfo ----------
-            else:
-                delta = config["bbox_delta"]
-                width = 101
-                height = 101
-
-                minx, miny = coord_x - delta, coord_y - delta
-                maxx, maxy = coord_x + delta, coord_y + delta
-                bbox = f"{minx},{miny},{maxx},{maxy}"
-
-                layers_list = ",".join([layer["name"] for layer in config["layers"]])
-
-                i = int((coord_x - minx) / (maxx - minx) * width)
-                j = int((maxy - coord_y) / (maxy - miny) * height)
-
-                params_wms = {
-                    "SERVICE": "WMS",
-                    "VERSION": "1.3.0",
-                    "REQUEST": "GetFeatureInfo",
-                    "QUERY_LAYERS": layers_list,
-                    "LAYERS": layers_list,
-                    "INFO_FORMAT": config.get("info_format", "text/plain"),
-                    "I": str(i),
-                    "J": str(j),
-                    "CRS": "EPSG:2056",
-                    "WIDTH": str(width),
-                    "HEIGHT": str(height),
-                    "BBOX": bbox,
-                    "STYLES": config.get("style", ""),
-                    "FEATURE_COUNT": config.get("feature_count", 10),
-                }
-
-                query_url = config["query_url"]
-                try:
-                    resp = await client.get(query_url, params=params_wms)
-                    full_url = str(resp.request.url)
-                    resp.raise_for_status()
-                except Exception as e:
+                except e:
                     error_message = f"WMS request failed: {e}"
                     logger.error("%s — URL: %s", error_message, full_url)
-                    return {
-                        "features": [],
-                        "full_url": full_url,
-                        "error": error_message,
-                    }
-
-                try:
-                    features = parse_wms_getfeatureinfo(
-                        resp.content, config["info_format"], config
+                    raise HTTPException(
+                        status_code=502, detail=f"{error_message} — URL: {full_url}"
                     )
-                except Exception as e:
-                    error_message = f"Failed to parse WMS response: {e}"
-                    logger.error("%s — URL: %s", error_message, full_url)
+
+        # WMS GetFeatureInfo
+        else:
+            delta = config["bbox_delta"]
+            width = 101
+            height = 101
+
+            minx, miny = coord_x - delta, coord_y - delta
+            maxx, maxy = coord_x + delta, coord_y + delta
+            bbox = f"{minx},{miny},{maxx},{maxy}"
+
+            layers_list = ",".join([layer["name"] for layer in config["layers"]])
+
+            i = int((coord_x - minx) / (maxx - minx) * width)
+            j = int((maxy - coord_y) / (maxy - miny) * height)
+
+            params_wms = {
+                "SERVICE": "WMS",
+                "VERSION": "1.3.0",
+                "REQUEST": "GetFeatureInfo",
+                "QUERY_LAYERS": layers_list,
+                "LAYERS": layers_list,
+                "INFO_FORMAT": config.get("info_format", "text/plain"),
+                "I": str(i),
+                "J": str(j),
+                "CRS": "EPSG:2056",
+                "WIDTH": str(width),
+                "HEIGHT": str(height),
+                "BBOX": bbox,
+                "STYLES": config.get("style", ""),
+                "FEATURE_COUNT": config.get("feature_count", 10),
+            }
+
+            query_url = config["query_url"]
+            try:
+                resp = await client.get(query_url, params=params_wms)
+                full_url = str(resp.request.url)
+                resp.raise_for_status()
+            except Exception as e:
+                error_message = f"WMS request failed: {e}"
+                logger.error("%s — URL: %s", error_message, full_url)
+                raise HTTPException(
+                    status_code=502, detail=f"{error_message} — URL: {full_url}"
+                )
+
+        try:
+            features = parse_wms_getfeatureinfo(
+                resp.content, config["info_format"], config
+            )
+
+            return {
+                "features": features,
+                "full_url": full_url,
+                "error": error_message,
+            }
 
         except Exception as e:
-            error_message = f"Unexpected error in fetch_features_for_point: {e}"
-            logger.exception(error_message)
-    # Always return structured result (even if empty)
-    return {
-        "features": features,
-        "full_url": full_url,
-        "error": error_message,
-    }
+            error_message = f"Failed to parse WMS or ESRI REST response: {e}"
+            logger.error("%s — URL: %s", error_message, full_url)
+            raise HTTPException(
+                status_code=502, detail=f"{error_message} — URL: {full_url}"
+            )
 
 
-# ============================================================
 # PARSE WMS or REST responses
-# ============================================================
-
-
 def parse_wms_getfeatureinfo(content: bytes, info_format: str, config: dict):
     """
     Parser for differents geoservices outputs
@@ -188,81 +195,82 @@ def parse_wms_getfeatureinfo(content: bytes, info_format: str, config: dict):
     text = content.decode("utf-8", errors="ignore")
     info_format = (info_format or "").lower().strip()
 
-    # ----------------------------------------------------------------------
     # JSON / ESRI REST / GEOJSON PARSING
-    # ----------------------------------------------------------------------
     if "json" in info_format or "arcgis" in info_format:
         try:
             data = json.loads(text)
         except Exception as e:
             raise HTTPException(500, f"Invalid JSON: {e}")
 
-        # -------------------------------
+        features = []
         # GeoJSON FeatureCollection
-        # -------------------------------
         if isinstance(data, dict) and data.get("type") == "FeatureCollection":
-            features = []
-
             for feature in data.get("features", []):
                 props = feature.get("properties", {})
                 props["layerName"] = feature.get("layerName")
                 if isinstance(props, dict):
                     features.append(props)
-            return features
 
-    # ----------------------------------------------------------------------
-    # GML / XML PARSING  (OWSLib-compatible)
-    # ----------------------------------------------------------------------
-    try:
-        root = etree.fromstring(text.encode("utf-8"))
-    except Exception:
+        #  ESRI REST JSON
+        elif isinstance(data, dict) and "features" in data:
+            for feature in data["features"]:
+                # ESRI features usually have an "attributes" dict
+                attrs = feature.get("attributes", {})
+                # optionally add layerName if needed
+                attrs["layerName"] = feature.get("layerName")
+                features.append(attrs)
+
+        return features
+
+    else:
+
+        # GML / XML PARSING  (OWSLib-compatible)
         try:
-            root = ET.fromstring(text)
-        except Exception as e:
-            raise HTTPException(500, f"Invalid XML/GML: {e}")
+            root = etree.fromstring(text.encode("utf-8"))
+        except Exception:
+            try:
+                root = ET.fromstring(text)
+            except Exception as e:
+                raise HTTPException(500, f"Invalid XML/GML: {e}")
 
-    features = []
-    ns = {"gml": "http://www.opengis.net/gml"}
+        features = []
+        ns = {"gml": "http://www.opengis.net/gml"}
 
-    # ----------------------------------------------------------------------
-    # 1) Standard GML <gml:featureMember>
-    # ----------------------------------------------------------------------
-    for fm in root.findall(".//gml:featureMember", ns):
-        fdict = {}
-        for el in fm.iter():
-            tag = el.tag.split("}", 1)[-1]
-            if tag.lower() in ("boundedby", "geometry", "polygon", "multipolygon"):
-                continue
-            if el.text and el.text.strip():
-                fdict[tag] = el.text.strip()
-        if fdict:
-            features.append(fdict)
-
-    # ----------------------------------------------------------------------
-    # 2) MapServer msGMLOutput   <*_feature>
-    # ----------------------------------------------------------------------
-
-    for elem in root.iter():
-        if re.search(r"_feature$", elem.tag):
+        # 1) Standard GML <gml:featureMember>
+        for fm in root.findall(".//gml:featureMember", ns):
             fdict = {}
-            for child in elem:
-                tag = child.tag.split("}", 1)[-1]
-                if tag.lower() in ("boundedby", "geometry"):
+            for el in fm.iter():
+                tag = el.tag.split("}", 1)[-1]
+                if tag.lower() in ("boundedby", "geometry", "polygon", "multipolygon"):
                     continue
-                val = child.text.strip() if child.text else None
-                if val:
-                    fdict[tag] = val
+                if el.text and el.text.strip():
+                    fdict[tag] = el.text.strip()
             if fdict:
                 features.append(fdict)
 
-    # ZH geoservice is a special and unique case
-    # It only returns a GML without atttibute but containing the layer that was found at location
-    if not features and config["name"] == "ZH":
-        name_elem = root.find(".//gml:name", ns)
-        if name_elem is not None and name_elem.text and name_elem.text.strip():
-            fdict = {"name": name_elem.text.strip()}
-            features.append(fdict)
-    return features
+        # 2) MapServer msGMLOutput   <*_feature>
+
+        for elem in root.iter():
+            if re.search(r"_feature$", elem.tag):
+                fdict = {}
+                for child in elem:
+                    tag = child.tag.split("}", 1)[-1]
+                    if tag.lower() in ("boundedby", "geometry"):
+                        continue
+                    val = child.text.strip() if child.text else None
+                    if val:
+                        fdict[tag] = val
+                if fdict:
+                    features.append(fdict)
+
+        # ZH geoservice is a special and unique case
+        # It only returns a GML without atttibute but containing the layer that was found at location
+        if not features and config["name"] == "ZH":
+            name_elem = root.find(".//gml:name", ns)
+            if name_elem is not None and name_elem.text and name_elem.text.strip():
+                fdict = {"name": name_elem.text.strip()}
+                features.append(fdict)
+        return features
 
 
 def process_ground_category(
@@ -272,14 +280,6 @@ def process_ground_category(
     """
     Reclass canton response into normalized values.
     """
-    # -----------------------------------------------------------
-    # No features → harmonized value = 4
-    # -----------------------------------------------------------
-    if not ground_features:
-        return {
-            "layer_results": [],
-            "harmonized_value": 4,
-        }
 
     layer_results = []
 
@@ -297,23 +297,23 @@ def process_ground_category(
         property_name = layer_cfg.get("property_name")
         property_values = layer_cfg.get("property_values")
 
-        description = None
+        property_name_value = None
 
         for feature in ground_features:
             # ESRI REST support
             if isinstance(feature, dict):
                 if "attributes" in feature and isinstance(feature["attributes"], dict):
-                    value = feature["attributes"].get(property_name)
+                    property_name_value = feature["attributes"].get(property_name)
                 else:
-                    value = feature.get(property_name)
+                    property_name_value = feature.get(property_name)
             else:
-                value = feature
+                property_name_value = feature
 
-            value = normalize_string(value)
+            property_name_value = normalize_string(property_name_value)
             if property_values:
                 for item in property_values:
                     # Match with values for layers that have a defined mapping
-                    if item.get("name") == value:
+                    if item.get("name") == property_name_value:
                         mapped_values.append(item.get("target_harmonized_value"))
                         source_values.append(item.get("desc"))
 
@@ -322,14 +322,15 @@ def process_ground_category(
                 if layer_cfg.get("property_name") == feature.get("layerName"):
                     mapped_values.append(layer_cfg.get("target_harmonized_value"))
 
-        # Helping dict useful to identify issues. Only "harmonized_value is useful for frontend application"
-        layer_results.append(
-            {
-                "layer": layer_name,
-                "property_name": property_name,
-                "value": value,
-            }
-        )
+        # Helping dict useful to identify issues. Only "harmonized_value" is useful for frontend application
+        if property_name_value:
+            layer_results.append(
+                {
+                    "layer": layer_name,
+                    "property_name": property_name,
+                    "value": property_name_value,
+                }
+            )
 
     # property_values variable contains the mapping between attribute value and drillapi categories (1,2,3)
     if mapped_values:
