@@ -30,7 +30,7 @@ async def get_canton_from_coordinates(coord_x: float, coord_y: float):
     Query geo.admin.ch to find the canton (AK code) for EPSG:2056 coordinates.
     Returns: list of dicts (geo.admin.ch "results" array)
     """
-    
+
     url = "https://api3.geo.admin.ch/rest/services/ech/MapServer/identify"
     params = {
         "geometry": f"{coord_x},{coord_y}",
@@ -48,10 +48,18 @@ async def get_canton_from_coordinates(coord_x: float, coord_y: float):
             payload = resp.json()
             results = payload.get("results", [])
     except httpx.RequestError as e:
-        logger.error("Network error fetching canton for (%.2f, %.2f): %s", coord_x, coord_y, e)
+        logger.error(
+            "Network error fetching canton for (%.2f, %.2f): %s", coord_x, coord_y, e
+        )
         results = []
     except httpx.HTTPStatusError as e:
-        logger.error("HTTP error %d for (%.2f, %.2f): %s", e.response.status_code, coord_x, coord_y, e)
+        logger.error(
+            "HTTP error %d for (%.2f, %.2f): %s",
+            e.response.status_code,
+            coord_x,
+            coord_y,
+            e,
+        )
         results = []
     except json.JSONDecodeError as e:
         logger.error("Invalid JSON for (%.2f, %.2f): %s", coord_x, coord_y, e)
@@ -81,104 +89,101 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
 
     async with httpx.AsyncClient(timeout=20.0) as client:
 
-            # ESRI REST
-            if "arcgis" in info_format:
-                for layer in config["layers"]:
-        
-                    layer_id = layer.get("id")
-                    if layer_id is None:
-                        raise RuntimeError(
-                            "Layer config missing 'id' for ESRI REST service"
-                        )
+        # ESRI REST
+        if "arcgis" in info_format:
+            for layer in config["layers"]:
 
-                    esri_url = f"{config['query_url'].rstrip('/')}/{layer_id}/query"
+                layer_id = layer.get("id")
+                if layer_id is None:
+                    raise RuntimeError(
+                        "Layer config missing 'id' for ESRI REST service"
+                    )
 
-                    params = {
-                        "geometry": f"{coord_x},{coord_y}",
-                        "geometryType": "esriGeometryPoint",
-                        "spatialRel": "esriSpatialRelIntersects",
-                        "outFields": "*",
-                        "returnGeometry": "false",
-                        "f": "json",
-                    }
-                    try:
-                        resp = await client.get(esri_url, params=params)
-                        full_url = str(resp.request.url)
-                        resp.raise_for_status()
+                esri_url = f"{config['query_url'].rstrip('/')}/{layer_id}/query"
 
-                        data = resp.json()
-                        features = data.get("features") or []
-                    except e:
-                        error_message = f"WMS request failed: {e}"
-                        logger.error("%s — URL: %s", error_message, full_url)
-                        raise HTTPException(
-                            status_code=502, 
-                            detail=f"{error_message} — URL: {full_url}"
-                        )
-
-            # WMS GetFeatureInfo
-            else:
-                delta = config["bbox_delta"]
-                width = 101
-                height = 101
-
-                minx, miny = coord_x - delta, coord_y - delta
-                maxx, maxy = coord_x + delta, coord_y + delta
-                bbox = f"{minx},{miny},{maxx},{maxy}"
-
-                layers_list = ",".join([layer["name"] for layer in config["layers"]])
-
-                i = int((coord_x - minx) / (maxx - minx) * width)
-                j = int((maxy - coord_y) / (maxy - miny) * height)
-
-                params_wms = {
-                    "SERVICE": "WMS",
-                    "VERSION": "1.3.0",
-                    "REQUEST": "GetFeatureInfo",
-                    "QUERY_LAYERS": layers_list,
-                    "LAYERS": layers_list,
-                    "INFO_FORMAT": config.get("info_format", "text/plain"),
-                    "I": str(i),
-                    "J": str(j),
-                    "CRS": "EPSG:2056",
-                    "WIDTH": str(width),
-                    "HEIGHT": str(height),
-                    "BBOX": bbox,
-                    "STYLES": config.get("style", ""),
-                    "FEATURE_COUNT": config.get("feature_count", 10),
+                params = {
+                    "geometry": f"{coord_x},{coord_y}",
+                    "geometryType": "esriGeometryPoint",
+                    "spatialRel": "esriSpatialRelIntersects",
+                    "outFields": "*",
+                    "returnGeometry": "false",
+                    "f": "json",
                 }
-
-                query_url = config["query_url"]
                 try:
-                    resp = await client.get(query_url, params=params_wms)
+                    resp = await client.get(esri_url, params=params)
                     full_url = str(resp.request.url)
                     resp.raise_for_status()
-                except Exception as e:
+
+                    data = resp.json()
+                    features = data.get("features") or []
+                except e:
                     error_message = f"WMS request failed: {e}"
                     logger.error("%s — URL: %s", error_message, full_url)
                     raise HTTPException(
-                        status_code=502, 
-                        detail=f"{error_message} — URL: {full_url}"
+                        status_code=502, detail=f"{error_message} — URL: {full_url}"
                     )
 
+        # WMS GetFeatureInfo
+        else:
+            delta = config["bbox_delta"]
+            width = 101
+            height = 101
+
+            minx, miny = coord_x - delta, coord_y - delta
+            maxx, maxy = coord_x + delta, coord_y + delta
+            bbox = f"{minx},{miny},{maxx},{maxy}"
+
+            layers_list = ",".join([layer["name"] for layer in config["layers"]])
+
+            i = int((coord_x - minx) / (maxx - minx) * width)
+            j = int((maxy - coord_y) / (maxy - miny) * height)
+
+            params_wms = {
+                "SERVICE": "WMS",
+                "VERSION": "1.3.0",
+                "REQUEST": "GetFeatureInfo",
+                "QUERY_LAYERS": layers_list,
+                "LAYERS": layers_list,
+                "INFO_FORMAT": config.get("info_format", "text/plain"),
+                "I": str(i),
+                "J": str(j),
+                "CRS": "EPSG:2056",
+                "WIDTH": str(width),
+                "HEIGHT": str(height),
+                "BBOX": bbox,
+                "STYLES": config.get("style", ""),
+                "FEATURE_COUNT": config.get("feature_count", 10),
+            }
+
+            query_url = config["query_url"]
             try:
-                features = parse_wms_getfeatureinfo(
-                    resp.content, config["info_format"], config
-                )
-
-                return {
-                    "features": features,
-                    "full_url": full_url,
-                    "error": error_message,
-                }
-
+                resp = await client.get(query_url, params=params_wms)
+                full_url = str(resp.request.url)
+                resp.raise_for_status()
             except Exception as e:
-                error_message = f"Failed to parse WMS or ESRI REST response: {e}"
+                error_message = f"WMS request failed: {e}"
                 logger.error("%s — URL: %s", error_message, full_url)
                 raise HTTPException(
-                    status_code=502, 
-                    detail=f"{error_message} — URL: {full_url}"
+                    status_code=502, detail=f"{error_message} — URL: {full_url}"
                 )
+
+        try:
+            features = parse_wms_getfeatureinfo(
+                resp.content, config["info_format"], config
+            )
+
+            return {
+                "features": features,
+                "full_url": full_url,
+                "error": error_message,
+            }
+
+        except Exception as e:
+            error_message = f"Failed to parse WMS or ESRI REST response: {e}"
+            logger.error("%s — URL: %s", error_message, full_url)
+            raise HTTPException(
+                status_code=502, detail=f"{error_message} — URL: {full_url}"
+            )
 
 
 # PARSE WMS or REST responses
@@ -216,7 +221,7 @@ def parse_wms_getfeatureinfo(content: bytes, info_format: str, config: dict):
                 features.append(attrs)
 
         return features
-        
+
     else:
 
         # GML / XML PARSING  (OWSLib-compatible)

@@ -44,13 +44,11 @@ async def get_drill_category(
     canton_result = await processing.get_canton_from_coordinates(coord_x, coord_y)
 
     if not canton_result:
-        message = f"No canton found for coordinates using GeoadminAPI: ({coord_x}, {coord_y})"
-        logger.warning(
-            message
+        message = (
+            f"No canton found for coordinates using GeoadminAPI: ({coord_x}, {coord_y})"
         )
-        suitability_feature.result_detail.message = (
-            message
-        )
+        logger.warning(message)
+        suitability_feature.result_detail.message = message
         return suitability_feature
 
     code_canton = canton_result[0]["attributes"]["ak"]
@@ -73,9 +71,7 @@ async def get_drill_category(
     suitability_feature.canton_config = canton_config
 
     # Fetch features (WMS or ESRI REST) and process into feature
-    result = await processing.fetch_features_for_point(
-        coord_x, coord_y, canton_config
-    )
+    result = await processing.fetch_features_for_point(coord_x, coord_y, canton_config)
 
     # Feature(s) found, process to reclassification
     processed_ground_category = processing.process_ground_category(
