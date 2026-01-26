@@ -20,15 +20,15 @@ class GroundSuitability(IntEnum):
 
 
 class GroundCategory(BaseModel):
-    layer_results: List[LayerResult]
+    layer_results: List[LayerResult] = []
     harmonized_value: GroundSuitability = GroundSuitability.UNKNOWN
-    source_values: str
+    source_values: str = ""
 
 
 class ResultDetail(BaseModel):
-    message: str = None
-    full_url: Optional[str] = None
-    detail: Optional[str] = None
+    message: str = ""
+    full_url: Optional[str] = ""
+    detail: Optional[str] = ""
 
 
 class SuitabilityFeature(BaseModel):

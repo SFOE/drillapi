@@ -23,21 +23,12 @@ async def get_drill_category(
 ):
     """Return drill category at a given coordinate using WMS GetFeatureInfo or ESRI REST feature service."""
 
-    # Default feature
+    # Default feature for selected coordinates
     suitability_feature = SuitabilityFeature(
         coord_x=coord_x,
         coord_y=coord_y,
-        canton="",
-        canton_config=None,
-        ground_category=GroundCategory(
-            layer_results=[],
-            harmonized_value = 99,
-            source_values="",
-        ),
-        result_detail=ResultDetail(
-            message="",
-            full_url="",
-        ),
+        ground_category=GroundCategory(),
+        result_detail=ResultDetail(),
     )
 
     # Determine canton from coordinates using GeoadminAPI
@@ -64,9 +55,7 @@ async def get_drill_category(
             coord_y,
         )
         suitability_feature.ground_category.harmonized_value = 5
-        suitability_feature.result_detail.message = (
-            "Canton not active"
-        )
+        suitability_feature.result_detail.message = "Canton not active"
         suitability_feature.canton = code_canton
         suitability_feature.canton_config = canton_config
         return suitability_feature
