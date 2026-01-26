@@ -263,7 +263,7 @@ CANTONS = {
             "wms_url": "https://sit.vs.ch/arcgis/services/ENVIRONNEMENT/MapServer/WMSServer",
             "query_url": "https://sit.vs.ch/arcgis/services/ENVIRONNEMENT/MapServer/WMSServer",
             "legend_url": "https://sit.vs.ch/arcgis/services/ENVIRONNEMENT/MapServer/WMSServer?request=GetLegendGraphic%26version=1.3.0%26format=image/png%26layer=29",
-            "thematic_geoportal_url": "https://sitonline.vs.ch/environnement/eso_admissibilite_PAC/#/?lang=fr",
+            "thematic_geoportal_url": "https://sitonline.vs.ch/environnement/eso_admissibilite_SGV/#/?lang=fr",
             "info_format": "application/geo+json",
             "bbox_delta": 10,
             "style": "",
