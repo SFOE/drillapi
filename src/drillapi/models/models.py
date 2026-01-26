@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List, Literal
+from enum import IntEnum
 
 
 class LayerResult(BaseModel):
@@ -8,9 +9,19 @@ class LayerResult(BaseModel):
     value: str
 
 
+class GroundSuitability(IntEnum):
+    OK = 1
+    WITH_RESTRICTIONS = 2
+    FORBIDDEN = 3
+    UNKNOWN = 4
+    NOT_AVAILABLE = 5
+    NOT_IN_SWITZERLAND = 6
+    PROBLEM = 99
+
+
 class GroundCategory(BaseModel):
     layer_results: List[LayerResult]
-    harmonized_value: Literal[1, 2, 3, 4, 5, 6, 99] = 4
+    harmonized_value: GroundSuitability = GroundSuitability.UNKNOWN
     source_values: str
 
 
