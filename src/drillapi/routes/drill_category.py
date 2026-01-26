@@ -23,7 +23,7 @@ async def get_drill_category(
 ):
     """Return drill category at a given coordinate using WMS GetFeatureInfo or ESRI REST feature service."""
 
-    # Default "no info" feature
+    # Default feature
     suitability_feature = SuitabilityFeature(
         coord_x=coord_x,
         coord_y=coord_y,
@@ -31,9 +31,9 @@ async def get_drill_category(
         canton_config=None,
         ground_category=GroundCategory(
             layer_results=[],
+            harmonized_value = 99,
             source_values="",
         ),
-        status="error",
         result_detail=ResultDetail(
             message="",
             full_url="",
@@ -48,13 +48,34 @@ async def get_drill_category(
             f"No canton found for coordinates using GeoadminAPI: ({coord_x}, {coord_y})"
         )
         logger.warning(message)
+        # Not in Switzerland
+        suitability_feature.ground_category.harmonized_value = 6
         suitability_feature.result_detail.message = message
         return suitability_feature
 
     code_canton = canton_result[0]["attributes"]["ak"]
     canton_config = cantons.CANTONS["cantons_configurations"].get(code_canton)
 
-    if not canton_config:
+    if not canton_config or not canton_config["active"]:
+        logger.warning(
+            "No configuration for canton %s at (%s, %s) or inactive canton",
+            code_canton,
+            coord_x,
+            coord_y,
+        )
+        suitability_feature.ground_category.harmonized_value = 5
+        suitability_feature.result_detail.message = (
+            "Canton not active"
+        )
+        suitability_feature.canton = code_canton
+        suitability_feature.canton_config = canton_config
+        return suitability_feature
+
+    # Fill canton data
+    suitability_feature.canton = code_canton
+    suitability_feature.canton_config = canton_config
+
+    if not canton_config["active"]:
         logger.error(
             "No configuration for canton %s at (%s, %s)",
             code_canton,
@@ -66,10 +87,6 @@ async def get_drill_category(
         )
         return suitability_feature
 
-    # Fill canton data
-    suitability_feature.canton = code_canton
-    suitability_feature.canton_config = canton_config
-
     # Fetch features (WMS or ESRI REST) and process into feature
     result = await processing.fetch_features_for_point(coord_x, coord_y, canton_config)
 
@@ -79,13 +96,11 @@ async def get_drill_category(
         canton_config["layers"],
     )
 
-    # Fill the model
+    # Fill the model with full data - all process worked for this location
     suitability_feature.ground_category = processed_ground_category
-    suitability_feature.status = "success"
     suitability_feature.result_detail = ResultDetail(
         message="Success",
         full_url=result["full_url"],
         detail=result["error"],
     )
-
     return suitability_feature

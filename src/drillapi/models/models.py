@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Literal
 
 
 class LayerResult(BaseModel):
@@ -10,7 +10,7 @@ class LayerResult(BaseModel):
 
 class GroundCategory(BaseModel):
     layer_results: List[LayerResult]
-    harmonized_value: int = 4
+    harmonized_value: Literal[1, 2, 3, 4, 5, 6, 99] = 4
     source_values: str
 
 
@@ -26,5 +26,4 @@ class SuitabilityFeature(BaseModel):
     canton: str = None
     canton_config: Optional[dict] = None
     ground_category: GroundCategory
-    status: str
     result_detail: ResultDetail
