@@ -64,7 +64,6 @@ async def checker_page(request: Request, canton: str | None = None):
 
                 result.update(
                     status=200,
-                    success=feature.status == "success",
                     content_for_template=feature_dict,
                 )
 

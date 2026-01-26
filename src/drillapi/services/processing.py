@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 from fastapi import HTTPException
 import logging
 from owslib.etree import etree
+from ..models.models import GroundCategory
 
 logger = logging.getLogger(__name__)
 
@@ -344,8 +345,8 @@ def process_ground_category(
     if source_values:
         source_values_str = ",".join(str(v) for v in source_values if v is not None)
 
-    return {
-        "layer_results": layer_results,
-        "harmonized_value": harmonized_value,
-        "source_values": source_values_str,
-    }
+    return GroundCategory(
+        layer_results=layer_results,
+        harmonized_value=harmonized_value,
+        source_values=source_values_str,
+    )

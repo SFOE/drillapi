@@ -31,13 +31,13 @@
 
         {% for data in items %}
           {% set content = data.content_for_template %}
-          {% set is_error = (not data.success) or (data.control_harmonized_values == 'error') %}
+          {% set is_error = (data.control_harmonized_values == 'error') %}
           <details class="{{ 'error-box' if is_error else 'success-box' }}">
             <summary>
               {% if is_error %}
                 ❌ Request/Error for {{ data.url }}
               {% else %}
-                ✅ Success (HTTP {{ data.status }}) - {{ data.url }}
+                ✅ Success {{ data.url }}
               {% endif %}
             </summary>
 
