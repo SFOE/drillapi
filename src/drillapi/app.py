@@ -12,10 +12,17 @@ LOG_LEVEL = logging.DEBUG if settings.ENVIRONMENT.upper() == "DEV" else logging.
 logging.basicConfig(
     level=LOG_LEVEL,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    force=True,
 )
 
-uvicorn_logger = logging.getLogger("uvicorn")
-uvicorn_logger.setLevel(LOG_LEVEL)
+root_logger = logging.getLogger()
+root_logger.setLevel(LOG_LEVEL)
+
+for name in ["uvicorn", "uvicorn.error", "fastapi", "mangum"]:
+    l = logging.getLogger(name)
+    l.setLevel(LOG_LEVEL)
+    l.propagate = True
+
 
 app = FastAPI()
 
