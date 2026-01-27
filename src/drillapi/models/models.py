@@ -38,3 +38,12 @@ class SuitabilityFeature(BaseModel):
     canton_config: Optional[dict] = None
     ground_category: GroundCategory
     result_detail: ResultDetail
+
+
+# For checker only
+class CheckerResult(BaseModel):
+    canton: str = ""
+    url: str = ""
+    content_for_template: GroundCategory = None
+    control_status: Literal["error", "success"]
+    control_status_message: str = ""
