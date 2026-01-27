@@ -119,5 +119,5 @@ async def checker_page(request: Request, canton: str | None = None):
             "canton": canton,
             "results": results,
         },
-        media_type="text/html"
+        headers={"Content-Type": "text/html; charset=utf-8"},
     )
