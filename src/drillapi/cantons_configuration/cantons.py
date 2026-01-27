@@ -565,7 +565,7 @@ CANTONS = {
             ],
         },
         "SG": {
-            "active": True,
+            "active": False,
             "name": "SG",
             "ground_control_point": [
                 [2733447, 1241435, 2, "1"],
