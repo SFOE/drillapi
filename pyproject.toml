@@ -46,7 +46,7 @@ dependencies = [
   "rich==14.3.1",
   "rich-toolkit==0.17.1",
   "rignore==0.7.6",
-  "sentry-sdk==2.49.0",
+  "sentry-sdk==2.50.0",
   "shellingham==1.5.4",
   "six==1.17.0",
   "slowapi==0.1.9",
