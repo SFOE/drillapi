@@ -103,30 +103,22 @@ CANTONS = {
             "wms_url": "https://wms.zh.ch/AwelGSWaermewwwZHWMS",
             "query_url": "https://wms.zh.ch/AwelGSWaermewwwZHWMS",
             "thematic_geoportal_url": "https://maps.zh.ch/?topic=AwelGSWaermewwwZH&x=2685104.6444391827&y=1252283.9396742217&scale=70517.93063503089",
-            "legend_url": "https://wms.zh.ch/AwelGSWaermewwwZHWMS?version=1.3.0&service=WMS&request=GetLegendGraphic&sld_version=1.1.0&layer=erdwaermesonden-auflagen&format=image/png&STYLE=default",
+            # ZH is a special case with multiple layers, but ZH WMS service is standard and does no support multiple layer in request. Will be fixed in v2
+            "legend_url": "", #"https://wms.zh.ch/AwelGSWaermewwwZHWMS?version=1.3.0&service=WMS&request=GetLegendGraphic&sld_version=1.1.0&layer=erdwaermesonden-auflagen&format=image/png&STYLE=default",
             "info_format": "application/vnd.ogc.gml",
             "bbox_delta": 30,
             "style": "",
             "layers": [
                 {
                     "name": "erdwaermesonden-auflagen",
-                    "property_name": "zonen",
+                    "property_name": "name",
+                    # WMS only return binary information: in perimeter or outside. If, in, we can't discriminate and therefore take the most conservative value
                     "property_values": [
                         {
-                            "name": "undefined",
-                            "desc": "undefined",
-                            "target_harmonized_value": 4,
-                        },
-                        {
-                            "name": "Auflagen",
-                            "desc": "Auflagen",
-                            "target_harmonized_value": 1,
-                        },
-                        {
-                            "name": "Verbot",
+                            "name": "Auflagen für Erdwärmesonden",
                             "desc": "Verbot",
                             "target_harmonized_value": 3,
-                        },
+                        }
                     ],
                 },
                 {
