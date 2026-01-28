@@ -72,7 +72,12 @@ CANTONS = {
             "active": True,
             "name": "ZH",
             "ground_control_point": [
-                [2677790, 1260185, 2, "Auflagen & waermenutzung-zone-d"],
+                [
+                    2677790,
+                    1260185,
+                    3,
+                    "Auflagen & waermenutzung-zone-d",
+                ],  # Changed 28.01.2026, if Auflagen layer has a feature => 3 like on ZH geoportal
                 [2688561, 1274977, 3, "Zone A (Schutzzonen und Schutzareale)"],
                 [
                     2681563,
