@@ -1,5 +1,5 @@
 from typing import List, Optional, Union
-from pydantic import BaseModel, HttpUrl, field_validator, ValidationError, conlist
+from pydantic import BaseModel, HttpUrl, field_validator
 from drillapi.cantons_configuration.cantons import CANTONS
 
 
@@ -56,7 +56,7 @@ def test_cantons_configuration_integrity():
     """
     for canton_name, canton_data in CANTONS["cantons_configurations"].items():
         # Pydantic validation
-        region = Cantonconfig(**canton_data)
+        Cantonconfig(**canton_data)
 
 
 if __name__ == "__main__":

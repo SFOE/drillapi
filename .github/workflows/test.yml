@@ -1,4 +1,4 @@
-name: Tests & Lint
+name: Tests
 
 on:
   push:
@@ -38,16 +38,6 @@ jobs:
       - name: Install dependencies
         run: |
           uv sync --extra dev
-
-      - name: Check code formatting (pre-commit)
-        run: |
-          # Run pre-commit hooks across the repo. This will fail the job if hooks detect issues.
-          uv run pre-commit run --all-files
-
-      - name: Check code style (black)
-        run: |
-          # run black in check mode; CI will fail if formatting issues are present
-          uv run black --check .
 
       - name: Run pytest
         run: |

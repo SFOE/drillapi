@@ -6,7 +6,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
-
     TEMPLATES_DIR: Path = BASE_DIR / "drillapi/templates"
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

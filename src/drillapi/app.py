@@ -1,4 +1,3 @@
-from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,9 +18,9 @@ root_logger = logging.getLogger()
 root_logger.setLevel(LOG_LEVEL)
 
 for name in ["uvicorn", "uvicorn.error", "fastapi", "mangum"]:
-    l = logging.getLogger(name)
-    l.setLevel(LOG_LEVEL)
-    l.propagate = True
+    logger = logging.getLogger(name)
+    logger.setLevel(LOG_LEVEL)
+    logger.propagate = True
 
 
 app = FastAPI()

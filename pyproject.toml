@@ -1,26 +1,25 @@
 [project]
 name = "drillapi"
-version = "0.0.4"
+version = "0.1.2"
 description = "drillapi"
 authors = [{name = "SFOE", email = "geoinformation@bfe.admin.ch"}]
 readme = "README.md"
 requires-python = ">=3.14"
 keywords = ["drillapi"]
 dependencies = [
-  "fastapi",
-  "uvicorn",
-  "httpx",
-  "owslib",
-  "slowapi",
-  "pydantic_settings",
-  "jinja2",
+  "fastapi>=0.128.0",
+  "httpx>=0.28.1",
+  "jinja2>=3.1.6",
+  "owslib>=0.35.0",
+  "pydantic-settings>=2.12.0",
+  "ruff>=0.14.14",
+  "slowapi>=0.1.9",
+  "uvicorn>=0.40.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-  "black",
   "pytest",
-  "pre-commit",
   "requests",
   "respx",
   "pytest-asyncio",

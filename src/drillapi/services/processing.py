@@ -89,11 +89,9 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
     error_message = None
 
     async with httpx.AsyncClient(timeout=20.0) as client:
-
         # ESRI REST
         if "arcgis" in info_format:
             for layer in config["layers"]:
-
                 layer_id = layer.get("id")
                 if layer_id is None:
                     raise RuntimeError(
@@ -117,7 +115,7 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
 
                     data = resp.json()
                     features = data.get("features") or []
-                except e:
+                except Exception as e:
                     error_message = f"WMS request failed: {e}"
                     logger.error("%s — URL: %s", error_message, full_url)
                     raise HTTPException(
@@ -224,7 +222,6 @@ def parse_wms_getfeatureinfo(content: bytes, info_format: str, config: dict):
         return features
 
     else:
-
         # GML / XML PARSING  (OWSLib-compatible)
         try:
             root = etree.fromstring(text.encode("utf-8"))

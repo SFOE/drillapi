@@ -346,7 +346,6 @@ CANTONS = {
             ],
         },
         "UR": {
-            "style": "",
             "active": True,
             "name": "UR",
             "ground_control_point": [
@@ -361,7 +360,6 @@ CANTONS = {
             "thematic_geoportal_url": "https://geo.ur.ch/?center=962589%2C5922132&layers=Zul%C3%A4ssigkeit%20Grundwasserw%C3%A4rmepumpen&opacity=0.3&visibility=true&zoom=12",
             "info_format": "application/vnd.ogc.gml",
             "bbox_delta": 10,
-            "style": "",
             "style": "",
             "layers": [
                 {
