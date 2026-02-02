@@ -1,14 +1,13 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from collections import defaultdict
 import logging
 from ..services import security
 from ..routes.cantons import get_cantons_data, filter_active_cantons
 from ..config import settings
 
 from ..routes.drill_category import get_drill_category
-from ..models.models import GroundCategory, CheckerResult
+from ..models.models import CheckerResult
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +46,7 @@ async def checker_page(request: Request, canton: str | None = None):
             )
         config = {canton: active_config[canton]}
     else:
-        logger.info(f"CHECKER: started for all active cantons")
+        logger.info("CHECKER: started for all active cantons")
         config = active_config
 
     results = []

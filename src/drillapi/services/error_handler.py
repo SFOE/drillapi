@@ -12,14 +12,10 @@ def handle_errors(func):
     Decorator to catch exceptions in endpoints and async sub-functions.
     Logs full traceback in DEV, returns minimal message in PROD.
     """
-    import traceback
     import logging
-    from fastapi import HTTPException
-    from ..config import settings
 
     logger = logging.getLogger(func.__module__)
 
-    import functools
 
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):

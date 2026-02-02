@@ -1,15 +1,13 @@
 import os
 import sys
-
-# ensure repository root is on sys.path so `src` package can be imported
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
-
 from fastapi.testclient import TestClient
 
 from drillapi.app import app
 from drillapi.routes.cantons import get_cantons_data, filter_active_cantons
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
 
 client = TestClient(app)
 

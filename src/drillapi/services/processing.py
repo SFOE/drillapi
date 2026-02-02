@@ -117,7 +117,7 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
 
                     data = resp.json()
                     features = data.get("features") or []
-                except e:
+                except Exception as e:
                     error_message = f"WMS request failed: {e}"
                     logger.error("%s — URL: %s", error_message, full_url)
                     raise HTTPException(

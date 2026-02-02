@@ -62,16 +62,12 @@ For **dev** install dev requirements
 uv sync --extra dev
 ```
 
-Activate pre-commit
+Use Ruff
 
 ```bash
-uv run pre-commit install
+uv run ruff check
 ```
 
-Run pre-commit manually
-```bash
-uv run pre-commit run --all-files
-```
 
 ## Maintenance
 
