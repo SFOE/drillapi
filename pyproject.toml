@@ -14,7 +14,6 @@ dependencies = [
   "slowapi",
   "pydantic_settings",
   "jinja2",
-
 ]
 
 [project.optional-dependencies]
