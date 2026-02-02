@@ -19,9 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-  "black",
   "pytest",
-  "pre-commit",
   "requests",
   "respx",
   "pytest-asyncio",

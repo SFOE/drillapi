@@ -1,4 +1,5 @@
-[![CI](https://github.com/SFOE/drillapi/actions/workflows/ci.yml/badge.svg)](https://github.com/SFOE/drillapi/actions/workflows/ci.yml)
+[![CI](https://github.com/SFOE/drillapi/actions/workflows/lint.yml/badge.svg)](https://github.com/SFOE/drillapi/actions/workflows/lint.yml)
+[![CI](https://github.com/SFOE/drillapi/actions/workflows/test.yml/badge.svg)](https://github.com/SFOE/drillapi/actions/workflows/test.yml)
 
 # drillapi - geothermal drilling
 
@@ -62,10 +63,18 @@ For **dev** install dev requirements
 uv sync --extra dev
 ```
 
-Use Ruff
+**Use Ruff**
+
+Check
 
 ```bash
 uv run ruff check
+```
+
+Format
+
+```bash
+uv run ruff format
 ```
 
 
