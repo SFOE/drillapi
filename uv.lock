@@ -269,7 +269,7 @@ requires-dist = [
     { name = "shellingham", specifier = "==1.5.4" },
     { name = "six", specifier = "==1.17.0" },
     { name = "slowapi", specifier = "==0.1.9" },
-    { name = "starlette", specifier = "==0.50.0" },
+    { name = "starlette", specifier = ">=0.40.0,<0.51.0" },
     { name = "typer", specifier = "==0.21.1" },
     { name = "typing-extensions", specifier = "==4.15.0" },
     { name = "typing-inspection", specifier = "==0.4.2" },
