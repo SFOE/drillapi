@@ -4,8 +4,6 @@
 
 ***Query the cantonal geoservices to know whether a site in Switzerland is suitable for a geothermal drilling.***
 
-This project uses [UV](https://github.com/astral-sh/uv) for dependency management.
-
 What does this [FastAPI](https://fastapi.tiangolo.com/) project do ?
 
 - take x/y coordinates in EPSG:2056 on route ```/v1/x/y```
@@ -42,6 +40,8 @@ docker run -d \
 
 ## Local setup for development
 
+This project uses [UV](https://github.com/astral-sh/uv) 
+
 Create .env file and :warning: adapt values :warning:
 
 Special attention to the ```ENVIRONMENT``` value, MUST never be set to ```DEV``` in production environnement
@@ -50,7 +50,7 @@ Special attention to the ```ENVIRONMENT``` value, MUST never be set to ```DEV```
 cp env.example .env
 ```
 
-Install dependencies using UV
+### Install dependencies using UV
 
 ```bash
 uv sync
@@ -71,6 +71,18 @@ uv run pre-commit install
 Run pre-commit manually
 ```bash
 uv run pre-commit run --all-files
+```
+
+## Maintenance
+
+Dependabot is configured to search for update on a weekly basis and open PRs when necessary.
+
+### Upgrade dependencies manually
+
+If you need to update on an emergency, you can update manually.
+
+```bash
+uv lock --upgrade
 ```
 
 ## Start
