@@ -7,7 +7,6 @@ from drillapi.app import app
 
 @pytest.fixture
 def client():
-
     with TestClient(app) as c:
         yield c
 

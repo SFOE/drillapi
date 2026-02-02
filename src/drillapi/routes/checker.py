@@ -32,7 +32,6 @@ async def checker_page(request: Request, canton: str | None = None):
 
     if canton:
         if canton not in active_config:
-
             logger.info(f"CHECKER: No configuration for canton: {canton}")
 
             return templates.TemplateResponse(
@@ -54,7 +53,6 @@ async def checker_page(request: Request, canton: str | None = None):
     for canton_code, data in config.items():
         logger.info(f"CHECKER: Running for canton: {canton}")
         for location in data["ground_control_point"]:
-
             x = location[0]
             y = location[1]
             control_harmonized_value = location[2]
@@ -69,7 +67,6 @@ async def checker_page(request: Request, canton: str | None = None):
             )
 
             try:
-
                 logger.info(f"CHECKER: getting drill category for : {x}/{y}")
 
                 feature = await get_drill_category(
@@ -87,7 +84,6 @@ async def checker_page(request: Request, canton: str | None = None):
                 result.content_for_template = feature
 
                 if calculated == control_harmonized_value:
-
                     logger.info(
                         f"CHECKER: ground control successful for canton {canton} at coordinates {x}/{y}"
                     )
@@ -96,7 +92,6 @@ async def checker_page(request: Request, canton: str | None = None):
                     result.control_status_message = f"Harmonized {control_harmonized_value} value matches control value {calculated}."
 
                 else:
-
                     logger.warning(
                         f"CHECKER: ground control NOT successful for canton {canton} at coordinates {x}/{y}"
                     )

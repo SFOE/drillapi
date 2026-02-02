@@ -16,7 +16,6 @@ def handle_errors(func):
 
     logger = logging.getLogger(func.__module__)
 
-
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
         try:
