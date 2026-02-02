@@ -68,13 +68,13 @@ uv sync --extra dev
 Check
 
 ```bash
-uv run ruff check
+uv run ruff check --fix
 ```
 
 Format
 
 ```bash
-uv run ruff format
+uv run ruff format .
 ```
 
 
