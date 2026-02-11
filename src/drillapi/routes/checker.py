@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import logging
 from ..services import security
-from ..routes.cantons import get_cantons_data, filter_active_cantons
+from ..routes.cantons import get_cantons_data
 from ..config import settings
 
 from ..routes.drill_category import get_drill_category
@@ -28,10 +28,9 @@ async def checker_page(request: Request, canton: str | None = None):
     canton = canton.upper().strip() if canton else ""
 
     full_config = get_cantons_data()
-    active_config = filter_active_cantons(full_config)
 
     if canton:
-        if canton not in active_config:
+        if canton not in full_config:
             logger.info(f"CHECKER: No configuration for canton: {canton}")
 
             return templates.TemplateResponse(
@@ -40,13 +39,13 @@ async def checker_page(request: Request, canton: str | None = None):
                     "request": request,
                     "canton": canton,
                     "results": [],
-                    "error_msg": f"Canton '{canton}' not found or inactive.",
+                    "error_msg": f"Canton '{canton}' not found.",
                 },
             )
-        config = {canton: active_config[canton]}
+        config = {canton: full_config[canton]}
     else:
         logger.info("CHECKER: started for all active cantons")
-        config = active_config
+        config = full_config
 
     results = []
 
