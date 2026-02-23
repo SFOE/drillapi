@@ -72,6 +72,7 @@ async def checker_page(request: Request, canton: str | None = None):
                     request=request,
                     coord_x=x,
                     coord_y=y,
+                    exclude_inactive_cantons=False,
                 )
 
                 calculated = (
