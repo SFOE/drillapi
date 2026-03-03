@@ -1,0 +1,62 @@
+publiccodeYmlVersion: 0.5.0
+name: drillapi
+applicationSuite: drillcheck
+url: https://github.com/SFOE/drillapi
+landingURL: https://drillcheck.prometheon.bfe.admin.ch
+isBasedOn: https://fastapi.tiangolo.com/
+softwareVersion: v0.0.5
+releaseDate: 2026-01-30
+platforms:
+  - web
+categories:
+  - geographic-information-systems
+developmentStatus: stable
+softwareType: standalone/backend
+organisation:
+  uri: https://www.bfe.admin.ch
+description:
+  en:
+    localisedName: Drillcheck
+    shortDescription: Suitability for geothermal drilling in switzerland REST API
+      querying cantonal geoservices
+    longDescription: >
+      Query the cantonal geoservices to know whether a site in Switzerland is
+      suitable for a geothermal drilling.
+
+
+      What does this FastAPI project do ?
+
+
+      - take x/y coordinates in EPSG:2056 on route /v1/x/y
+
+      - find in which canton the coordinates are and retrieve specific
+      geoservice configuration
+
+      - send request to corresponding cantonal geoservices, depending on
+      location
+
+      - process and reclass the results (1: OK, 2: With restriction, 3:
+      Forbidden, 4: Unknown or Service Error)
+
+      - return response used by drill-frontend vuejs web app
+    documentation: https://github.com/SFOE/drillapi
+    apiDocumentation: https://drillcheck.prometheon.bfe.admin.ch/docs
+    features:
+      - Get geothermal drilling suitability at given x/y location in swiss
+        reference system MN95
+legal:
+  license: AGPL-3.0-only
+maintenance:
+  type: internal
+  contacts:
+    - name: SFOEN
+      email: contact@bfe.admin.ch
+      phone: +41 58 462 56 11
+      affiliation: geoinformation@bfe.admin.ch
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - de
+    - fr
+    - it
+    - en
