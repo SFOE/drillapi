@@ -1,13 +1,6 @@
 name: Publish Docker Image to AWS ECR, Deploy on Release
 
 on:
-  pull_request:
-    types: [opened, synchronize]
-  release:
-    types: [published]
-  push:
-    branches:
-      - main
   workflow_call:
     inputs:
       runner:
@@ -15,6 +8,14 @@ on:
         default: 'ubuntu-latest'
         required: false
         type: string
+  pull_request:
+    types: [opened, synchronize]
+  release:
+    types: [published]
+  push:
+    branches:
+      - main
+  
 
 permissions:
   id-token: write
