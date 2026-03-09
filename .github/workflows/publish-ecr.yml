@@ -1,4 +1,4 @@
-name: Publish Docker Image to AWS ECR
+name: Publish Docker Image to AWS ECR, Deploy on Release
 
 on:
   pull_request:
@@ -8,14 +8,24 @@ on:
   push:
     branches:
       - main
+  workflow_call:
+    inputs:
+      runner:
+        description: 'The runner to execute the workflow on'
+        default: 'ubuntu-latest'
+        required: false
+        type: string
 
 permissions:
   id-token: write
   contents: read
+  pull-requests: write
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
+    outputs:
+      build-and-push-log: ${{ steps.build-and-push.outcome }}
     environment: prometheon-access
 
     strategy:
@@ -41,6 +51,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push Docker image (PR)
+        id: build-and-push
         if: github.event_name == 'pull_request' && matrix.env.name == 'dev'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -51,6 +62,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Build and push Docker image (Main branch)
+        id: build-and-push
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.env.name == 'dev'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -61,6 +73,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Build and push Docker image (Release)
+        id: build-and-push
         if: github.event_name == 'release'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -69,3 +82,100 @@ jobs:
         run: |
           docker build -f Dockerfile.lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION_TAG
+
+
+  deploy-image:
+    name: upon release deploy image to dev environment, open PR to prod environment
+    needs: build-and-push
+    runs-on: ${{ inputs.runner }}
+    if: (needs.build-and-push.outputs.build-and-push-log == 'success') # && (github.event_name == 'release')
+    environment: prometheon-access
+    env:
+          VERSION_TAG: ${{ github.event.release.tag_name }}
+
+    steps:
+      # ----------------------------------------------------------
+      # Authenticate as GitHub App
+      # ----------------------------------------------------------
+      - name: Authenticate as GitHub App
+        id: app-auth
+        uses: tibdex/github-app-token@v1
+        with:
+            app_id: ${{ secrets.GH_APP_ID }}
+            private_key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      # ----------------------------------------------------------
+      # Checkout Terraform Repo using GitHub App Token
+      # ----------------------------------------------------------
+      - name: Clone Terraform Repo
+        uses: actions/checkout@v4
+        with:
+            repository: SFOE-prometheon/prometheon-drillcheck-${{ matrix.env.name }}
+            token: ${{ steps.app-auth.outputs.token }}
+            path: tf-repo
+
+      # ----------------------------------------------------------
+      # Update Version
+      # ----------------------------------------------------------
+      - name: Update version in Terraform repo        
+        run: |
+            cd tf-repo
+            sed -i "s/backend_app_version = \".*\"/backend_app_version = \"${{ env.VERSION_TAG }}\"/" deploy.auto.tfvars
+
+      # ----------------------------------------------------------
+      # Commit & Push/PR based on environment
+      # ----------------------------------------------------------
+      - name: Create branch and commit changes
+        run: |
+            cd tf-repo
+            git config user.name "GitHub Actions"
+            git config user.email "noreply@github.com"
+            git checkout -b deploy/backend-${{ env.VERSION_TAG }}
+            git add deploy.auto.tfvars
+            git commit -m "Deploy backend version ${{ env.VERSION_TAG }}"
+      
+      
+      # - name: Push to main (Dev environment)
+      #         if: matrix.env.name == 'dev'
+      #         run: |
+      #             cd tf-repo
+      #             git push origin deploy/backend-${{ env.VERSION_TAG }}:main
+      #             git push origin --delete deploy/backend-${{ env.VERSION_TAG }}
+      #         env:
+      #             GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
+
+      - name: Create PR (DEV TEST environment)
+        if: matrix.env.name == 'dev'
+        run: |
+            cd tf-repo
+            git push origin deploy/backend-${{ env.VERSION_TAG }}
+            gh pr create \
+              --base main \
+              --head deploy/backend-${{ env.VERSION_TAG }} \
+              --title "Deploy backend version ${{ env.VERSION_TAG }} to dev" \
+              --body "Automated deployment PR for backend version ${{ env.VERSION_TAG }}"
+        env:
+            GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
+
+
+      # - name: Push to main (Dev environment)
+      #   if: matrix.env.name == 'dev'
+      #   run: |
+      #       cd tf-repo
+      #       git push origin deploy/backend-${{ env.VERSION_TAG }}:main
+      #       git push origin --delete deploy/backend-${{ env.VERSION_TAG }}
+      #   env:
+      #       GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
+
+      # - name: Create PR (Prod environment)
+      #   if: matrix.env.name == 'prod'
+      #   run: |
+      #       cd tf-repo
+      #       git push origin deploy/backend-${{ env.VERSION_TAG }}
+      #       gh pr create \
+      #         --base main \
+      #         --head deploy/backend-${{ env.VERSION_TAG }} \
+      #         --title "Deploy backend version ${{ env.VERSION_TAG }} to prod" \
+      #         --body "Automated deployment PR for backend version ${{ env.VERSION_TAG }}"
+      #   env:
+      #       GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
