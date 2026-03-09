@@ -1,13 +1,6 @@
 name: Publish Docker Image to AWS ECR, Deploy on Release
 
 on:
-  workflow_call:
-    inputs:
-      runner:
-        description: 'The runner to execute the workflow on'
-        default: 'ubuntu-latest'
-        required: false
-        type: string
   pull_request:
     types: [opened, synchronize]
   release:
@@ -24,7 +17,7 @@ permissions:
 
 jobs:
   build-and-push:
-    runs-on: ${{ inputs.runner }}
+    runs-on: ubuntu-latest
     outputs:
       pr-log: ${{ steps.build-and-push-pr.outcome }} #TESTS ONLY 
       release-log: ${{ steps.build-and-push-release.outcome }}
@@ -88,7 +81,7 @@ jobs:
   deploy-image:
     name: upon release deploy image to dev environment, open PR to prod environment
     needs: build-and-push
-    runs-on: ${{ inputs.runner }}
+    runs-on: ubuntu-latest
     if: (needs.build-and-push.outputs.pr-log == 'success') # TESTS ONLY
     # if: (needs.build-and-push.outputs.release-log == 'success') # && (github.event_name == 'release')
     environment: prometheon-access
