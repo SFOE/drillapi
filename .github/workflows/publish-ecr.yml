@@ -22,7 +22,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  build-and-push:
+  build-and-push-job:
     runs-on: ${{ inputs.runner }}
     outputs:
       build-and-push-log: ${{ steps.build-and-push.outcome }}
@@ -86,9 +86,9 @@ jobs:
 
   deploy-image:
     name: upon release deploy image to dev environment, open PR to prod environment
-    needs: build-and-push
+    needs: build-and-push-run
     runs-on: ${{ inputs.runner }}
-    if: (needs.build-and-push.outputs.build-and-push-log == 'success') # && (github.event_name == 'release')
+    if: (needs.build-and-push-run.outputs.build-and-push-log == 'success') # && (github.event_name == 'release')
     environment: prometheon-access
     env:
           VERSION_TAG: ${{ github.event.release.tag_name }}
