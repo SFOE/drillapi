@@ -22,10 +22,11 @@ permissions:
   pull-requests: write
 
 jobs:
-  build-and-push-job:
+  build-and-push:
     runs-on: ${{ inputs.runner }}
     outputs:
-      build-and-push-log: ${{ steps.build-and-push.outcome }}
+      pr-log: ${{ steps.build-and-push-pr.outcome }} #TESTS ONLY 
+      release-log: ${{ steps.build-and-push-release.outcome }}
     environment: prometheon-access
 
     strategy:
@@ -51,7 +52,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push Docker image (PR)
-        id: build-and-push
+        id: build-and-push-pr
         if: github.event_name == 'pull_request' && matrix.env.name == 'dev'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -62,7 +63,6 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Build and push Docker image (Main branch)
-        id: build-and-push
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.env.name == 'dev'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -73,7 +73,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Build and push Docker image (Release)
-        id: build-and-push
+        id: build-and-push-release
         if: github.event_name == 'release'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -86,9 +86,10 @@ jobs:
 
   deploy-image:
     name: upon release deploy image to dev environment, open PR to prod environment
-    needs: build-and-push-run
+    needs: build-and-push
     runs-on: ${{ inputs.runner }}
-    if: (needs.build-and-push-run.outputs.build-and-push-log == 'success') # && (github.event_name == 'release')
+    if: (needs.build-and-push.outputs.pr-log == 'success') # TESTS ONLY
+    # if: (needs.build-and-push.outputs.release-log == 'success') # && (github.event_name == 'release')
     environment: prometheon-access
     env:
           VERSION_TAG: ${{ github.event.release.tag_name }}
