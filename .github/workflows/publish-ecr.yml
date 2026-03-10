@@ -86,7 +86,8 @@ jobs:
     # if: (needs.build-and-push.outputs.release-log == 'success') # && (github.event_name == 'release')
     environment: prometheon-access
     env:
-          VERSION_TAG: ${{ github.event.release.tag_name }}
+          VERSION_TAG: test #TESTS ONLY
+          # VERSION_TAG: ${{ github.event.release.tag_name }}
     
     strategy:
       matrix:
@@ -134,7 +135,7 @@ jobs:
             git config user.name "GitHub Actions"
             git config user.email "noreply@github.com"
             git checkout -b deploy/backend-${{ env.VERSION_TAG }}
-            git add deploy.auto.tfvars
+            git add deploy.auto.tfvars.json
             git commit -m "Deploy backend version ${{ env.VERSION_TAG }}"
       
       
