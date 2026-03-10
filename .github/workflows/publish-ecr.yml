@@ -107,6 +107,7 @@ jobs:
         uses: actions/checkout@v4
         with:
             repository: SFOE-prometheon/prometheon-drillcheck-${{ matrix.env.name }}
+            ref: main
             token: ${{ steps.app-auth.outputs.token }}
             path: tf-repo
 
