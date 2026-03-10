@@ -78,8 +78,8 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION_TAG
 
 
-  deploy-image:
-    name: upon release deploy image to dev environment, open PR to prod environment
+  deploy-image:            
+    name: Deploy image
     needs: build-and-push
     runs-on: ubuntu-latest
     if: (needs.build-and-push.outputs.pr-log == 'success') # TESTS ONLY
@@ -87,6 +87,12 @@ jobs:
     environment: prometheon-access
     env:
           VERSION_TAG: ${{ github.event.release.tag_name }}
+    
+    strategy:
+      matrix:
+        env:
+          - name: dev
+          # - name: prod          
 
     steps:
       # ----------------------------------------------------------
