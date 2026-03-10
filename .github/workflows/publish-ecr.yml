@@ -123,7 +123,7 @@ jobs:
       - name: Update version in Terraform repo        
         run: |
             cd tf-repo
-            sed -i "s/backend_app_version = \".*\"/backend_app_version = \"${{ env.VERSION_TAG }}\"/" deploy.auto.tfvars
+            sed -i "s/backend_app_version = \".*\"/backend_app_version = \"${{ env.VERSION_TAG }}\"/" deploy.auto.tfvars.json
 
       # ----------------------------------------------------------
       # Commit & Push/PR based on environment
