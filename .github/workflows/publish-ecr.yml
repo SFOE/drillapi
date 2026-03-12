@@ -19,7 +19,6 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     outputs:
-      pr-log: ${{ steps.build-and-push-pr.outcome }} #TESTS ONLY 
       release-log: ${{ steps.build-and-push-release.outcome }}
     environment: prometheon-access
 
@@ -79,21 +78,19 @@ jobs:
 
 
   deploy-image:            
-    name: Deploy image
+    name: deploy-image
     needs: build-and-push
     runs-on: ubuntu-latest
-    if: (needs.build-and-push.outputs.pr-log == 'success') # TESTS ONLY
-    # if: (needs.build-and-push.outputs.release-log == 'success') # && (github.event_name == 'release')
+    if: (needs.build-and-push.outputs.release-log == 'success') && (github.event_name == 'release')
     environment: prometheon-access
     env:
-          VERSION_TAG: test #TESTS ONLY
-          # VERSION_TAG: ${{ github.event.release.tag_name }}
+          VERSION_TAG: ${{ github.event.release.tag_name }}
     
     strategy:
       matrix:
         env:
           - name: dev
-          # - name: prod          
+          - name: prod          
 
     steps:
       # ----------------------------------------------------------
@@ -147,39 +144,19 @@ jobs:
             git push origin --delete deploy/backend-${{ env.VERSION_TAG }}
         env:
             GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
+            
 
-      # - name: Create PR (DEV TEST environment)
-      #   if: matrix.env.name == 'dev'
-      #   run: |
-      #       cd tf-repo
-      #       git push origin deploy/backend-${{ env.VERSION_TAG }}
-      #       gh pr create \
-      #         --base main \
-      #         --head deploy/backend-${{ env.VERSION_TAG }} \
-      #         --title "Deploy backend version ${{ env.VERSION_TAG }} to dev" \
-      #         --body "Automated deployment PR for backend version ${{ env.VERSION_TAG }}"
-      #   env:
-      #       GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
+      - name: Create PR (Prod environment)
+        if: matrix.env.name == 'prod'
+        run: |
+            cd tf-repo
+            git push origin deploy/backend-${{ env.VERSION_TAG }}
+            gh pr create \
+              --base main \
+              --head deploy/backend-${{ env.VERSION_TAG }} \
+              --title "Deploy backend version ${{ env.VERSION_TAG }} to prod" \
+              --body "Automated deployment PR for backend version ${{ env.VERSION_TAG }}"
+        env:
+            GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
 
-
-      # - name: Push to main (Dev environment)
-      #   if: matrix.env.name == 'dev'
-      #   run: |
-      #       cd tf-repo
-      #       git push origin deploy/backend-${{ env.VERSION_TAG }}:main
-      #       git push origin --delete deploy/backend-${{ env.VERSION_TAG }}
-      #   env:
-      #       GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
-
-      # - name: Create PR (Prod environment)
-      #   if: matrix.env.name == 'prod'
-      #   run: |
-      #       cd tf-repo
-      #       git push origin deploy/backend-${{ env.VERSION_TAG }}
-      #       gh pr create \
-      #         --base main \
-      #         --head deploy/backend-${{ env.VERSION_TAG }} \
-      #         --title "Deploy backend version ${{ env.VERSION_TAG }} to prod" \
-      #         --body "Automated deployment PR for backend version ${{ env.VERSION_TAG }}"
-      #   env:
-      #       GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
+      
