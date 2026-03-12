@@ -139,27 +139,27 @@ jobs:
             git commit -m "Deploy backend version ${{ env.VERSION_TAG }}"
       
       
-      # - name: Push to main (Dev environment)
-      #         if: matrix.env.name == 'dev'
-      #         run: |
-      #             cd tf-repo
-      #             git push origin deploy/backend-${{ env.VERSION_TAG }}:main
-      #             git push origin --delete deploy/backend-${{ env.VERSION_TAG }}
-      #         env:
-      #             GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
-
-      - name: Create PR (DEV TEST environment)
+      - name: Push to main (Dev environment)
         if: matrix.env.name == 'dev'
         run: |
             cd tf-repo
-            git push origin deploy/backend-${{ env.VERSION_TAG }}
-            gh pr create \
-              --base main \
-              --head deploy/backend-${{ env.VERSION_TAG }} \
-              --title "Deploy backend version ${{ env.VERSION_TAG }} to dev" \
-              --body "Automated deployment PR for backend version ${{ env.VERSION_TAG }}"
+            git push origin deploy/backend-${{ env.VERSION_TAG }}:main
+            git push origin --delete deploy/backend-${{ env.VERSION_TAG }}
         env:
             GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
+
+      # - name: Create PR (DEV TEST environment)
+      #   if: matrix.env.name == 'dev'
+      #   run: |
+      #       cd tf-repo
+      #       git push origin deploy/backend-${{ env.VERSION_TAG }}
+      #       gh pr create \
+      #         --base main \
+      #         --head deploy/backend-${{ env.VERSION_TAG }} \
+      #         --title "Deploy backend version ${{ env.VERSION_TAG }} to dev" \
+      #         --body "Automated deployment PR for backend version ${{ env.VERSION_TAG }}"
+      #   env:
+      #       GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
 
 
       # - name: Push to main (Dev environment)
