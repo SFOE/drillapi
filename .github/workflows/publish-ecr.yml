@@ -7,8 +7,7 @@ on:
     types: [published]
   push:
     branches:
-      - main
-  
+      - main  
 
 permissions:
   id-token: write
@@ -158,8 +157,7 @@ jobs:
             git checkout -b deploy/backend-${{ env.VERSION_TAG }}
             git add deploy.auto.tfvars.json
             git commit -m "Deploy backend version ${{ env.VERSION_TAG }}"
-      
-      
+            
       - name: Push to main (Dev environment)
         if: matrix.env.name == 'dev'
         run: |
@@ -168,7 +166,6 @@ jobs:
             git push origin --delete deploy/backend-${{ env.VERSION_TAG }}
         env:
             GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
-
 
       - name: Create PR (Prod environment)
         if: matrix.env.name == 'prod'
