@@ -399,7 +399,7 @@ CANTONS = {
             "style": "",
             "layers": [
                 {
-                    "name": "ac_059_1_v1_0_idoneita_sonde_geotermiche",
+                    "name": "ti_040_1_v1_0_sfruttamento_termico_acque_geotermia_sonda",
                     "property_name": "idoneita_desc",
                     "property_values": [
                         {
