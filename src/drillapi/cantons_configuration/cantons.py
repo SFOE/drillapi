@@ -392,7 +392,7 @@ CANTONS = {
             "cantonal_energy_service_url": "https://www4.ti.ch/dt/da/spaas/upaai/temi/acqua-protezione-e-approvvigionamento/protezione-e-approvvigionamento/acque-sotterranee/utilizzo-termico-delle-acque-sotterranee-e-del-sottosuolo/sfruttamento-dellenergia-geotermica-e-dallacqua-sotterranea/",
             "wms_url": "https://wms.geo.ti.ch/service",
             "query_url": "https://wms.geo.ti.ch/service",
-            "legend_url": "https://www4.ti.ch/fileadmin/GENERALE/IGDAC/ccgeo/legends/ac_059_1_v1_0/ac_059_1_v1_0_idoneita_sonde_geotermiche_.png",
+            "legend_url": "https://www4.ti.ch/fileadmin/GENERALE/IGDAC/ccgeo/legends/ti_040_1_v1_0/ti_040_1_v1_0_sfruttamento_termico_acque_geotermia_sonda.png",
             "thematic_geoportal_url": "https://map.geo.ti.ch/?lang=it&baselayer_ref=Carta%20Nazionale%20%28bianco%20e%20nero%29&tree_group_layers_Idoneit%C3%A0%20sonde%20geotermiche=Idoneit%C3%A0%20sonde%20geotermiche&tree_groups=Idoneit%C3%A0%20sonde%20geotermiche",
             "info_format": "application/vnd.ogc.gml",
             "bbox_delta": 10,
