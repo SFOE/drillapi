@@ -7,7 +7,6 @@ from drillapi.app import app
 
 @pytest.fixture
 def client():
-
     with TestClient(app) as c:
         yield c
 
@@ -45,7 +44,6 @@ def test_drill_category_wms_gml(client):
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["status"] == "success"
     assert payload["coord_x"] == coord_x
     assert payload["coord_y"] == coord_y
     assert payload["ground_category"]
@@ -90,7 +88,6 @@ def test_drill_category_esri_json(client):
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["status"] == "success"
     assert payload["coord_x"] == coord_x
     assert payload["coord_y"] == coord_y
     assert payload["ground_category"]

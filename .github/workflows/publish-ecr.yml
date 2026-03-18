@@ -1,4 +1,4 @@
-name: Publish Docker Image to AWS ECR
+name: Publish Docker Image to AWS ECR, Deploy on Release
 
 on:
   pull_request:
@@ -7,33 +7,57 @@ on:
     types: [published]
   push:
     branches:
-      - main
+      - main  
 
 permissions:
   id-token: write
   contents: read
+  pull-requests: write
 
 jobs:
+  # ----------------------------------------------------------
+  # Build and push Docker image to ECR for PRs, main branch, and releases
+  # ----------------------------------------------------------
   build-and-push:
     runs-on: ubuntu-latest
+    outputs:
+      release-log: ${{ steps.build-and-push-release.outcome }}
     environment: prometheon-access
+
+    # ----------------------------------------------------------
+    # Matrix strategy to differentiate environments
+    # ----------------------------------------------------------
+    strategy:
+      matrix:
+        env:
+          - name: dev
+            role: SFOE_DRILLAPI_PIPELINE_ROLE_DEV
+          - name: prod
+            role: SFOE_DRILLAPI_PIPELINE_ROLE_PROD
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # ----------------------------------------------------------
+      # Login to AWS ECR
+      # ----------------------------------------------------------
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ vars.SFOE_DRILLAPI_PIPELINE_ROLE }}
+          role-to-assume: ${{ vars[matrix.env.role] }}
           aws-region: eu-central-1
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      # ----------------------------------------------------------
+      # Build and push (PR)
+      # ----------------------------------------------------------
       - name: Build and push Docker image (PR)
-        if: github.event_name == 'pull_request'
+        id: build-and-push-pr
+        if: github.event_name == 'pull_request' && matrix.env.name == 'dev'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: drillapi
@@ -42,8 +66,11 @@ jobs:
           docker build -f Dockerfile.lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
+      # ----------------------------------------------------------
+      # Build and push (merge into main)
+      # ----------------------------------------------------------
       - name: Build and push Docker image (Main branch)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.env.name == 'dev'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: drillapi
@@ -52,13 +79,105 @@ jobs:
           docker build -f Dockerfile.lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
+      # ----------------------------------------------------------
+      # Build and push (release)
+      # ----------------------------------------------------------
       - name: Build and push Docker image (Release)
+        id: build-and-push-release
         if: github.event_name == 'release'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: drillapi
           VERSION_TAG: ${{ github.event.release.tag_name }}
         run: |
-          docker build -f Dockerfile.lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker build -f Dockerfile.lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+
+  # ----------------------------------------------------------
+  # Automated deployment upon release
+  # ----------------------------------------------------------
+  deploy-image:            
+    name: deploy-image
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: (needs.build-and-push.outputs.release-log == 'success') && (github.event_name == 'release')
+    environment: prometheon-access
+    env:
+          VERSION_TAG: ${{ github.event.release.tag_name }}
+    
+    # ----------------------------------------------------------
+    # Matrix strategy to differentiate environments
+    # ----------------------------------------------------------
+    strategy:
+      matrix:
+        env:
+          - name: dev
+          - name: prod          
+
+    steps:
+      # ----------------------------------------------------------
+      # Authenticate as GitHub App
+      # ----------------------------------------------------------
+      - name: Authenticate as GitHub App
+        id: app-auth
+        uses: actions/create-github-app-token@v2
+        with:
+            app-id: ${{ secrets.GH_APP_ID }}
+            private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+            owner: SFOE-Prometheon
+
+      # ----------------------------------------------------------
+      # Checkout Terraform Repo using GitHub App Token
+      # ----------------------------------------------------------
+      - name: Clone Terraform Repo
+        uses: actions/checkout@v4
+        with:
+            repository: SFOE-prometheon/prometheon-drillcheck-${{ matrix.env.name }}
+            ref: main
+            token: ${{ steps.app-auth.outputs.token }}
+            path: tf-repo
+
+      # ----------------------------------------------------------
+      # Update Version
+      # ----------------------------------------------------------
+      - name: Update version in Terraform repo        
+        run: |
+            cd tf-repo
+            sed -i "s/\"backend_app_version\": \".*\"/\"backend_app_version\": \"${{ env.VERSION_TAG }}\"/" deploy.auto.tfvars.json
+
+      # ----------------------------------------------------------
+      # Commit & Push/PR based on environment
+      # ----------------------------------------------------------
+      - name: Create branch and commit changes
+        run: |
+            cd tf-repo
+            git config user.name "GitHub Actions"
+            git config user.email "noreply@github.com"
+            git checkout -b deploy/backend-${{ env.VERSION_TAG }}
+            git add deploy.auto.tfvars.json
+            git commit -m "Deploy backend version ${{ env.VERSION_TAG }}"
+            
+      - name: Push to main (Dev environment)
+        if: matrix.env.name == 'dev'
+        run: |
+            cd tf-repo
+            git push origin deploy/backend-${{ env.VERSION_TAG }}:main
+            git push origin --delete deploy/backend-${{ env.VERSION_TAG }}
+        env:
+            GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
+
+      - name: Create PR (Prod environment)
+        if: matrix.env.name == 'prod'
+        run: |
+            cd tf-repo
+            git push origin deploy/backend-${{ env.VERSION_TAG }}
+            gh pr create \
+              --base main \
+              --head deploy/backend-${{ env.VERSION_TAG }} \
+              --title "Deploy backend version ${{ env.VERSION_TAG }} to prod" \
+              --body "Automated deployment PR for backend version ${{ env.VERSION_TAG }}"
+        env:
+            GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
+
+      

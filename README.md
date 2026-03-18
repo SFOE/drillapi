@@ -1,4 +1,5 @@
-[![CI](https://github.com/SFOE/drillapi/actions/workflows/ci.yml/badge.svg)](https://github.com/SFOE/drillapi/actions/workflows/ci.yml)
+[![CI](https://github.com/SFOE/drillapi/actions/workflows/lint.yml/badge.svg)](https://github.com/SFOE/drillapi/actions/workflows/lint.yml)
+[![CI](https://github.com/SFOE/drillapi/actions/workflows/test.yml/badge.svg)](https://github.com/SFOE/drillapi/actions/workflows/test.yml)
 
 # drillapi - geothermal drilling
 
@@ -22,7 +23,6 @@ This project can run in docker:
 docker run -d \
   -p 8000:8000 \
   -e RATE_LIMIT="1000/minute" \
-  -e ALLOWED_IPS='["127.0.0.1","192.168.1.10"]' \
   -e ALLOWED_ORIGINS='["http://localhost:5173","https://www.uvek-gis.admin.ch/"]' \
   -e ENVIRONMENT=PROD \
   ghcr.io/sfoe/drillapi:latest
@@ -34,13 +34,14 @@ docker run -d \
 docker run -d \
   -p 8000:8000 \
   -e RATE_LIMIT="1000/minute" \
-  -e ALLOWED_IPS='["127.0.0.1","192.168.1.10"]' \
   -e ALLOWED_ORIGINS='["http://localhost:5173","https://www.uvek-gis.admin.ch/"]' \
   -e ENVIRONMENT=PROD \
   ghcr.io/sfoe/drillapi:<vx.y.z>
 ```
 
 ## Local setup for development
+
+This project uses [UV](https://github.com/astral-sh/uv) 
 
 Create .env file and :warning: adapt values :warning:
 
@@ -50,39 +51,43 @@ Special attention to the ```ENVIRONMENT``` value, MUST never be set to ```DEV```
 cp env.example .env
 ```
 
-Create python virtual environment
+### Install dependencies using UV
 
 ```bash
-python3 -m venv venv
-```
-
-Activate python virtual environment
-```bash
-source venv/bin/activate
-```
-
-Install dependencies
-
-```bash
-pip install -e .
+uv sync
 ```
 
 For **dev** install dev requirements
 
 ```bash
-pip install -e ".[dev]"
+uv sync --extra dev
 ```
 
-Install pre-commit and activate it
+**Use Ruff**
+
+Check
 
 ```bash
-pip install pre-commit
-pre-commit install
+uv run ruff check --fix
 ```
 
-Run pre-commit manually
+Format
+
 ```bash
-pre-commit run --all-files
+uv run ruff format .
+```
+
+
+## Maintenance
+
+Dependabot is configured to search for update on a weekly basis and open PRs when necessary.
+
+### Upgrade dependencies manually
+
+If you need to update on an emergency, you can update manually.
+
+```bash
+uv lock --upgrade
 ```
 
 ## Start
@@ -90,13 +95,13 @@ pre-commit run --all-files
 Run dev server
 
 ```bash
-uvicorn drillapi.app:app --reload
+uv run uvicorn drillapi.app:app --reload
 ```
 
 Run project
 
 ```bash
-python -m drillapi
+uv run python -m drillapi
 ```
 
 ## Explore
@@ -142,13 +147,13 @@ http://127.0.0.1:8000/v1/cantons/NE
 Install dev requirements
 
 ```bash
-pip install -e ".[dev]"
+uv sync --extra dev
 ```
 
 Run tests
 
 ```bash
-python -m pytest -v
+uv run python -m pytest -v
 ```
 
 ## Running local docker image
@@ -173,7 +178,18 @@ Run container
 docker run -d -p 8000:8000 --name drillapi_container drillapi
 ```
 
-View logs
+Build lambda image locally
+
+```bash
+sudo docker build -t drillapi-lambda .
+```
+
+Run lambda image locally
+```bash
+docker run -p 9000:8000 drillapi-lambda
+```
+
+View logs for docker image
 
 ```bash
 docker logs -f drillapi_container

@@ -1,8 +1,7 @@
-from fastapi import Request, HTTPException, status, Depends
+from fastapi import Request, HTTPException, status
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
-from ..config import settings  # assuming ALLOWED_IPS is in your Settings
 
 # Limiter
 limiter = Limiter(key_func=get_remote_address)
