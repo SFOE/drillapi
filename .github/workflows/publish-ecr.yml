@@ -163,7 +163,6 @@ jobs:
         run: |
             cd tf-repo
             git push origin deploy/backend-${{ env.VERSION_TAG }}:main
-            git push origin --delete deploy/backend-${{ env.VERSION_TAG }}
         env:
             GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
 
