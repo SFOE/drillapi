@@ -20,6 +20,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest",
+  "pygments>=2.20.0",
   "requests",
   "respx",
   "pytest-asyncio",
