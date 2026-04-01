@@ -105,7 +105,7 @@ jobs:
 
     steps:
       # Check out your repository if needed
-      - name: Checkout this repository
+      
       # ----------------------------------------------------------
       # Login to AWS
       # ----------------------------------------------------------
@@ -119,36 +119,66 @@ jobs:
       - name: Checkout this repository
         uses: actions/checkout@v4
 
-      - name: Inspector Scan
-        id: inspector
-        uses: aws-actions/vulnerability-scan-github-action-for-amazon-inspector@v1
+      # Setup prerequisites for docker/build-push-action
+      - name: Set up docker build prereqs (QEMU)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up docker build prereqs (Buildx)
+        uses: docker/setup-buildx-action@v3
+
+      # build the image you wish to scan
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
         with:
-          # change artifact_type to either 'repository', 'container', 'binary', or 'archive'.
-          artifact_type: 'repository'
+          context: .
+          file: ./Dockerfile.lambda
+          push: false
+          tags: app:latest
+          load: true
 
-          # change artifact_path to the file path or container image you would like to scan.
-          # File paths should be relative to your root project directory.
-          # For containers, this action accepts 'docker pull'-style references to containers,
-          # such as 'alpine:latest' or a file path to an image exported as TAR using docker save.
-          artifact_path: './'
-
-          # If enabled, this setting will display Inspector's vulnerability scan findings
-          # as a GitHub actions step summary. See here for an example step summary:
-          # https://github.com/aws-actions/vulnerability-scan-github-action-for-amazon-inspector/actions/runs/8800085041
-          display_vulnerability_findings: "enabled"
-
-          # Set vulnerability thresholds; if the number of vulnerabilities is
-          # equal to or greater than any of the specified thresholds, this
-          # action will set the 'vulnerability_threshold_exceeded'
-          # output flag to 1.
+      - name: Scan built image with Inspector
+        uses: aws-actions/vulnerability-scan-github-action-for-amazon-inspector@v1
+        id: inspector
+        with:
+          artifact_type: 'container'
+          artifact_path: 'app:latest' # make sure this matches the image you built
           critical_threshold: 1
           high_threshold: 1
           medium_threshold: 1
           low_threshold: 1
           other_threshold: 1
+          # set additional arguments as needed
 
-         # Additional input arguments are available to control scan behavior.
-         # See 'action.yml' for additional input/output options.
+      # - name: Inspector Scan
+      #   id: inspector
+      #   uses: aws-actions/vulnerability-scan-github-action-for-amazon-inspector@v1
+      #   with:
+      #     # change artifact_type to either 'repository', 'container', 'binary', or 'archive'.
+      #     artifact_type: 'repository'
+
+      #     # change artifact_path to the file path or container image you would like to scan.
+      #     # File paths should be relative to your root project directory.
+      #     # For containers, this action accepts 'docker pull'-style references to containers,
+      #     # such as 'alpine:latest' or a file path to an image exported as TAR using docker save.
+      #     artifact_path: './'
+
+      #     # If enabled, this setting will display Inspector's vulnerability scan findings
+      #     # as a GitHub actions step summary. See here for an example step summary:
+      #     # https://github.com/aws-actions/vulnerability-scan-github-action-for-amazon-inspector/actions/runs/8800085041
+      #     display_vulnerability_findings: "enabled"
+
+      #     # Set vulnerability thresholds; if the number of vulnerabilities is
+      #     # equal to or greater than any of the specified thresholds, this
+      #     # action will set the 'vulnerability_threshold_exceeded'
+      #     # output flag to 1.
+      #     critical_threshold: 1
+      #     high_threshold: 1
+      #     medium_threshold: 1
+      #     low_threshold: 1
+      #     other_threshold: 1
+
+      #    # Additional input arguments are available to control scan behavior.
+      #    # See 'action.yml' for additional input/output options.
 
 
       # The following steps illustrate how to
