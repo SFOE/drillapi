@@ -1,4 +1,4 @@
-name: Build and Push drillapi to ECR
+name: Build-push-scan and Deploy
 
 on:
   pull_request:
