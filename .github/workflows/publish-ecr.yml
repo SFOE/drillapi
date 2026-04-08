@@ -2,7 +2,7 @@ name: Build and Push drillapi to ECR
 
 on:
   pull_request:
-    types: [opened, synchronize, closed]
+    types: [closed]
     branches:
       - main
   release:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build-scan-push-latest:
-    if: github.event_name == 'pull_request' # && github.event.pull_request.merged == true
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
     uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@feat/reusable-workload-wf
     with:
       dockerfile: Dockerfile.lambda
