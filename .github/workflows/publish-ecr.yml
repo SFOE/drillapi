@@ -22,7 +22,6 @@ jobs:
       ecr-repository: drillapi
       image-tag: latest
       aws-region: eu-central-1
-      environment: dev
     secrets:
       aws-role: ${{ secrets.SFOE_DRILLAPI_PIPELINE_ROLE_DEV }}
 
