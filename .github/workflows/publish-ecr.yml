@@ -2,7 +2,7 @@ name: Build and Push drillapi to ECR
 
 on:
   pull_request:
-    types: [closed]
+    types: [opened, synchronize, closed]
     branches:
       - main
   release:
@@ -34,7 +34,6 @@ jobs:
       ecr-repository: drillapi
       image-tag: ${{ github.event.release.tag_name }}
       aws-region: eu-central-1
-      environment: dev
     secrets:
       aws-role: ${{ secrets.SFOE_DRILLAPI_PIPELINE_ROLE_DEV }}
 
@@ -47,7 +46,6 @@ jobs:
       ecr-repository: drillapi
       image-tag: ${{ github.event.release.tag_name }}
       aws-region: eu-central-1
-      environment: prod
     secrets:
       aws-role: ${{ secrets.SFOE_DRILLAPI_PIPELINE_ROLE_PROD }}
 
