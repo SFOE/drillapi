@@ -2,7 +2,7 @@ name: Build-push-scan and Deploy
 
 on:
   pull_request:
-    types: [closed]
+    types: [opened, closed]
     branches:
       - main
   release:
@@ -14,7 +14,8 @@ permissions:
 
 jobs:
   build-scan-push-latest:
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    # if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    if: github.event_name == 'pull_request'
     uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v5
     with:
       dockerfile: Dockerfile.lambda
