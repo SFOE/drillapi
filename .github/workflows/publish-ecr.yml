@@ -2,7 +2,7 @@ name: Build-push-scan and Deploy
 
 on:
   pull_request:
-    types: [opened, synchronize, closed]
+    types: [closed]
     branches:
       - main
   release:
@@ -14,9 +14,8 @@ permissions:
 
 jobs:
   build-scan-push-latest:
-    # if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
-    if: github.event_name == 'pull_request'
-    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v5
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v7
     with:
       dockerfile: Dockerfile.lambda
       build-context: .
@@ -28,7 +27,7 @@ jobs:
 
   build-scan-push-dev:
     if: github.event_name == 'release'
-    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v5
+    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v7
     with:
       dockerfile: Dockerfile.lambda
       build-context: .
@@ -40,7 +39,7 @@ jobs:
 
   build-scan-push-prod:
     if: github.event_name == 'release'
-    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v5
+    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v7
     with:
       dockerfile: Dockerfile.lambda
       build-context: .
