@@ -1,111 +1,81 @@
-name: Publish Docker Image to AWS ECR, Deploy on Release
+name: Build-push-scan and Deploy
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [closed]
+    branches:
+      - main
   release:
     types: [published]
-  push:
-    branches:
-      - main  
 
 permissions:
   id-token: write
   contents: read
-  pull-requests: write
 
 jobs:
-  # ----------------------------------------------------------
-  # Build and push Docker image to ECR for PRs, main branch, and releases
-  # ----------------------------------------------------------
-  build-and-push:
+  build-scan-push-latest:
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v5
+    with:
+      dockerfile: Dockerfile.lambda
+      build-context: .
+      ecr-repository: drillapi
+      image-tag: latest
+      aws-region: eu-central-1
+    secrets:
+      aws-role: ${{ secrets.SFOE_DRILLAPI_PIPELINE_ROLE_DEV }}
+
+  build-scan-push-dev:
+    if: github.event_name == 'release'
+    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v5
+    with:
+      dockerfile: Dockerfile.lambda
+      build-context: .
+      ecr-repository: drillapi
+      image-tag: ${{ github.event.release.tag_name }}
+      aws-region: eu-central-1
+    secrets:
+      aws-role: ${{ secrets.SFOE_DRILLAPI_PIPELINE_ROLE_DEV }}
+
+  build-scan-push-prod:
+    if: github.event_name == 'release'
+    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v5
+    with:
+      dockerfile: Dockerfile.lambda
+      build-context: .
+      ecr-repository: drillapi
+      image-tag: ${{ github.event.release.tag_name }}
+      aws-region: eu-central-1
+    secrets:
+      aws-role: ${{ secrets.SFOE_DRILLAPI_PIPELINE_ROLE_PROD }}
+
+  post-push:
+    needs: [build-scan-push-latest, build-scan-push-dev, build-scan-push-prod]
+    if: always()
     runs-on: ubuntu-latest
-    outputs:
-      release-log: ${{ steps.build-and-push-release.outcome }}
-    environment: prometheon-access
-
-    # ----------------------------------------------------------
-    # Matrix strategy to differentiate environments
-    # ----------------------------------------------------------
-    strategy:
-      matrix:
-        env:
-          - name: dev
-            role: SFOE_DRILLAPI_PIPELINE_ROLE_DEV
-          - name: prod
-            role: SFOE_DRILLAPI_PIPELINE_ROLE_PROD
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # ----------------------------------------------------------
-      # Login to AWS ECR
-      # ----------------------------------------------------------
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ vars[matrix.env.role] }}
-          aws-region: eu-central-1
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      # ----------------------------------------------------------
-      # Build and push (PR)
-      # ----------------------------------------------------------
-      - name: Build and push Docker image (PR)
-        id: build-and-push-pr
-        if: github.event_name == 'pull_request' && matrix.env.name == 'dev'
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: drillapi
-          IMAGE_TAG: pr-${{ github.event.pull_request.number }}
+      - name: Print push summary
         run: |
-          docker build -f Dockerfile.lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-      # ----------------------------------------------------------
-      # Build and push (merge into main)
-      # ----------------------------------------------------------
-      - name: Build and push Docker image (Main branch)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.env.name == 'dev'
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: drillapi
-          IMAGE_TAG: latest
-        run: |
-          docker build -f Dockerfile.lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-      # ----------------------------------------------------------
-      # Build and push (release)
-      # ----------------------------------------------------------
-      - name: Build and push Docker image (Release)
-        id: build-and-push-release
-        if: github.event_name == 'release'
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: drillapi
-          VERSION_TAG: ${{ github.event.release.tag_name }}
-        run: |
-          docker build -f Dockerfile.lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION_TAG
-
+          echo "## Push Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | Image Tag | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Dev (Latest) | ${{ needs.build-scan-push-latest.outputs.image-tag || 'N/A' }} | ${{ needs.build-scan-push-latest.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dev (Release) | ${{ needs.build-scan-push-dev.outputs.image-tag || 'N/A' }} | ${{ needs.build-scan-push-dev.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Prod (Release) | ${{ needs.build-scan-push-prod.outputs.image-tag || 'N/A' }} | ${{ needs.build-scan-push-prod.result }} |" >> $GITHUB_STEP_SUMMARY
 
   # ----------------------------------------------------------
   # Automated deployment upon release
   # ----------------------------------------------------------
   deploy-image:            
     name: deploy-image
-    needs: build-and-push
+    needs: [build-scan-push-dev, build-scan-push-prod]
     runs-on: ubuntu-latest
-    if: (needs.build-and-push.outputs.release-log == 'success') && (github.event_name == 'release')
+    if: (github.event_name == 'release')
     environment: prometheon-access
     env:
           VERSION_TAG: ${{ github.event.release.tag_name }}
-    
+
     # ----------------------------------------------------------
     # Matrix strategy to differentiate environments
     # ----------------------------------------------------------
@@ -178,5 +148,3 @@ jobs:
               --body "Automated deployment PR for backend version ${{ env.VERSION_TAG }}"
         env:
             GITHUB_TOKEN: ${{ steps.app-auth.outputs.token }}
-
-      
