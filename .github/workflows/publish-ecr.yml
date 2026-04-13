@@ -28,7 +28,7 @@ jobs:
 
   build-scan-push-dev:
     if: github.event_name == 'release'
-    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v5
+    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v4
     with:
       dockerfile: Dockerfile.lambda
       build-context: .
@@ -40,7 +40,7 @@ jobs:
 
   build-scan-push-prod:
     if: github.event_name == 'release'
-    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v5
+    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@main
     with:
       dockerfile: Dockerfile.lambda
       build-context: .
