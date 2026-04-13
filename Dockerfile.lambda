@@ -29,6 +29,7 @@ RUN --mount=from=uv,source=/uv,target=/bin/uv \
 FROM public.ecr.aws/lambda/python:3.14
 
 # Patch OS-level vulnerabilities (openssl, aws-lambda-rie).
+# fix CVE-2026-2673.
 RUN dnf upgrade -y openssl-libs openssl-fips-provider-latest && \
     dnf clean all && \
     rm -rf /var/cache/dnf
