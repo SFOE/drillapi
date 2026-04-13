@@ -2,7 +2,7 @@ name: Build-push-scan and Deploy
 
 on:
   pull_request:
-    types: [opened, closed]
+    types: [opened, synchronize, closed]
     branches:
       - main
   release:
