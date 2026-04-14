@@ -29,11 +29,12 @@ RUN --mount=from=uv,source=/uv,target=/bin/uv \
 FROM public.ecr.aws/lambda/python:3.14
 
 # Patch OS-level vulnerabilities (openssl, aws-lambda-rie).
+# fix CVE-2026-2673.
 RUN dnf upgrade -y openssl-libs openssl-fips-provider-latest && \
     dnf clean all && \
     rm -rf /var/cache/dnf
 
-# Update aws-lambda-rie to latest release to fix CVE-2026-2673.
+# Update aws-lambda-rie to latest release to fix CVE-2026-32280.
 ADD https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie-x86_64 /usr/local/bin/aws-lambda-rie
 RUN chmod 755 /usr/local/bin/aws-lambda-rie
 
