@@ -22,7 +22,7 @@ jobs:
       ecr-repository: drillapi
       image-tag: latest
       aws-region: eu-central-1
-      exit-on-treshold: false
+      exit-on-threshold: false
     secrets:
       aws-role: ${{ secrets.SFOE_DRILLAPI_PIPELINE_ROLE_DEV }}
 
