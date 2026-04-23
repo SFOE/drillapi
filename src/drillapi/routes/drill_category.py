@@ -3,7 +3,12 @@ from drillapi.cantons_configuration import cantons
 from ..services import processing, security
 from ..services.error_handler import handle_errors
 from ..config import settings
-from ..models.models import SuitabilityFeature, GroundCategory, ResultDetail
+from ..models.models import (
+    SuitabilityFeature,
+    GroundCategory,
+    GroundSuitability,
+    ResultDetail,
+)
 import logging
 
 router = APIRouter()
@@ -74,6 +79,20 @@ async def get_drill_category(
 
     # Fetch features (WMS or ESRI REST) from external geoservices and process into feature
     result = await processing.fetch_features_for_point(coord_x, coord_y, canton_config)
+
+    # Handle external geoservice unavailability
+    if result.get("geoservice_unavailable"):
+        suitability_feature.ground_category.harmonized_value = (
+            GroundSuitability.GEOSERVICE_UNAVAILABLE
+        )
+        suitability_feature.ground_category.source_values = "geoservice unavailable"
+        # Keep canton_config so the frontend can access cantonal_energy_service_url
+        suitability_feature.result_detail = ResultDetail(
+            message="External geoservice unavailable",
+            full_url=result.get("full_url", ""),
+            detail=result.get("error"),
+        )
+        return suitability_feature
 
     # Feature(s) found, process to reclassification
     processed_ground_category = processing.process_ground_category(
