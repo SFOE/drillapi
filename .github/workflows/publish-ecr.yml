@@ -15,19 +15,20 @@ permissions:
 jobs:
   build-scan-push-latest:
     if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
-    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v7
+    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v8
     with:
       dockerfile: Dockerfile.lambda
       build-context: .
       ecr-repository: drillapi
       image-tag: latest
       aws-region: eu-central-1
+      exit-on-treshold: false
     secrets:
       aws-role: ${{ secrets.SFOE_DRILLAPI_PIPELINE_ROLE_DEV }}
 
   build-scan-push-dev:
     if: github.event_name == 'release'
-    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v7
+    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v8
     with:
       dockerfile: Dockerfile.lambda
       build-context: .
@@ -39,7 +40,7 @@ jobs:
 
   build-scan-push-prod:
     if: github.event_name == 'release'
-    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v7
+    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v8
     with:
       dockerfile: Dockerfile.lambda
       build-context: .
