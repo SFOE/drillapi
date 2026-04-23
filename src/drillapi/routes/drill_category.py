@@ -3,7 +3,12 @@ from drillapi.cantons_configuration import cantons
 from ..services import processing, security
 from ..services.error_handler import handle_errors
 from ..config import settings
-from ..models.models import SuitabilityFeature, GroundCategory, GroundSuitability, ResultDetail
+from ..models.models import (
+    SuitabilityFeature,
+    GroundCategory,
+    GroundSuitability,
+    ResultDetail,
+)
 import logging
 
 router = APIRouter()
@@ -77,7 +82,9 @@ async def get_drill_category(
 
     # Handle external geoservice unavailability
     if result.get("geoservice_unavailable"):
-        suitability_feature.ground_category.harmonized_value = GroundSuitability.GEOSERVICE_UNAVAILABLE
+        suitability_feature.ground_category.harmonized_value = (
+            GroundSuitability.GEOSERVICE_UNAVAILABLE
+        )
         suitability_feature.ground_category.source_values = "geoservice unavailable"
         # Keep canton_config so the frontend can access cantonal_energy_service_url
         suitability_feature.result_detail = ResultDetail(
