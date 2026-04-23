@@ -117,10 +117,13 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                     features = data.get("features") or []
                 except Exception as e:
                     error_message = f"WMS request failed: {e}"
-                    logger.error("%s — URL: %s", error_message, full_url)
-                    raise HTTPException(
-                        status_code=502, detail=f"{error_message} — URL: {full_url}"
-                    )
+                    logger.error("%s — URL: %s", error_message, full_url or esri_url)
+                    return {
+                        "features": [],
+                        "full_url": full_url or esri_url,
+                        "error": error_message,
+                        "geoservice_unavailable": True,
+                    }
 
         # WMS GetFeatureInfo
         else:
@@ -161,10 +164,13 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                 resp.raise_for_status()
             except Exception as e:
                 error_message = f"WMS request failed: {e}"
-                logger.error("%s — URL: %s", error_message, full_url)
-                raise HTTPException(
-                    status_code=502, detail=f"{error_message} — URL: {full_url}"
-                )
+                logger.error("%s — URL: %s", error_message, full_url or query_url)
+                return {
+                    "features": [],
+                    "full_url": full_url or query_url,
+                    "error": error_message,
+                    "geoservice_unavailable": True,
+                }
 
         try:
             features = parse_wms_getfeatureinfo(
@@ -177,12 +183,18 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                 "error": error_message,
             }
 
+        except HTTPException:
+            # Re-raise genuine internal errors (e.g., invalid JSON/XML from parse_wms_getfeatureinfo)
+            raise
         except Exception as e:
             error_message = f"Failed to parse WMS or ESRI REST response: {e}"
             logger.error("%s — URL: %s", error_message, full_url)
-            raise HTTPException(
-                status_code=502, detail=f"{error_message} — URL: {full_url}"
-            )
+            return {
+                "features": [],
+                "full_url": full_url,
+                "error": error_message,
+                "geoservice_unavailable": True,
+            }
 
 
 # PARSE WMS or REST responses

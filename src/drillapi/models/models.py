@@ -16,6 +16,7 @@ class GroundSuitability(IntEnum):
     UNKNOWN = 4
     NOT_AVAILABLE = 5
     NOT_IN_SWITZERLAND = 6
+    GEOSERVICE_UNAVAILABLE = 98
     PROBLEM = 99
 
 
