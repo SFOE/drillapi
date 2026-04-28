@@ -24,7 +24,7 @@ dev = [
   "requests",
   "respx",
   "pytest-asyncio",
-  "ruff>=0.15.11",
+  "ruff>=0.15.12",
 ]
 
 [project.scripts]
