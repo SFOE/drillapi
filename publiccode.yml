@@ -39,7 +39,7 @@ description:
 
       - return response used by drill-frontend vuejs web app
     documentation: https://github.com/SFOE/drillapi
-    apiDocumentation: drillapi.drillcheck-prod.prometheon.bfe.admin.ch/docs
+    apiDocumentation: https://drillapi.drillcheck-prod.prometheon.bfe.admin.ch/docs
     features:
       - Get geothermal drilling suitability at given x/y location in swiss
         reference system MN95
