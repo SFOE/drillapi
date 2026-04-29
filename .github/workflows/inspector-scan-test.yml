@@ -1,0 +1,59 @@
+name: Test Inspector Scan (JonasNuvibit fork)
+
+# Trigger manually or on push/PR to test the inspector-ignore branch action
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+    environment: prometheon-access
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.SFOE_DRILLAPI_PIPELINE_ROLE_DEV }}
+          aws-region: eu-central-1
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.lambda
+          push: false
+          tags: drillapi:test
+          load: true
+
+      - name: Scan container image with Inspector (JonasNuvibit feat/inspector-ignore)
+        id: inspector
+        uses: JonasNuvibit/vulnerability-scan-github-action-for-amazon-inspector@feat/inspector-ignore
+        with:
+          artifact_type: 'container'
+          artifact_path: 'drillapi:test'
+          display_vulnerability_findings: 'enabled'
+          critical_threshold: 1
+          high_threshold: 1
+          medium_threshold: 0
+          low_threshold: 0
+          other_threshold: 0
+          # Uncomment and populate to test the ignore_cves feature from this branch:
+          # ignore_cves: "CVE-2021-12345,CVE-2022-67890"
+
+      - name: Print vulnerability scan results
+        run: cat ${{ steps.inspector.outputs.inspector_scan_results_markdown }}
+
+      - name: Check vulnerability threshold
+        run: |
+          echo "Vulnerability threshold exceeded: ${{ steps.inspector.outputs.vulnerability_threshold_exceeded }}"
+          exit ${{ steps.inspector.outputs.vulnerability_threshold_exceeded }}
