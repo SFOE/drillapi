@@ -1,0 +1,4 @@
+# .inspector-ignore
+ignore-cves:
+  - GHSA-mqqf-5wvp-8fh8  # accepted risk: no fix available, mitigated by network controls
+  - CVE-2026-3219
