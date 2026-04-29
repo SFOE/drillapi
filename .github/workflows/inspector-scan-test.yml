@@ -51,7 +51,7 @@ jobs:
           low_threshold: 0
           other_threshold: 0
           # Uncomment and populate to test the ignore_cves feature from this branch:
-          # ignore_cves: "CVE-2021-12345,CVE-2022-67890"
+          ignore_cves: "GHSA-mqqf-5wvp-8fh8,CVE-2026-3219"
 
       - name: Print vulnerability scan results
         run: cat ${{ steps.inspector.outputs.inspector_scan_results_markdown }}
