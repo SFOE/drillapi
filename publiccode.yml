@@ -13,6 +13,7 @@ developmentStatus: stable
 softwareType: standalone/backend
 organisation:
   uri: https://www.bfe.admin.ch
+  name: Bundesamt für Energie (BFE)
 description:
   en:
     localisedName: Drillapi
