@@ -1,2 +1,2 @@
-ignore-findings:
-  - CVE-2026-3219
+# This file lists findings that should be ignored by the aws inspector scan in the github action
+CVE-2026-3219
