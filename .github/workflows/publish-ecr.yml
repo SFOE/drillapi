@@ -1,9 +1,7 @@
 name: Build-push-scan and Deploy
 
 on:
-  workflow_dispatch:
   pull_request:
-    types: [closed]
     branches:
       - main
   release:
