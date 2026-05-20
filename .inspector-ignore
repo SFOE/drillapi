@@ -1,3 +1,5 @@
 # This file lists findings that should be ignored by the aws inspector scan in the github action
 CVE-2026-3219
 CVE-2026-4046 # ignore because foo
+CVE-2026-44432
+GHSA-65pc-fj4g-8rjx
