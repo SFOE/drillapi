@@ -1,6 +1,7 @@
 name: Build-push-scan and Deploy
 
 on:
+  workflow_dispatch:
   pull_request:
     types: [closed]
     branches:
@@ -13,6 +14,18 @@ permissions:
   contents: read
 
 jobs:
+  manual-build-scan-push:
+    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@feat/develop-branch-scan
+    with:
+      dockerfile: Dockerfile.lambda
+      build-context: .
+      ecr-repository: drillapi
+      image-tag: latest
+      aws-region: eu-central-1
+      exit-on-threshold: true
+    secrets:
+      aws-role: ${{ secrets.SFOE_DRILLAPI_PIPELINE_ROLE_DEV }}
+
   build-scan-push-latest:
     if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
     uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v8
