@@ -14,7 +14,7 @@ dependencies = [
   "owslib>=0.35.0",
   "pydantic-settings>=2.14.1",
   "slowapi>=0.1.9",
-  "uvicorn>=0.46.0",
+  "uvicorn>=0.47.0",
 ]
 
 [project.optional-dependencies]
