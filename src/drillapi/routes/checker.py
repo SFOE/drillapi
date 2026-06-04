@@ -34,9 +34,9 @@ async def checker_page(request: Request, canton: str | None = None):
             logger.info(f"CHECKER: No configuration for canton: {canton}")
 
             return templates.TemplateResponse(
+                request,
                 "checker.html",
                 {
-                    "request": request,
                     "canton": canton,
                     "results": [],
                     "error_msg": f"Canton '{canton}' not found.",
@@ -107,9 +107,9 @@ async def checker_page(request: Request, canton: str | None = None):
             results.append(result)
 
     return templates.TemplateResponse(
+        request,
         "checker.html",
         {
-            "request": request,
             "canton": canton,
             "results": results,
         },
