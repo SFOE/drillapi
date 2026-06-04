@@ -6,17 +6,8 @@ harmonized_value=98 and the canton identifier, instead of raising HTTPException(
 Canton config is preserved so the frontend can access cantonal_energy_service_url.
 """
 
-import pytest
 import respx
 import httpx
-from fastapi.testclient import TestClient
-from drillapi.app import app
-
-
-@pytest.fixture
-def client():
-    with TestClient(app) as c:
-        yield c
 
 
 def _mock_canton_identify(canton_code: str):
@@ -33,7 +24,7 @@ def _mock_canton_identify(canton_code: str):
         ]
     }
     respx.get(
-        "https://api3.geo.admin.ch/rest/services/ech/MapServer/identify", params=None
+        "https://api3.geo.admin.ch/rest/services/ech/MapServer/identify"
     ).mock(
         return_value=httpx.Response(
             200,
@@ -51,7 +42,7 @@ def test_wms_timeout_returns_structured_response(client):
 
     _mock_canton_identify("JU")
 
-    respx.get("https://geoservices.jura.ch/wms", params=None).mock(
+    respx.get("https://geoservices.jura.ch/wms").mock(
         side_effect=httpx.ConnectTimeout("Connection timed out")
     )
 
@@ -76,8 +67,7 @@ def test_esri_connection_error_returns_structured_response(client):
     _mock_canton_identify("FR")
 
     respx.get(
-        "https://map.geo.fr.ch/arcgis/rest/services/PortailCarto/Theme_environnement/MapServer/17/query",
-        params=None,
+        "https://map.geo.fr.ch/arcgis/rest/services/PortailCarto/Theme_environnement/MapServer/17/query"
     ).mock(side_effect=httpx.ConnectError("Connection refused"))
 
     response = client.get(f"/v1/drill-category/{coord_x}/{coord_y}")
@@ -100,7 +90,7 @@ def test_wms_http_500_returns_structured_response(client):
 
     _mock_canton_identify("JU")
 
-    respx.get("https://geoservices.jura.ch/wms", params=None).mock(
+    respx.get("https://geoservices.jura.ch/wms").mock(
         return_value=httpx.Response(500, text="Internal Server Error")
     )
 
@@ -126,7 +116,7 @@ def test_successful_wms_still_works(client):
     with open("tests/data/wms/getfeatureinfo_ju.gml", "rb") as f:
         gml = f.read()
 
-    respx.get("https://geoservices.jura.ch/wms", params=None).mock(
+    respx.get("https://geoservices.jura.ch/wms").mock(
         return_value=httpx.Response(
             200,
             content=gml,
@@ -150,7 +140,7 @@ def test_canton_preserved_in_geoservice_failure(client):
 
     _mock_canton_identify("JU")
 
-    respx.get("https://geoservices.jura.ch/wms", params=None).mock(
+    respx.get("https://geoservices.jura.ch/wms").mock(
         side_effect=httpx.ReadTimeout("Read timed out")
     )
 

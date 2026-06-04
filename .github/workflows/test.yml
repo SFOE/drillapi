@@ -39,6 +39,6 @@ jobs:
         run: |
           uv sync --extra dev
 
-      - name: Run pytest
+      - name: Run pytest with coverage
         run: |
-          uv run python -m pytest -v
+          uv run python -m pytest -v --cov=drillapi --cov-report=term
