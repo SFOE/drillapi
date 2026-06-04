@@ -34,7 +34,7 @@ RUN dnf upgrade -y openssl-libs openssl-fips-provider-latest && \
     rm -rf /var/cache/dnf
 
 # Patch aws-lambda-rie to fix CVE-2026-42504, CVE-2026-42507, CVE-2026-27145, CVE-2026-39824, GHSA-mqqf-5wvp-8fh8
-ADD https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/download/v1.26.4/aws-lambda-rie-x86_64 /usr/local/bin/aws-lambda-rie
+ADD https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/download/v1.35/aws-lambda-rie-x86_64 /usr/local/bin/aws-lambda-rie
 RUN chmod 755 /usr/local/bin/aws-lambda-rie
 
 # Copy the runtime dependencies from the builder stage.
