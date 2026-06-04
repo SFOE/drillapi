@@ -20,11 +20,18 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest",
+  "pytest-cov",
   "pygments>=2.20.0",
   "requests",
   "respx",
   "pytest-asyncio",
   "ruff>=0.15.14",
+]
+
+[tool.coverage.run]
+omit = [
+  "src/drillapi/__main__.py",
+  "src/drillapi/lambda_handler.py",
 ]
 
 [project.scripts]
