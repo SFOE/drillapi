@@ -23,9 +23,7 @@ def _mock_canton_identify(canton_code: str):
             }
         ]
     }
-    respx.get(
-        "https://api3.geo.admin.ch/rest/services/ech/MapServer/identify"
-    ).mock(
+    respx.get("https://api3.geo.admin.ch/rest/services/ech/MapServer/identify").mock(
         return_value=httpx.Response(
             200,
             json=canton_response,

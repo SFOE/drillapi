@@ -6,7 +6,6 @@ Verifies that:
 - The rate_limit_handler function raises the correct HTTPException
 """
 
-import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 from slowapi import Limiter

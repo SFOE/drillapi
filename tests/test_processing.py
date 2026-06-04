@@ -201,7 +201,9 @@ def test_process_ground_category_no_matching_features():
 
 def test_process_ground_category_empty_features():
     """Empty features list should return harmonized_value=4."""
-    result = process_ground_category([], [{"name": "l", "property_name": "p", "property_values": []}])
+    result = process_ground_category(
+        [], [{"name": "l", "property_name": "p", "property_values": []}]
+    )
     assert result.harmonized_value == 4
 
 
@@ -234,7 +236,11 @@ def test_process_ground_category_max_value_wins():
             "property_name": "category",
             "property_values": [
                 {"name": "OK", "desc": "OK", "target_harmonized_value": 1},
-                {"name": "Forbidden", "desc": "Forbidden", "target_harmonized_value": 3},
+                {
+                    "name": "Forbidden",
+                    "desc": "Forbidden",
+                    "target_harmonized_value": 3,
+                },
             ],
         }
     ]
