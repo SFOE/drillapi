@@ -1,5 +1,6 @@
 [![CI](https://github.com/SFOE/drillapi/actions/workflows/lint.yml/badge.svg)](https://github.com/SFOE/drillapi/actions/workflows/lint.yml)
 [![CI](https://github.com/SFOE/drillapi/actions/workflows/test.yml/badge.svg)](https://github.com/SFOE/drillapi/actions/workflows/test.yml)
+[![Security Scan](https://img.shields.io/github/actions/workflow/status/SFOE/drillapi/security-scan.yml?branch=main&logo=aqua&logoColor=white&label=trivy)](https://github.com/SFOE/drillapi/actions/workflows/security-scan.yml)
 
 # drillapi - geothermal drilling
 
