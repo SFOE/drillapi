@@ -2,7 +2,7 @@ name: Build-push-scan and Deploy
 
 on:
   pull_request:
-    types: [closed]
+    types: [opened, synchronize, reopened, closed]
     branches:
       - main
   release:
@@ -13,6 +13,21 @@ permissions:
   contents: read
 
 jobs:
+  # ----------------------------------------------------------
+  # Scan on PR (before merge) to catch vulnerabilities early
+  # ----------------------------------------------------------
+  build-and-scan-pr:
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == false
+    uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v9
+    with:
+      dockerfile: Dockerfile.lambda
+      build-context: .
+      ecr-repository: drillapi
+      image-tag: pr-${{ github.event.pull_request.number }}
+      aws-region: eu-central-1
+    secrets:
+      aws-role: ${{ secrets.SFOE_DRILLAPI_PIPELINE_ROLE_DEV }}
+
   build-scan-push-latest:
     if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
     uses: SFOE-prometheon/github-terraform-workflows/.github/workflows/ecr-build-scan-push.yml@v9
