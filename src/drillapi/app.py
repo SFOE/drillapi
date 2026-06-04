@@ -49,5 +49,7 @@ templates = Jinja2Templates(directory=str(settings.TEMPLATES_DIR))
 @app.get("/")
 async def root(request: Request):
     return templates.TemplateResponse(
-        "index.html", {"request": request, "docs_url": "/docs", "redoc_url": "/redoc"}
+        request,
+        "index.html",
+        {"docs_url": "/docs", "redoc_url": "/redoc"},
     )
