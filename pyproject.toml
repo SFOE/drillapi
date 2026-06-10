@@ -25,7 +25,7 @@ dev = [
   "requests",
   "respx",
   "pytest-asyncio",
-  "ruff>=0.15.14",
+  "ruff>=0.15.16",
 ]
 
 [tool.coverage.run]
