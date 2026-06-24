@@ -28,8 +28,13 @@ RUN --mount=from=uv,source=/uv,target=/bin/uv \
 
 FROM public.ecr.aws/lambda/python:3.14
 
-# Upgrade pip to fix CVE-2026-6357, CVE-2026-8643, CVE-2026-3219
-RUN pip install --upgrade pip
+# Patch OS-level packages when updates are available.
+# Currently resolves "Nothing to do" but will auto-fix openssl/libsolv CVEs
+# once AWS publishes patched RPMs to the AL2023 repo.
+RUN dnf upgrade -y --refresh && \
+    pip install --upgrade pip && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
 
 # Copy the runtime dependencies from the builder stage.
 COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
