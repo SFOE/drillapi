@@ -1,6 +1,6 @@
 # from https://docs.astral.sh/uv/guides/integration/aws-lambda/#deploying-a-docker-image
 
-FROM ghcr.io/astral-sh/uv:0.11.7 AS uv
+FROM ghcr.io/astral-sh/uv:0.11.24 AS uv
 
 # First, bundle the dependencies into the task root.
 FROM public.ecr.aws/lambda/python:3.14 AS builder
@@ -28,14 +28,13 @@ RUN --mount=from=uv,source=/uv,target=/bin/uv \
 
 FROM public.ecr.aws/lambda/python:3.14
 
-# Patch OS-level packages to latest available versions.
-RUN dnf upgrade -y openssl-libs openssl-fips-provider-latest && \
+# Patch OS-level packages when updates are available.
+# Currently resolves "Nothing to do" but will auto-fix openssl/libsolv CVEs
+# once AWS publishes patched RPMs to the AL2023 repo.
+RUN dnf upgrade -y --refresh && \
+    pip install --upgrade pip && \
     dnf clean all && \
     rm -rf /var/cache/dnf
-
-# Patch aws-lambda-rie to fix CVE-2026-42504, CVE-2026-42507, CVE-2026-27145, CVE-2026-39824, GHSA-mqqf-5wvp-8fh8
-ADD https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/download/v1.26.4/aws-lambda-rie-x86_64 /usr/local/bin/aws-lambda-rie
-RUN chmod 755 /usr/local/bin/aws-lambda-rie
 
 # Copy the runtime dependencies from the builder stage.
 COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}

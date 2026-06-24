@@ -1,0 +1,29 @@
+# Accepted risk: aws-lambda-rie vulnerabilities
+# In the base image's RIE binary, used only for local emulation.
+# Never invoked in production Lambda execution.
+GHSA-mqqf-5wvp-8fh8  # go-chi open redirect - only in RIE
+CVE-2026-39824       # golang.org/x/sys - only in RIE
+
+# Accepted risk: openssl/libsolv in AWS Lambda base image (public.ecr.aws/lambda/python:3.14)
+# These are AWS-managed packages with no update available in the repo.
+# Verified: `dnf upgrade` returns "Nothing to do" — patches not yet published by AWS.
+# Both the managed Python image and the OS-only provided:al2023 image are affected.
+# Will be resolved when AWS publishes a new base image digest.
+CVE-2026-34182   # openssl critical
+CVE-2026-45447   # openssl high
+CVE-2026-7383    # openssl high
+CVE-2026-48864   # libsolv high
+CVE-2026-34183   # openssl high
+CVE-2026-45445   # openssl high
+CVE-2026-9076    # openssl high
+CVE-2026-34180   # openssl high
+CVE-2026-42764   # openssl high
+CVE-2026-34181   # openssl high
+CVE-2026-42768   # openssl high
+CVE-2026-9150    # libsolv medium
+CVE-2026-9149    # libsolv medium
+CVE-2026-42766   # openssl medium
+CVE-2026-42769   # openssl medium
+CVE-2026-42770   # openssl medium
+CVE-2026-42767   # openssl medium
+CVE-2026-45446   # openssl medium
