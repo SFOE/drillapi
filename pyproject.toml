@@ -7,25 +7,25 @@ readme = "README.md"
 requires-python = ">=3.14"
 keywords = ["drillapi"]
 dependencies = [
-  "fastapi>=0.136.1",
+  "fastapi>=0.141.1",
   "httpx>=0.28.1",
   "jinja2>=3.1.6",
-  "mangum>=0.21.0",
-  "owslib>=0.35.0",
-  "pydantic-settings>=2.14.2",
-  "slowapi>=0.1.9",
-  "uvicorn>=0.47.0",
+  "mangum>=0.22.0",
+  "owslib>=0.36.0",
+  "pydantic-settings>=2.15.0",
+  "slowapi>=0.1.10",
+  "uvicorn>=0.52.4",
 ]
 
 [project.optional-dependencies]
 dev = [
   "pytest",
   "pytest-cov",
-  "pygments>=2.20.0",
+  "pygments>=2.21.0",
   "requests",
   "respx",
   "pytest-asyncio",
-  "ruff>=0.15.17",
+  "ruff>=0.16.4",
 ]
 
 [tool.coverage.run]
@@ -38,5 +38,5 @@ omit = [
 drillapi = "drillapi.__main__:main"
 
 [build-system]
-requires = ["setuptools>=82.0.1", "wheel"]
+requires = ["setuptools>=84.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
