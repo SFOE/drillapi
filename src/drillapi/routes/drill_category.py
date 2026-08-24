@@ -1,15 +1,18 @@
-from fastapi import APIRouter, Request, Query, Path
+import logging
+
+from fastapi import APIRouter, Path, Query, Request
+
 from drillapi.cantons_configuration import cantons
-from ..services import processing, security
-from ..services.error_handler import handle_errors
+
 from ..config import settings
 from ..models.models import (
-    SuitabilityFeature,
     GroundCategory,
     GroundSuitability,
     ResultDetail,
+    SuitabilityFeature,
 )
-import logging
+from ..services import processing, security
+from ..services.error_handler import handle_errors
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

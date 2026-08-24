@@ -12,16 +12,17 @@ Covers:
 """
 
 import json
+
+import httpx
 import pytest
 import respx
-import httpx
+
 from drillapi.services.processing import (
-    normalize_string,
     get_canton_from_coordinates,
+    normalize_string,
     parse_wms_getfeatureinfo,
     process_ground_category,
 )
-
 
 # --- normalize_string ---
 

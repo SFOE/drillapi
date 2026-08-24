@@ -5,8 +5,8 @@ Coordinates used:
 - FR (Fribourg, ESRI): 2582124, 1164966 — matches FR ground_control_point[0]
 """
 
-import respx
 import httpx
+import respx
 
 
 @respx.mock

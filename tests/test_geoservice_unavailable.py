@@ -6,8 +6,8 @@ harmonized_value=98 and the canton identifier, instead of raising HTTPException(
 Canton config is preserved so the frontend can access cantonal_energy_service_url.
 """
 
-import respx
 import httpx
+import respx
 
 
 def _mock_canton_identify(canton_code: str):

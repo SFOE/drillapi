@@ -1,10 +1,12 @@
-import httpx
 import json
+import logging
 import re
 import xml.etree.ElementTree as ET
+
+import httpx
 from fastapi import HTTPException
-import logging
 from owslib.etree import etree
+
 from ..models.models import GroundCategory
 
 logger = logging.getLogger(__name__)
@@ -21,7 +23,7 @@ def normalize_string(value: str) -> str:
     try:
         # Try decoding strings that were double-encoded (latin1→utf8)
         return value.encode("latin1").decode("utf-8")
-    except Exception:
+    except (UnicodeDecodeError, UnicodeEncodeError):
         return value
 
 
@@ -115,7 +117,7 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
 
                     data = resp.json()
                     features = data.get("features") or []
-                except Exception as e:
+                except (httpx.HTTPError, json.JSONDecodeError, KeyError) as e:
                     error_message = f"WMS request failed: {e}"
                     logger.error("%s — URL: %s", error_message, full_url or esri_url)
                     return {
@@ -162,7 +164,7 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                 resp = await client.get(query_url, params=params_wms)
                 full_url = str(resp.request.url)
                 resp.raise_for_status()
-            except Exception as e:
+            except (httpx.HTTPError, httpx.StreamError) as e:
                 error_message = f"WMS request failed: {e}"
                 logger.error("%s — URL: %s", error_message, full_url or query_url)
                 return {
@@ -186,7 +188,7 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
         except HTTPException:
             # Re-raise genuine internal errors (e.g., invalid JSON/XML from parse_wms_getfeatureinfo)
             raise
-        except Exception as e:
+        except (ValueError, TypeError, KeyError) as e:
             error_message = f"Failed to parse WMS or ESRI REST response: {e}"
             logger.error("%s — URL: %s", error_message, full_url)
             return {
@@ -210,7 +212,7 @@ def parse_wms_getfeatureinfo(content: bytes, info_format: str, config: dict):
     if "json" in info_format or "arcgis" in info_format:
         try:
             data = json.loads(text)
-        except Exception as e:
+        except (json.JSONDecodeError, ValueError) as e:
             raise HTTPException(500, f"Invalid JSON: {e}")
 
         features = []
@@ -237,10 +239,10 @@ def parse_wms_getfeatureinfo(content: bytes, info_format: str, config: dict):
         # GML / XML PARSING  (OWSLib-compatible)
         try:
             root = etree.fromstring(text.encode("utf-8"))
-        except Exception:
+        except (etree.XMLSyntaxError, ValueError):
             try:
                 root = ET.fromstring(text)
-            except Exception as e:
+            except ET.ParseError as e:
                 raise HTTPException(500, f"Invalid XML/GML: {e}")
 
         features = []

@@ -1,7 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
-from drillapi.config import settings, Settings
+
 from drillapi.app import app
+from drillapi.config import Settings, settings
 
 
 @pytest.fixture(autouse=True, scope="session")

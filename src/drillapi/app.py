@@ -1,10 +1,12 @@
-from fastapi import FastAPI, Request
-from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
-from .routes import drill_category, cantons, checker
-from .services.security import limiter, rate_limit_handler, RateLimitExceeded
-from .config import settings
 import logging
+
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.templating import Jinja2Templates
+
+from .config import settings
+from .routes import cantons, checker, drill_category
+from .services.security import RateLimitExceeded, limiter, rate_limit_handler
 
 LOG_LEVEL = logging.DEBUG if settings.ENVIRONMENT.upper() == "DEV" else logging.INFO
 

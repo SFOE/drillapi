@@ -5,10 +5,11 @@ Covers:
 - Coordinates in an inactive canton → harmonized_value=5
 """
 
+import httpx
 import pytest
 import respx
-import httpx
 from fastapi.testclient import TestClient
+
 from drillapi.app import app
 
 
