@@ -1,4 +1,3 @@
-
 from pydantic import BaseModel, HttpUrl, field_validator
 
 from drillapi.cantons_configuration.cantons import CANTONS

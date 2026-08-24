@@ -23,7 +23,7 @@ def normalize_string(value: str) -> str:
     try:
         # Try decoding strings that were double-encoded (latin1→utf8)
         return value.encode("latin1").decode("utf-8")
-    except (UnicodeDecodeError, UnicodeEncodeError):
+    except UnicodeDecodeError, UnicodeEncodeError:
         return value
 
 
@@ -239,7 +239,7 @@ def parse_wms_getfeatureinfo(content: bytes, info_format: str, config: dict):
         # GML / XML PARSING  (OWSLib-compatible)
         try:
             root = etree.fromstring(text.encode("utf-8"))
-        except (etree.XMLSyntaxError, ValueError):
+        except etree.XMLSyntaxError, ValueError:
             try:
                 root = ET.fromstring(text)
             except ET.ParseError as e:
