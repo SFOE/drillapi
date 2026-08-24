@@ -7,10 +7,11 @@ Covers:
 - Checker when get_drill_category raises an exception
 """
 
+import httpx
 import pytest
 import respx
-import httpx
 from fastapi.testclient import TestClient
+
 from drillapi.app import app
 
 

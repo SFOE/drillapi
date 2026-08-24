@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Request, Path, HTTPException
+from fastapi import APIRouter, HTTPException, Path, Request
+
 from drillapi.cantons_configuration import cantons
-from ..services.security import limiter
+
 from ..config import settings
+from ..services.security import limiter
 
 router = APIRouter()
 

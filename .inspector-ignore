@@ -1,29 +1,33 @@
-# Accepted risk: aws-lambda-rie vulnerabilities
-# In the base image's RIE binary, used only for local emulation.
-# Never invoked in production Lambda execution.
-GHSA-mqqf-5wvp-8fh8  # go-chi open redirect - only in RIE
-CVE-2026-39824       # golang.org/x/sys - only in RIE
+# Accepted risk: vulnerabilities in the RIE binary (/usr/local/bin/aws-lambda-rie)
+# embedded in public.ecr.aws/lambda/python:3.14.
+#
+# The Runtime Interface Emulator (RIE) is an AWS-managed Go binary used ONLY for
+# local container testing (docker run). In production, AWS Lambda replaces it
+# entirely with their internal runtime supervisor — the RIE binary is never loaded
+# or executed. These vulnerabilities therefore have zero production attack surface.
+#
+# Additionally, the specific CVEs are not exploitable in our context:
+#
+# - The go-chi IP spoofing issues (GHSA-rjr7, GHSA-9g5q, GHSA-3fxj) relate to
+#   the RealIP middleware trusting X-Forwarded-For headers. The RIE does not expose
+#   any public HTTP endpoint — it only listens on localhost:8080 during local
+#   development. There is no untrusted network traffic that could inject spoofed
+#   headers. Even if exploited, the RIE has no IP-based access control or rate
+#   limiting that could be bypassed.
+#
+# - CVE-2026-39824 (golang.org/x/sys integer overflow in NewNTUnicodeString) is a
+#   Windows-only vulnerability affecting NTUnicodeString construction. The Lambda
+#   runtime environment is Linux-based; this code path is never compiled into or
+#   executed by the Linux RIE binary. CVSS score is 3.3 (Low).
+#
+# We cannot patch these ourselves; they require AWS to rebuild the RIE with
+# updated Go dependencies (go-chi/chi v5.3.0+ and golang.org/x/sys v0.44.0+).
+# Tracked upstream: https://github.com/aws/aws-lambda-runtime-interface-emulator/issues/155
 
-# Accepted risk: openssl/libsolv in AWS Lambda base image (public.ecr.aws/lambda/python:3.14)
-# These are AWS-managed packages with no update available in the repo.
-# Verified: `dnf upgrade` returns "Nothing to do" — patches not yet published by AWS.
-# Both the managed Python image and the OS-only provided:al2023 image are affected.
-# Will be resolved when AWS publishes a new base image digest.
-CVE-2026-34182   # openssl critical
-CVE-2026-45447   # openssl high
-CVE-2026-7383    # openssl high
-CVE-2026-48864   # libsolv high
-CVE-2026-34183   # openssl high
-CVE-2026-45445   # openssl high
-CVE-2026-9076    # openssl high
-CVE-2026-34180   # openssl high
-CVE-2026-42764   # openssl high
-CVE-2026-34181   # openssl high
-CVE-2026-42768   # openssl high
-CVE-2026-9150    # libsolv medium
-CVE-2026-9149    # libsolv medium
-CVE-2026-42766   # openssl medium
-CVE-2026-42769   # openssl medium
-CVE-2026-42770   # openssl medium
-CVE-2026-42767   # openssl medium
-CVE-2026-45446   # openssl medium
+# go-chi/chi v5.2.4 → v5.3.0 required
+GHSA-rjr7-jggh-pgcp  # IP spoofing via X-Forwarded-For — RIE only, localhost, no IP-based ACL
+GHSA-9g5q-2w5x-hmxf  # IP spoofing via X-Forwarded-For — RIE only, localhost, no IP-based ACL
+GHSA-3fxj-6jh8-hvhx  # IP spoofing in middleware.RealIP — RIE only, localhost, no IP-based ACL
+
+# golang.org/x/sys v0.21.0 → v0.44.0 required
+CVE-2026-39824       # Windows-only integer overflow — Linux runtime, code path never executed

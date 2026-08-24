@@ -1,6 +1,7 @@
-from pydantic import BaseModel
-from typing import Optional, List, Literal
 from enum import IntEnum
+from typing import Literal
+
+from pydantic import BaseModel
 
 
 class LayerResult(BaseModel):
@@ -21,22 +22,22 @@ class GroundSuitability(IntEnum):
 
 
 class GroundCategory(BaseModel):
-    layer_results: List[LayerResult] = []
+    layer_results: list[LayerResult] = []
     harmonized_value: GroundSuitability = GroundSuitability.UNKNOWN
     source_values: str = ""
 
 
 class ResultDetail(BaseModel):
     message: str = ""
-    full_url: Optional[str] = ""
-    detail: Optional[str] = ""
+    full_url: str | None = ""
+    detail: str | None = ""
 
 
 class SuitabilityFeature(BaseModel):
     coord_x: float
     coord_y: float
     canton: str = None
-    canton_config: Optional[dict] = None
+    canton_config: dict | None = None
     ground_category: GroundCategory
     result_detail: ResultDetail
 

@@ -9,8 +9,9 @@ Covers:
 import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
-from drillapi.services.error_handler import handle_errors
+
 from drillapi.config import settings
+from drillapi.services.error_handler import handle_errors
 
 
 @pytest.fixture

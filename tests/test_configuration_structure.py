@@ -1,5 +1,5 @@
-from typing import List, Optional, Union
 from pydantic import BaseModel, HttpUrl, field_validator
+
 from drillapi.cantons_configuration.cantons import CANTONS
 
 
@@ -11,22 +11,22 @@ class PropertyValue(BaseModel):
 class Layer(BaseModel):
     name: str
     property_name: str
-    property_values: Optional[List[PropertyValue]] = None
-    target_harmonized_value: Optional[int] = None
+    property_values: list[PropertyValue] | None = None
+    target_harmonized_value: int | None = None
 
 
 class Cantonconfig(BaseModel):
     active: bool
     name: str
-    ground_control_point: List[List[Union[int, float, str]]]
+    ground_control_point: list[list[int | float | str]]
     wms_url: HttpUrl
     query_url: HttpUrl
-    thematic_geoportal_url: Optional[HttpUrl]
-    cantonal_energy_service_url: Optional[HttpUrl]
+    thematic_geoportal_url: HttpUrl | None
+    cantonal_energy_service_url: HttpUrl | None
     legend_url: str
     info_format: str
-    style: Optional[str]
-    layers: List[Layer]
+    style: str | None
+    layers: list[Layer]
 
     @field_validator("layers")
     @classmethod
@@ -54,7 +54,7 @@ def test_cantons_configuration_integrity():
     Ensure all cantons configuration entries respect the Region structure
     and no structural damage has been caused.
     """
-    for canton_name, canton_data in CANTONS["cantons_configurations"].items():
+    for canton_data in CANTONS["cantons_configurations"].values():
         # Pydantic validation
         Cantonconfig(**canton_data)
 

@@ -1,13 +1,16 @@
+import logging
+
+import httpx
 from fastapi import APIRouter, Request
+from fastapi.exceptions import HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-import logging
-from ..services import security
-from ..routes.cantons import get_cantons_data
-from ..config import settings
 
-from ..routes.drill_category import get_drill_category
+from ..config import settings
 from ..models.models import CheckerResult
+from ..routes.cantons import get_cantons_data
+from ..routes.drill_category import get_drill_category
+from ..services import security
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +102,7 @@ async def checker_page(request: Request, canton: str | None = None):
                     result.control_status = "error"
                     result.control_status_message = f"❌ Harmonized value mismatch at coordinates ({x}, {y}): expected '{control_harmonized_value}', got '{calculated}'"
 
-            except Exception as e:
+            except (httpx.HTTPError, HTTPException, RuntimeError, ValueError) as e:
                 logger.error(
                     f"CHECKER: error for canton {canton} at coordinates {x}/{y}. Error message: {e}"
                 )
