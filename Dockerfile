@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:0.12.3-python3.14-alpine AS base
+FROM ghcr.io/astral-sh/uv:0.12.23-python3.14-alpine AS base
 
 WORKDIR /app
 ENV PYTHONPATH=/app
