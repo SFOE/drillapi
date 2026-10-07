@@ -1,5 +1,5 @@
-[![CI](https://github.com/SFOE/drillapi/actions/workflows/lint.yml/badge.svg)](https://github.com/SFOE/drillapi/actions/workflows/lint.yml)
-[![CI](https://github.com/SFOE/drillapi/actions/workflows/test.yml/badge.svg)](https://github.com/SFOE/drillapi/actions/workflows/test.yml)
+[![CI](https://github.com/SFOE/drillapi/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/SFOE/drillapi/actions/workflows/lint.yml)
+[![CI](https://github.com/SFOE/drillapi/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/SFOE/drillapi/actions/workflows/test.yml)
 
 # drillapi - geothermal drilling
 
