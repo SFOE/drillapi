@@ -7,14 +7,14 @@ readme = "README.md"
 requires-python = ">=3.14"
 keywords = ["drillapi"]
 dependencies = [
-  "fastapi>=0.141.1",
+  "fastapi>=0.142.2",
   "httpx>=0.28.1",
   "jinja2>=3.1.6",
   "mangum>=0.22.0",
   "owslib>=0.36.0",
   "pydantic-settings>=2.15.0",
   "slowapi>=0.1.10",
-  "uvicorn>=0.52.4",
+  "uvicorn>=0.54.0",
 ]
 
 [project.optional-dependencies]
@@ -25,7 +25,7 @@ dev = [
   "requests",
   "respx",
   "pytest-asyncio",
-  "ruff>=0.16.4",
+  "ruff>=0.16.10",
 ]
 
 [tool.coverage.run]
