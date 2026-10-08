@@ -1,0 +1,57 @@
+active: true
+name: OW
+ground_control_point:
+- - 2664351
+  - 1193538
+  - 1
+  - zulaessig
+- - 2660898
+  - 1191688
+  - 1
+  - Auflage_GewaesserschutzbereichAu
+- - 2660281
+  - 1190191
+  - 2
+  - Auflage_NutzungsgebietGrundwasser
+- - 2661431
+  - 1192803
+  - 2
+  - Auflage_bedingtzulaessig
+- - 2661534
+  - 1193397
+  - 3
+  - nichtzulaessig
+- - 2657375.6
+  - 1180366.4
+  - 3
+  - Gebiete_mit_potentieller_Verkarstung
+cantonal_energy_service_url: https://www.ow.ch/dienstleistungen/2055
+wms_url: https://www.gis-daten.ch/wms/bfe_kann_ich_bohren/service
+query_url: https://www.gis-daten.ch/wms/bfe_kann_ich_bohren/service
+thematic_geoportal_url: https://www.gis-daten.ch/map/ow_waermenutzung
+legend_url: https://www.gis-daten.ch/wms/bfe_kann_ich_bohren/service?service=WMS&request=GetLegendGraphic&version=1.3.0&layer=ch.ow.ews_zulaessigkeit&format=image/png
+info_format: application/json
+bbox_delta: 10
+style: ''
+layers:
+- name: ch.ow.ews_zulaessigkeit
+  property_name: Zulaessigkeit
+  property_values:
+  - name: zulaessig
+    target_harmonized_value: 1
+    desc: Wärmenutzung zulässig (Bewilligungspflicht)
+  - name: Auflage_GewaesserschutzbereichAu
+    target_harmonized_value: 1
+    desc: Wärmenutzung zulässig (Bewilligungspflicht)
+  - name: Auflage_NutzungsgebietGrundwasser
+    target_harmonized_value: 2
+    desc: Wärmenutzung zulässig (Bewilligungspflicht); Geologische Begleitung während der Bohrung erforderlich
+  - name: Auflage_bedingtzulaessig
+    target_harmonized_value: 2
+    desc: Wärmenutzung bedingt zulässig (Bewilligungspflicht); vorgängiges geologisches Gutachten erforderlich als Grundlage zur Prüfung der Bewilligungsfähigkeit
+  - name: nichtzulaessig
+    target_harmonized_value: 3
+    desc: Wärmenutzung nicht zulässig
+  - name: Gebiete_mit_potentieller_Verkarstung
+    target_harmonized_value: 3
+    desc: Wärmenutzung nicht zulässig

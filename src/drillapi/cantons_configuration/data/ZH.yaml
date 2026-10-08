@@ -1,0 +1,84 @@
+active: true
+name: ZH
+ground_control_point:
+- - 2677790
+  - 1260185
+  - 3
+  - Auflagen & waermenutzung-zone-d
+- - 2688561
+  - 1274977
+  - 3
+  - Zone A (Schutzzonen und Schutzareale)
+- - 2681563
+  - 1248410
+  - 2
+  - Zone B (Schotter-Grundwasservorkommen, geeignet für Trinkwassergewinnung)
+- - 2680649
+  - 1246765
+  - 2
+  - Zone C (Schotter-Grundwasservorkommen, ungeeignet für Trinkwassergewinnung)
+- - 2692350
+  - 1275334
+  - 2
+  - Zone D (Schotter-Grundwasservorkommen, ungeeignet für Trinkwassergewinnung)
+- - 2693733
+  - 1238583
+  - 2
+  - Zone E (Quellwassergebiete, geeignet für Trinkwassergewinnung)
+cantonal_energy_service_url: https://www.zh.ch/de/planen-bauen/bauvorschriften/energienutzung-untergrund-wasser.html
+wms_url: https://wms.zh.ch/AwelGSWaermewwwZHWMS
+query_url: https://wms.zh.ch/AwelGSWaermewwwZHWMS
+thematic_geoportal_url: https://maps.zh.ch/?topic=AwelGSWaermewwwZH&x=2685104.6444391827&y=1252283.9396742217&scale=70517.93063503089
+legend_url: ''
+info_format: application/vnd.ogc.gml
+bbox_delta: 30
+style: ''
+layers:
+- name: erdwaermesonden-auflagen
+  property_name: name
+  property_values:
+  - name: Auflagen für Erdwärmesonden
+    target_harmonized_value: 3
+    desc: Verbot
+- name: waermenutzung-zone-a
+  property_name: name
+  property_values:
+  - name: Zone A (Schutzzonen und Schutzareale)
+    target_harmonized_value: 3
+    desc: Zone A (Schutzzonen und Schutzareale)
+  target_harmonized_value: 2
+- name: waermenutzung-zone-b
+  property_name: name
+  property_values:
+  - name: Zone B (Schotter-Grundwasservorkommen, geeignet für Trinkwassergewinnung)
+    target_harmonized_value: 2
+    desc: Zone B (Schotter-Grundwasservorkommen, geeignet für Trinkwassergewinnung)
+  target_harmonized_value: 2
+- name: waermenutzung-zone-c
+  property_name: name
+  property_values:
+  - name: Zone C (Schotter-Grundwasservorkommen, ungeeignet für Trinkwassergewinnung)
+    target_harmonized_value: 2
+    desc: Zone C (Schotter-Grundwasservorkommen, ungeeignet für Trinkwassergewinnung)
+  target_harmonized_value: 2
+- name: waermenutzung-zone-d
+  property_name: name
+  property_values:
+  - name: Zone D (Schotter-Grundwasservorkommen, ungeeignet für Trinkwassergewinnung)
+    target_harmonized_value: 2
+    desc: Zone D (Schotter-Grundwasservorkommen, ungeeignet für Trinkwassergewinnung)
+  target_harmonized_value: 2
+- name: waermenutzung-zone-e
+  property_name: name
+  property_values:
+  - name: Zone E (Quellwassergebiete, geeignet für Trinkwassergewinnung)
+    target_harmonized_value: 2
+    desc: Zone E (Quellwassergebiete, geeignet für Trinkwassergewinnung)
+  target_harmonized_value: 2
+- name: waermenutzung-zone-f
+  property_name: name
+  property_values:
+  - name: Zone F (Ausserhalb nutzbarer Grundwasservorkommen)
+    target_harmonized_value: 2
+    desc: Zone F (Ausserhalb nutzbarer Grundwasservorkommen)
+  target_harmonized_value: 2

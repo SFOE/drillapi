@@ -1,0 +1,36 @@
+active: true
+name: SG
+ground_control_point:
+- - 2733447
+  - 1241435
+  - 2
+  - '1'
+- - 2735185
+  - 1244058
+  - 1
+  - '3'
+- - 2742740
+  - 1233995
+  - 3
+  - '2'
+cantonal_energy_service_url: https://www.sg.ch/umwelt-natur/wasser/grundwasser---quellen-/geothermie0/erdwaermesonden.html
+wms_url: https://services.geo.sg.ch/wss/service/SG00025_WMS/guest
+query_url: https://services.geo.sg.ch/wss/service/SG00025_WMS/guest
+thematic_geoportal_url: https://www.geoportal.ch/ktsg/map/29?y=2743944.00&x=1231900.00&scale=300000&rotation=0
+legend_url: https://services.geo.sg.ch/wss/service/SG00025_WMS/guest?service=WMS&request=GetLegendGraphic&version=1.3.0&layer=Zulaessigkeitsbereich&format=image/png
+info_format: application/geo+json
+bbox_delta: 10
+style: ''
+layers:
+- name: Zulaessigkeitsbereich
+  property_name: OBJECTID
+  property_values:
+  - name: '2'
+    target_harmonized_value: 3
+    desc: nicht zulässig (siehe Erläuterungen)
+  - name: '3'
+    target_harmonized_value: 1
+    desc: zulässig (siehe Erläuterungen)
+  - name: '1'
+    target_harmonized_value: 2
+    desc: bedingt zulässig (siehe Erläuterungen)

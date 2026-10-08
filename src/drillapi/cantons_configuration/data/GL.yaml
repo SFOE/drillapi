@@ -1,0 +1,29 @@
+active: true
+name: GL
+ground_control_point:
+- - 2724237
+  - 1206147
+  - 3
+  - Erdsondenausschlussgebiet
+- - 2725831
+  - 1215961
+  - 4
+  - undefined
+cantonal_energy_service_url: https://www.gl.ch/verwaltung/bau-und-umwelt/umwelt-wald-und-energie/umweltschutz-und-energie/gewaesserschutz.html/752
+wms_url: https://wms.geo.gl.ch/
+query_url: https://wms.geo.gl.ch/
+thematic_geoportal_url: https://map.geo.gl.ch/?t=default&l=ch.gl.utilities.erdsondenausschlussbereich%2Cch.gl.basemaps.kantonsmaske%5B40%5D&bl=pixelkarte&c=2726296%2C1208537&s=40000
+legend_url: https://map.geo.gl.ch/api/v1/legend/mainmap?VERSION=1.3.0&SERVICE=WMS&REQUEST=GetLegendGraphic&FORMAT=image%2Fpng&CRS=EPSG%3A2056&SRS=EPSG%3A2056&SLD_VERSION=1.1.0&WIDTH=200&HEIGHT=200&LAYER=ch.gl.utilities.erdsondenausschlussbereich&FILTER=
+info_format: application/vnd.ogc.gml
+bbox_delta: 10
+style: ''
+layers:
+- name: ch.gl.utilities.erdsondenausschlussbereich
+  property_name: art
+  property_values:
+  - name: undefined
+    target_harmonized_value: 2
+    desc: undefined
+  - name: Erdsondenausschlussgebiet
+    target_harmonized_value: 3
+    desc: Erdsondenausschlussgebiet

@@ -1,0 +1,54 @@
+name: Validate canton configuration
+
+# Guard rail: the cantonal geoservice configuration lives in per-canton YAML
+# files (src/drillapi/cantons_configuration/data/*.yaml). A malformed config
+# would break the running app, so this workflow validates every file against
+# the Pydantic schema on every push and PR. A failure here blocks the merge /
+# release before any deploy.
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  validate-config:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.14]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache uv
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      # Fast fail-fast load: validates every YAML file against the schema and
+      # exits non-zero with an aggregated error listing every problem found.
+      - name: Validate cantonal YAML config loads
+        run: |
+          uv run python -c "from drillapi.cantons_configuration.loader import load_cantons; c = load_cantons(); print(f'OK: {len(c)} canton configuration(s) validated')"
+
+      # Full structural test suite for the configuration (schema invariants,
+      # ESRI id presence, name/filename agreement, fail-fast behaviour).
+      - name: Run configuration test suite
+        run: uv run python -m pytest tests/test_configuration_structure.py -v

@@ -1,0 +1,32 @@
+active: false
+name: NE
+ground_control_point:
+- - 2555501
+  - 1206134
+  - 1
+  - OK
+- - 2556890
+  - 1206292
+  - 2
+  - RESTRICTION
+cantonal_energy_service_url: https://www.ne.ch/autorites/DDTE/SENE/energie/Pages/Loi-energie-et-remplacement-chauffage.aspx
+wms_url: https://sitn.ne.ch/mapserv_proxy?ogcserver=private-png
+query_url: https://sitn.ne.ch/mapserv_proxy?ogcserver=private-png
+thematic_geoportal_url: https://sitn.ne.ch/theme/environnement?lang=fr&map_x=2550050&map_y=1204950&map_zoom=1&baselayer_ref=blank&tree_group_layers_gp_photos_360=&theme=environnement&tree_groups=gp_mesures_meteo%2Cgp_mo_cadastre_partiel%2Cgp_antennes%2Cgp_environnement%2Cgp_base_layers&tree_enable_eg36_geotherm_carte_finale=true&tree_enable_eg37_geotherm_zones_exclues=true&tree_enable_eg38_geotherm_canepo_statut=true
+legend_url: https://sitn.ne.ch/mapserv_proxy?ogcserver=private-png&cache_version=ffa494693bec4c5bb5ba67f8641a590e&FORMAT=image%2Fpng&TRANSPARENT=true&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&LAYER=eg36_geotherm_carte_finale&SCALE=357142.1428571427
+info_format: application/vnd.ogc.gml
+bbox_delta: 10
+style: ''
+layers:
+- name: TEST
+  property_name: profondeur
+  property_values:
+  - name: TEST
+    target_harmonized_value: 1
+    desc: TEST
+  - name: TEST
+    target_harmonized_value: 2
+    desc: TEST
+  - name: TEST
+    target_harmonized_value: 3
+    desc: TEST

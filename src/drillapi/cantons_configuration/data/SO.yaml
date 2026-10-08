@@ -1,0 +1,32 @@
+active: false
+name: SO
+ground_control_point:
+- - 2555501
+  - 1206134
+  - 1
+  - OK
+- - 2556890
+  - 1206292
+  - 2
+  - RESTRICTION
+cantonal_energy_service_url: https://energie.so.ch/
+wms_url: https://so.ch/
+query_url: https://so.ch/
+thematic_geoportal_url: https://geo.so.ch/map/
+legend_url: https://so.ch/
+info_format: application/vnd.ogc.gml
+bbox_delta: 10
+style: ''
+layers:
+- name: test
+  property_name: profondeur
+  property_values:
+  - name: TEST
+    target_harmonized_value: 1
+    desc: TEST
+  - name: TEST
+    target_harmonized_value: 2
+    desc: TEST
+  - name: TEST
+    target_harmonized_value: 3
+    desc: TEST
