@@ -1,0 +1,32 @@
+active: false
+name: BS
+ground_control_point:
+- - 2555501
+  - 1206134
+  - 1
+  - OK
+- - 2556890
+  - 1206292
+  - 2
+  - RESTRICTION
+cantonal_energy_service_url: https://www.aue.bs.ch/wasser/grundwasser/bohrungen-in-das-grundwasser.html
+wms_url: https://bs.ch/
+query_url: https://bs.ch/
+thematic_geoportal_url: https://map.geo.bs.ch
+legend_url: https://map.geo.bs.ch
+info_format: application/vnd.ogc.gml
+bbox_delta: 10
+style: ''
+layers:
+- name: test
+  property_name: profondeur
+  property_values:
+  - name: TEST
+    target_harmonized_value: 1
+    desc: TEST
+  - name: TEST
+    target_harmonized_value: 2
+    desc: TEST
+  - name: TEST
+    target_harmonized_value: 3
+    desc: TEST

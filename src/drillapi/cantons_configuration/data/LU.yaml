@@ -1,0 +1,62 @@
+active: true
+name: LU
+ground_control_point:
+- - 2665393
+  - 1217714
+  - 1
+  - ews_zulaessig
+- - 2652462
+  - 1196901
+  - 2
+  - ews_zulaessig & ews_zulaessig_auflagen
+- - 2651972
+  - 1200000
+  - 3
+  - ews_nicht_zulaessig & ews_zulaessig_auflagen
+- - 2645371
+  - 1200735
+  - 2
+  - ews_vorabklaeren
+- - 2645598
+  - 1202446
+  - 3
+  - ews_nicht_zulaessig
+cantonal_energy_service_url: https://uwe.lu.ch/themen/energie/erneuerbare_energien/erdwaerme
+wms_url: https://public.geo.lu.ch/ogd/services/managed/EWNUTZXX_COL_V3_MP/MapServer/WMSServer
+query_url: https://public.geo.lu.ch/ogd/services/managed/EWNUTZXX_COL_V3_MP/MapServer/WMSServer
+thematic_geoportal_url: https://map.geo.lu.ch/gebaeudeenergie/erdwaerme/
+legend_url: https://github.com/SFOE/SuitabilityGeothermalDrillingSwitzerland/raw/main/images/legend_lu.png
+info_format: application/geo+json
+bbox_delta: 10
+style: ''
+layers:
+- name: '3'
+  property_name: Erdwärmenutzung zulässig
+  target_harmonized_value: 1
+  desc: Erdwärmenutzung zulässig
+- name: '1'
+  property_name: Erdwärmenutzung zulässig mit Auflagen
+  target_harmonized_value: 2
+  desc: Erdwärmenutzung zulässig mit Auflagen
+- name: '2'
+  property_name: Erdwärmenutzung zulässig mit Auflagen
+  target_harmonized_value: 2
+  desc: Erdwärmenutzung zulässig mit Auflagen
+- name: '0'
+  property_name: Erdwärmenutzung nicht zulässig
+  target_harmonized_value: 3
+  desc: Erdwärmenutzung nicht zulässig
+harmonyMap:
+- sum: 1
+  value: 1
+- sum: 2
+  value: 2
+- sum: 11
+  value: 2
+- sum: 12
+  value: 2
+- sum: 13
+  value: 3
+- sum: 3
+  value: 3
+loopLayers: true

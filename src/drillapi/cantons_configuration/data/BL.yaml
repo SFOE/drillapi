@@ -1,0 +1,51 @@
+active: true
+name: BL
+ground_control_point:
+- - 2622256
+  - 1258565
+  - 1
+  - BC
+- - 2623503
+  - 1259120
+  - 2
+  - B
+- - 2620984
+  - 1259551
+  - 4
+  - nB
+- - 2620314.1
+  - 1263004.5
+  - 1
+  - C
+- - 2623369
+  - 1261302
+  - 3
+  - undefined
+  - Fall A
+cantonal_energy_service_url: https://www.baselland.ch/politik-und-behorden/direktionen/bau-und-umweltschutzdirektion/umweltschutz-energie
+wms_url: https://geowms.bl.ch/
+query_url: https://geowms.bl.ch/
+thematic_geoportal_url: https://geoview.bl.ch/?map_x=2632500&map_y=1245475&map_zoom=2&tree_group_layers_Oberfl%C3%A4chennahe%20Erdw%C3%A4rme=erdwaerme_uebersicht_group&tree_groups=Oberfl%C3%A4chennahe%20Erdw%C3%A4rme
+legend_url: https://geowms.bl.ch/?service=WMS&request=GetLegendGraphic&version=1.3.0&layer=erdwaerme_uebersicht_ohne_a&format=image/png&sld_version=1.1.0
+info_format: application/vnd.ogc.gml
+bbox_delta: 10
+style: ''
+layers:
+- name: erdwaerme_uebersicht_ohne_a
+  property_name: ov_kategor
+  property_values:
+  - name: C
+    target_harmonized_value: 1
+    desc: Fall C - Wärmenutzung durch Erdwärmesonden bis max. zulässige Bohrtiefe mit Standardauflagen möglich
+  - name: B
+    target_harmonized_value: 2
+    desc: Fall B - Wärmenutzung durch Erdwärmesonden mit speziellen Auflagen möglich
+  - name: BC
+    target_harmonized_value: 1
+    desc: Fall BC - Wärmenutzung durch Erdwärmesonden mit Standardauflagen für Schichten des Fall C, darunter bis max. zulässige Bohrtiefe Wärmenutzung mit spez. Auflagen
+  - name: nB
+    target_harmonized_value: 4
+    desc: Fall nB - Gebiet wurde noch nicht bearbeitet
+  - name: undefined
+    target_harmonized_value: 3
+    desc: Fall A - Wärmenutzung durch Erdwärmesonden unzulässig

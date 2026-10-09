@@ -1,0 +1,40 @@
+active: true
+name: TG
+ground_control_point:
+- - 2747716.6
+  - 1262056.4
+  - 3
+  - EWS grundsätzlich unzulässig
+- - 2747720.5
+  - 1262436.9
+  - 1
+  - EWS grundsätzlich zulässig mit Standardauflagen
+- - 2709370.0
+  - 1268975.0
+  - 2
+  - EWS grundsätzlich zulässig mit zusätzlichen Auflagen
+- - 2712450.0
+  - 1269125.0
+  - 1
+  - EWS grundsätzlich zulässig
+cantonal_energy_service_url: https://energie.tg.ch/erneuerbare-energien/umweltwaerme-waermepumpen.html/3437
+wms_url: https://ows.geo.tg.ch/geofy_access_proxy/erdwaerme
+query_url: https://ows.geo.tg.ch/geofy_access_proxy/erdwaerme
+thematic_geoportal_url: https://map.geo.tg.ch/apps/mf-geoadmin3/?lang=de&topic=geologieboden&E=2718775.00&N=1270425.00&zoom=1&layers_opacity=1,1,0.9&layers=erdwaerme_eignung,erdwaerme_erdwaermesondenbohrungen,grundwasserkarte-fassung
+legend_url: https://map.geo.tg.ch/services/geofy_chsdi3/static/images/legends/erdwaerme_eignung_de.png
+info_format: application/vnd.ogc.gml
+bbox_delta: 10
+style: ''
+layers:
+- name: Eignungszonen
+  property_name: eignungszone
+  property_values:
+  - name: '1'
+    target_harmonized_value: 1
+    desc: EWS grundsätzlich zulässig mit Standardauflagen
+  - name: '2'
+    target_harmonized_value: 2
+    desc: EWS grundsätzlich zulässig mit Standardauflagen
+  - name: '3'
+    target_harmonized_value: 3
+    desc: EWS grundsätzlich unzulässig, Grundwasserschutzzone

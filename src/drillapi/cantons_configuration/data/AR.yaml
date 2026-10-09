@@ -1,0 +1,47 @@
+active: true
+name: AR
+ground_control_point:
+- - 2755488
+  - 1249846
+  - 1
+  - zulässig (siehe Erläuterungen)
+- - 2756050
+  - 1251316
+  - 2
+  - bedingt zulässig (siehe Erläuterungen)
+- - 2755962
+  - 1251037
+  - 3
+  - nicht zulässig (siehe Erläuterungen)
+cantonal_energy_service_url: https://www.ar.ch/verwaltung/departement-bau-und-volkswirtschaft/amt-fuer-umwelt/energie/bauten-und-anlagen/waermepumpen/
+wms_url: https://www.geoportal.ch/services/wms/ktar
+query_url: https://www.geoportal.ch/services/wms/ktar
+thematic_geoportal_url: https://www.geoportal.ch/ktar/map/29?y=2728824.00&x=1243710.00&scale=100000&rotation=0
+legend_url: ''
+info_format: application/json
+bbox_delta: 10
+style: ''
+layers:
+- name: ch.geoportal.ver_entsorgung_kommunikation.29.0.erdwaermesonden_kt
+  property_name: Info
+  property_values:
+  - name: zulässig (siehe Erläuterungen)
+    target_harmonized_value: 1
+    desc: zulässig (siehe Erläuterungen)
+  - name: zulässig
+    target_harmonized_value: 1
+  - name: bedingt zulässig (siehe Erläuterungen)
+    target_harmonized_value: 2
+    desc: bedingt zulässig (siehe Erläuterungen)
+  - name: 'bedingt zulässig aufgrund: Hydrogeologie'
+    target_harmonized_value: 2
+    desc: 'bedingt zulässig aufgrund: Hydrogeologie'
+  - name: 'bedingt zulässig aufgrund: Hydrogeologie, problematische Bohrung'
+    target_harmonized_value: 2
+    desc: 'bedingt zulässig aufgrund: Hydrogeologie, problematische Bohrung'
+  - name: nicht zulässig (siehe Erläuterungen)
+    target_harmonized_value: 3
+    desc: nicht zulässig (siehe Erläuterungen)
+  - name: unzulässig
+    target_harmonized_value: 3
+    desc: unzulässig

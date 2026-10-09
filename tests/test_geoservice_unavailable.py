@@ -65,7 +65,7 @@ def test_esri_connection_error_returns_structured_response(client):
     _mock_canton_identify("FR")
 
     respx.get(
-        "https://map.geo.fr.ch/arcgis/rest/services/PortailCarto/Theme_environnement/MapServer/17/query"
+        "https://maps.fr.ch/ags/rest/services/opendata/Admissibilite_des_sondes_geothermiques__SGV_/MapServer/0/query"
     ).mock(side_effect=httpx.ConnectError("Connection refused"))
 
     response = client.get(f"/v1/drill-category/{coord_x}/{coord_y}")
