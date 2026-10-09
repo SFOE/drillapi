@@ -14,25 +14,25 @@ ground_control_point:
   - 3
   - SGV interdites
 cantonal_energy_service_url: https://www.fr.ch/energie-agriculture-et-environnement/energie
-wms_url: https://map.geo.fr.ch/arcgis/services/PortailCarto/Theme_environnement/MapServer/WmsServer
-query_url: https://map.geo.fr.ch/arcgis/rest/services/PortailCarto/Theme_environnement/MapServer
+wms_url: https://maps.fr.ch/ags/services/opendata/Admissibilite_des_sondes_geothermiques__SGV_/MapServer/WMSServer
+query_url: https://maps.fr.ch/ags/rest/services/opendata/Admissibilite_des_sondes_geothermiques__SGV_/MapServer
 thematic_geoportal_url: https://map.geo.fr.ch/?share=a526a596-5cde-491e-b22d-6d692e78f25b
-legend_url: https://map.geo.fr.ch/arcgis/services/PortailCarto/Theme_environnement/MapServer/WmsServer?SERVICE=WMS&VERSION=1.1.3&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=Admissibilite_des_sondes_geothermiques_SGV37370
+legend_url: https://maps.fr.ch/ags/services/opendata/Admissibilite_des_sondes_geothermiques__SGV_/MapServer/WMSServer?request=GetLegendGraphic&version=1.3.0&format=image/png&layer=0
 info_format: arcgis/json
 bbox_delta: 10
 style: ''
 layers:
-- name: Admissibilite_des_sondes_geothermiques_SGV37370
-  property_name: DA_SGV_DESC
+- name: Admissibilite_des_sondes_geothermiques__SGV_
+  property_name: DA_SGV
   property_values:
-  - name: SGV autorisées
+  - name: SGVaut
     target_harmonized_value: 1
     desc: SGV autorisées
-  - name: SGV avec demande préalable obligatoire
+  - name: SGVdem
     target_harmonized_value: 2
     desc: SGV avec demande préalable obligatoire
-  - name: SGV interdites
+  - name: SGVint
     target_harmonized_value: 3
     desc: SGV interdites
-  id: 17
-  desc: Admissibilite des sondes geothermiques SGV
+  id: 0
+  desc: Admissibilité des sondes géothermiques (SGV)
