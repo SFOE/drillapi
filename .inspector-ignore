@@ -80,3 +80,92 @@ CVE-2026-89161  # pcre2 — ReDoS / improper handling, CWE-590/1341 — only pul
 
 # curl-minimal / libcurl-minimal 8.21.0-5.amzn2023.0.1 → 0.2 required (unreachable, see above)
 CVE-2026-80230  # curl — improper certificate/authentication handling, CWE-295/303 — app uses httpx, not libcurl
+
+# Accepted risk: additional aws-lambda-rie findings (v0.2.4 release scan, 2026-10-19)
+# against a newer go_toolchain tag (1.26.7, fixed upstream in 1.26.9) of the SAME
+# RIE binary already covered above. Identical reasoning applies: the RIE
+# (/usr/local/bin/aws-lambda-rie) is only exercised during local `docker run`
+# testing. In deployed Lambda, AWS's internal runtime supervisor replaces it
+# entirely — this binary is never loaded or executed in production. Zero
+# production attack surface regardless of CVSS/severity rating.
+CVE-2026-78663  # aws-lambda-rie — QUIC double flow-control credit refund, CWE-675/770 (critical) — RIE only, not loaded in production
+CVE-2026-97032  # aws-lambda-rie — race condition, CWE-362/366 — RIE only, not loaded in production
+CVE-2026-78669  # aws-lambda-rie — resource exhaustion, CWE-405/770 — RIE only, not loaded in production
+CVE-2026-78667  # aws-lambda-rie — resource exhaustion, CWE-770 — RIE only, not loaded in production
+CVE-2026-97031  # aws-lambda-rie — resource exhaustion, CWE-405/770 — RIE only, not loaded in production
+CVE-2026-78659  # aws-lambda-rie — resource exhaustion, CWE-405 — RIE only, not loaded in production
+CVE-2026-56866  # aws-lambda-rie — resource exhaustion, CWE-444 — RIE only, not loaded in production
+CVE-2026-78660  # aws-lambda-rie — resource exhaustion, CWE-444 — RIE only, not loaded in production
+CVE-2026-94439  # aws-lambda-rie — resource exhaustion, CWE-444 — RIE only, not loaded in production
+CVE-2026-94440  # aws-lambda-rie — resource exhaustion, CWE-770 — RIE only, not loaded in production
+CVE-2026-94448  # aws-lambda-rie — request smuggling / XSS, CWE-79 (medium) — RIE only, not loaded in production
+CVE-2026-97030  # aws-lambda-rie — request smuggling / XSS, CWE-79 (medium) — RIE only, not loaded in production
+
+# Accepted risk: openssl 3.5.8-1.amzn2023.0.1 (fix: .0.3) in public.ecr.aws/lambda/python:3.14,
+# owned by package `openssl-snapsafe-libs` / `openssl-fips-provider-latest`.
+#
+# UNLIKE the libxml2 entries above, this library IS genuinely loaded and used:
+# `python3 -c "import ssl; print(ssl.OPENSSL_VERSION)"` reports this exact
+# version, and every outbound HTTPS call this app makes (via httpx, to the
+# ~20 hardcoded cantonal WMS/ESRI geoservice domains defined in
+# cantons_configuration/data/*.yaml) goes through it. As of 2026-10-19,
+# `dnf upgrade -y --refresh` (already run in Dockerfile.lambda) still reports
+# "Nothing to do" — AWS has not yet published the patched RPM. We cannot fix
+# this ourselves; re-verify with `dnf upgrade --refresh` on each dependency
+# update and remove these entries once the patched version is actually
+# installed.
+#
+# Each CVE below is suppressed because the specific vulnerable FEATURE PATH is
+# never exercised by this app's TLS client usage, not because the library as a
+# whole is unreachable:
+#
+# - QUIC-stack bugs (75804, 84784, 54873, 42772, 35191): require OpenSSL's
+#   native QUIC/HTTP-3 implementation. httpcore 1.0.9 (verified installed)
+#   implements only HTTP/1.1 and HTTP/2 over TCP+TLS — there is no QUIC
+#   transport anywhere in httpx/httpcore to invoke this code.
+#
+# - DTLS bugs (84782, 75806): DTLS runs over UDP; httpx/httpcore only ever
+#   open TCP connections. This code is linked into libssl but never called.
+#
+# - CMP client bug (75805): Certificate Management Protocol (RFC 4210) is an
+#   unrelated OpenSSL feature for CA enrollment. Nothing in this app or its
+#   dependencies performs CMP operations.
+#
+# - SSL_set_SSL_CTX mid-handshake swap (72897): a server-side SNI pattern
+#   (swapping cert context based on ClientHello). This app runs no TLS server;
+#   outbound `ssl.SSLContext` objects are created once per client connection
+#   and never swapped mid-handshake.
+#
+# - EC/SM2 timing side-channel (54872): requires the local process to *sign*
+#   with SM2 or non-NIST curves lacking constant-time code. This app only does
+#   outbound TLS client handshakes (standard ECDHE on NIST curves); it never
+#   generates ECDSA/SM2 signatures.
+#
+# - CRLDP memory DoS (35189): THE ONE CASE WITH A REAL, NARROW PATH. A
+#   malicious TLS server could serve a certificate with many CRL distribution
+#   points to trigger excessive heap allocation. Mitigating context: we only
+#   connect outbound to a small, hardcoded set of ~20 Swiss cantonal
+#   government WMS/ESRI endpoints (not user-controlled input), each call is
+#   bounded by a 10-20s httpx timeout, and Lambda invocations are short-lived
+#   and recycled. Worst case is a transient memory/latency hit on one
+#   invocation if a trusted government endpoint were itself compromised to
+#   serve a malicious cert — not data exposure, not code execution. Accepted
+#   given the narrow blast radius, pending AWS's patched RPM.
+CVE-2026-75804  # openssl — QUIC stream flow control not enforced, CWE-770 — no QUIC transport in httpx/httpcore
+CVE-2026-84784  # openssl — QUIC unbounded RETIRE_CONNECTION_ID backlog, CWE-770 — no QUIC transport in httpx/httpcore
+CVE-2026-54873  # openssl — QUIC STREAM fragment metadata DoS, CWE-770 — no QUIC transport in httpx/httpcore
+CVE-2026-42772  # openssl — QUIC O(n^2) fragment reassembly CPU DoS, CWE-407 — no QUIC transport in httpx/httpcore
+CVE-2026-35191  # openssl — QUIC unvalidated amplification credit (low) — no QUIC transport in httpx/httpcore
+CVE-2026-84782  # openssl — DTLS stale retransmission buffer offset, CWE-125 — app never uses DTLS (UDP), httpx is TCP-only
+CVE-2026-75806  # openssl — DTLS 1.2 undersized AEAD record DoS, CWE-1284 — app never uses DTLS (UDP), httpx is TCP-only
+CVE-2026-75805  # openssl — CMP client NULL deref on revocation response, CWE-476 — app never performs CMP operations
+CVE-2026-72897  # openssl — out-of-bounds access after SSL_set_SSL_CTX() mid-handshake, CWE-787 — app runs no TLS server, never swaps SSL_CTX
+CVE-2026-54872  # openssl — timing side-channel in non-NIST EC/SM2 scalar multiplication, CWE-208 — app never signs with SM2/non-NIST curves
+CVE-2026-35189  # openssl — excessive heap allocation in relative CRLDP processing, CWE-770 — narrow risk, see note above; only ~20 trusted gov endpoints contacted
+
+# Accepted risk: krb5-libs 1.21.3-8.amzn2023.0.1 (fix: .0.2) in
+# public.ecr.aws/lambda/python:3.14. `rpm -q --whatrequires krb5-libs` returns
+# no results — no other installed package depends on it, and the app has no
+# Kerberos/GSSAPI code path (no SPNEGO auth, no AD/LDAP integration). As of
+# 2026-10-19, `dnf upgrade --refresh` reports "Nothing to do" for this package.
+ALAS2023-2026-3182  # krb5-libs — unspecified (Amazon Inspector advisory, no public CVE yet) — unreachable, no Kerberos code path
