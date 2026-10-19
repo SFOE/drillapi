@@ -1,0 +1,70 @@
+active: true
+name: NW
+ground_control_point:
+- - 2671744
+  - 1196809
+  - 3
+  - bautechnisch_bauverbot
+- - 2675123
+  - 1198890
+  - 3
+  - Trinkwasserschutzgebiet
+- - 2672327
+  - 1202452
+  - 3
+  - nutzbare_Grundwassergebiete
+- - 2668633
+  - 1202922
+  - 2
+  - bebaubares_Grundwassergebiet
+- - 2668267
+  - 1201091
+  - 2
+  - vermutlich_unproblematisch
+- - 2668945
+  - 1200200
+  - 2
+  - problematisch
+- - 2668854
+  - 1199481
+  - 2
+  - bautechnisch_problematisch
+- - 2669798
+  - 1200979
+  - 1
+  - unproblematisch
+cantonal_energy_service_url: https://www.nw.ch/amtumweltdienste/4020
+wms_url: https://www.gis-daten.ch/wms/bfe_kann_ich_bohren/service
+query_url: https://www.gis-daten.ch/wms/bfe_kann_ich_bohren/service
+thematic_geoportal_url: https://www.gis-daten.ch/map/nw_waermenutzung
+legend_url: https://www.gis-daten.ch/wms/bfe_kann_ich_bohren/service?service=WMS&request=GetLegendGraphic&version=1.3.0&layer=ch.nw.waermenutzungsbereiche&format=image/png
+info_format: application/json
+bbox_delta: 10
+style: ''
+layers:
+- name: ch.nw.waermenutzungsbereiche
+  property_name: Art
+  property_values:
+  - name: bautechnisch_bauverbot
+    target_harmonized_value: 3
+    desc: Wärmenutzung aus dem Untergrund verboten
+  - name: Trinkwasserschutzgebiet
+    target_harmonized_value: 3
+  - name: nutzbare_Grundwassergebiete
+    target_harmonized_value: 3
+    desc: Grundwassergebiet mit Erdsondenverbot
+  - name: bebaubares_Grundwassergebiet
+    target_harmonized_value: 2
+    desc: Grundwassergebiet ohne Erdsondenverbot
+  - name: vermutlich_unproblematisch
+    target_harmonized_value: 2
+    desc: Vermutlich unproblematische Untergrundverhältnisse
+  - name: problematisch
+    target_harmonized_value: 2
+    desc: Unsichere Untergrundverhältnisse
+  - name: bautechnisch_problematisch
+    target_harmonized_value: 2
+    desc: Bautechnisch problematische Untergrundverhältnisse
+  - name: unproblematisch
+    target_harmonized_value: 1
+    desc: Unproblematische Untergrundverhältnisse

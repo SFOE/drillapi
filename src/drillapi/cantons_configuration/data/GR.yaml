@@ -1,0 +1,36 @@
+active: true
+name: GR
+ground_control_point:
+- - 2745188
+  - 1187042
+  - 1
+  - zulässig
+- - 2747613
+  - 1190056
+  - 2
+  - bedingt zulässig
+- - 2730752
+  - 1191438
+  - 3
+  - nicht zulässig
+cantonal_energy_service_url: https://www.gr.ch/DE/institutionen/verwaltung/diem/aev/foerderprogramme/haustechnischeanlagen/waermepumpen/Seiten/default.aspx
+wms_url: https://wms.geo.gr.ch/erdwaermenutzung
+query_url: https://wms.geo.gr.ch/erdwaermenutzung
+thematic_geoportal_url: https://map.geo.gr.ch/public/theme/uGSP_Energie?tree_group_layers_layer4gmf24.uGSP_Grundstueckabfrage_Grundstueckabfrage_AGGR=layer4gmf24.uGSP_Grundstueckabfrage_AGGR&lang=fr&map_x=2760071&map_y=1169982&map_zoom=1&baselayer_ref=Karte%20grau&tree_group_layers_uGSP_Nutzungsplanung_Kommunaler_Darstellungsdienst.uGSP_Nutzungsplanung_Genereller_Erschliessungsplan=uGSP_Nutzungsplanung_Kommunaler_Darstellungsdienst.uGSP_GEP_Energie_AGGR&theme=uGSP_Energie&tree_groups=uGSP_Energie_Waermepumpen_Netzgebiete_Globalstrahlung_WWK.uGSP_Globalstrahlung_jaehrlich%2CuGSP_Energie_Waermepumpen_Netzgebiete_Globalstrahlung_WWK.uGSP_Globalstrahlung_Vollzug%2CuGSP_Energie_Waermepumpen_Netzgebiete_Globalstrahlung_WWK.uGSP_Netzgebiet_Elektroversorgung_AGGR%2CuGSP_Energie.uGSP_Erdwaermenutzung%2CuGSP_Energie_Waermepumpen_Netzgebiete_Globalstrahlung_WWK.uGSP_Waermepumpe_Luft_Wasser%2CuGSP_Energie_Waermepumpen_Netzgebiete_Globalstrahlung_WWK.uGSP_Wasserwerkkataster_AGGR%2Clayer4gmf24.uGSP_Grundstueckabfrage_Grundstueckabfrage_AGGR&tree_group_layers_uGSP_Energie.uGSP_Erdwaermenutzung=uGSP_Energie.uGSP_Zulaessigkeit
+legend_url: https://map.geo.gr.ch/mapserv_proxy?ogcserver=Kanton+Graub%C3%BCnden%2C+Energie&cache_version=6cf674ab2fb648a0ac60156e614e4bbe&FORMAT=image%2Fpng&TRANSPARENT=true&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&LAYERTITLE=FALSE&Itemfontsize=10&LAYER=uGSP_Zulaessigkeit&SCALE=499998.9999999998
+info_format: application/vnd.ogc.gml
+bbox_delta: 10
+style: ''
+layers:
+- name: Erdwaermenutzung_Zulaessigkeit
+  property_name: zulaessigkeit
+  property_values:
+  - name: zulässig
+    target_harmonized_value: 1
+    desc: zulässig
+  - name: bedingt zulässig
+    target_harmonized_value: 2
+    desc: bedingt zulässig
+  - name: nicht zulässig
+    target_harmonized_value: 3
+    desc: nicht zulässig

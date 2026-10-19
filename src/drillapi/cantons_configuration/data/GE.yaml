@@ -1,0 +1,44 @@
+active: true
+name: GE
+ground_control_point:
+- - 2510785
+  - 1121097
+  - 1
+  - Sondes géothermiques verticales (système fermé)
+- - 2506500
+  - 1118148
+  - 2
+  - Demande de renseignement
+- - 2502640
+  - 1113946
+  - 3
+  - Interdiction de géothermie
+- - 2494984
+  - 1116373
+  - 3
+  - Géothermie sur nappe (système ouvert)
+cantonal_energy_service_url: https://www.ge.ch/gestion-du-sous-sol
+wms_url: https://app2.ge.ch/tergeoservices/rest/services/Hosted/GOL_EXPLOITATION_GEOTHERMIE/MapServer/WmsServer
+query_url: https://app2.ge.ch/tergeoservices/rest/services/Hosted/GOL_EXPLOITATION_GEOTHERMIE/FeatureServer
+thematic_geoportal_url: https://map.sitg.ge.ch/app/?mapresources=GEOTHERMIE
+legend_url: ''
+info_format: arcgis/json
+bbox_delta: 10
+style: ''
+layers:
+- name: GOL_EXPLOITATION_GEOTHERMIE
+  property_name: secteur
+  property_values:
+  - name: Sondes géothermiques verticales (système fermé)
+    target_harmonized_value: 1
+    desc: Sondes géothermiques verticales (système fermé)
+  - name: Demande de renseignement
+    target_harmonized_value: 2
+    desc: Demande de renseignement
+  - name: Interdiction de géothermie
+    target_harmonized_value: 3
+    desc: Interdiction de géothermie
+  - name: Géothermie sur nappe (système ouvert)
+    target_harmonized_value: 3
+    desc: Géothermie sur nappe (système ouvert)
+  id: 0

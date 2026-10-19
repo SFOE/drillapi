@@ -104,6 +104,34 @@ Run project
 uv run python -m drillapi
 ```
 
+## Cantonal configuration
+
+The per-canton geoservice configuration lives as one YAML file per canton under
+`src/drillapi/cantons_configuration/data/<CODE>.yaml` (e.g. `ZH.yaml`). Each file
+is validated against a Pydantic schema (`cantons_configuration/schema.py`) when
+the app starts, so an invalid config (unknown/typo'd key, missing field, wrong
+type, filename/`name` mismatch) fails fast at startup — and in CI via the
+`Validate canton configuration` workflow — rather than mid-request against a
+live geoservice.
+
+To add or change a canton, edit the relevant `data/<CODE>.yaml` file. The
+filename (minus extension) must match the canton's `name` field.
+
+### Hot-reload the config in dev
+
+The config is loaded and cached once at startup, so a plain `--reload` server
+(which watches only `*.py`) will **not** pick up YAML edits. For local work on
+cantonal data, start the server watching the YAML files too (requires the dev
+dependencies, which include `watchfiles`):
+
+```bash
+uv run uvicorn drillapi.app:app --app-dir src --reload --reload-dir src/drillapi --reload-include "*.yaml"
+```
+
+Editing any `data/*.yaml` then restarts and re-validates the config
+automatically. An invalid edit surfaces the validation error in the server log
+and the app will not come back up until it is fixed.
+
 ## Explore
 
 OpenAPI doc

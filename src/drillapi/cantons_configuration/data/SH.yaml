@@ -1,0 +1,50 @@
+active: true
+name: SH
+ground_control_point:
+- - 2690343
+  - 1289821
+  - 1
+  - '3'
+- - 2682889
+  - 1292346
+  - 2
+  - '5'
+- - 2691554
+  - 1293373
+  - 3
+  - '1'
+- - 2695085
+  - 1290396
+  - 2
+  - '41'
+- - 2695476
+  - 1286474
+  - 2
+  - '42'
+cantonal_energy_service_url: https://sh.ch/CMS/Webseite/Kanton-Schaffhausen/Beh-rde/Verwaltung/Baudepartement/Tiefbau-Schaffhausen/Abteilung-Gew-sser-und-Materialabbau/Erdw-rme-1738469-DE.html
+wms_url: https://wms.geo.sh.ch/wms
+query_url: https://wms.geo.sh.ch/wms
+thematic_geoportal_url: https://map.geo.sh.ch/geoportal/?project=Geoportal%20Schaffhausen&legend=Legende&rotation=0.00&scale=90202&center=2692188,1282000&layers=0bf7129c-2c80-4371-941f-556c4a6ba1f1
+legend_url: https://wms.geo.sh.ch/wms?service=WMS&request=GetLegendGraphic&version=1.3.0&layer=sh.energie.erdsonden.eignung&format=image/png
+info_format: application/vnd.ogc.gml
+bbox_delta: 10
+style: ''
+layers:
+- name: sh.energie.erdsonden.eignung
+  property_name: eignung_erdwaermesonden_code
+  property_values:
+  - name: '3'
+    target_harmonized_value: 1
+    desc: EWS bis 200 m Tiefe zulässig (über 200 m Vorabklärung notwendig)
+  - name: '5'
+    target_harmonized_value: 2
+    desc: EWS mit Vorabklärung und fallweise geologischer Begleitung zulässig
+  - name: '41'
+    target_harmonized_value: 2
+    desc: GWWN-Grossanlagen mit Gutachten zulässig (EWS auf Anfrage)
+  - name: '42'
+    target_harmonized_value: 2
+    desc: GWWN-Grossanlagen mit Gutachten zulässig (Kurzsonden auf Anfrage)
+  - name: '1'
+    target_harmonized_value: 3
+    desc: EWS und GWWN unzulässig

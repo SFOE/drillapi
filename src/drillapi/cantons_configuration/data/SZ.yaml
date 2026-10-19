@@ -1,0 +1,33 @@
+active: true
+name: SZ
+ground_control_point:
+- - 2707885
+  - 1226453
+  - 1
+- - 2707994
+  - 1227010
+  - 2
+- - 2708393
+  - 1227843
+  - 3
+cantonal_energy_service_url: https://www.sz.ch/verwaltung/umweltdepartement/amt-fuer-umwelt-und-energie/energie-und-klima/waermenutzung.html/8756-8758-8802-9447-9453-10708-10760
+wms_url: https://map.geo.sz.ch/mapserv_proxy
+query_url: https://map.geo.sz.ch/mapserv_proxy
+thematic_geoportal_url: https://map.geo.sz.ch/?lang=fr&map_x=2697700&map_y=1213275&map_zoom=0&baselayer_ref=Landeskarte%20(farbig)&tree_groups=grp_Energie_Erdw%C3%A4rmenutzung%2Cgrp_Energie_Frei_Leitungskataster%2Cgrp_Energie_Netzgebiete%2Cgrp_Energie_Solarenergie%2Cgrp_Energie_Wasserw%C3%A4rmenutzung&tree_group_layers_grp_Energie_Erdw%C3%A4rmenutzung=ch.sz.a034c.waermenutzung.erdwaermeanlage.erdwaermesonde%2Cch.sz.a034c.waermenutzung.erdwaermeanlage.erdwaermesonde_nicht_bewilligungsfaehig%2Cch.sz.a034c.waermenutzung.erdwaermeanlage.energiepfahl%2Cch.sz.a034c.waermenutzung.erdwaermeanlage.energiekorb%2Cch.sz.a034c.waermenutzung.erdwaermeanlage.erdregister%2Cch.sz.a034c.waermenutzung.erdwaerme
+legend_url: https://map.geo.sz.ch/mapserv_proxy?service=WMS&request=GetLegendGraphic&version=1.1.1&layer=ch.sz.a034c.waermenutzung.erdwaerme.technisch&format=image/png&FORMAT_OPTIONS=dpi:200
+info_format: application/vnd.ogc.gml
+bbox_delta: 10
+style: ''
+layers:
+- name: ch.sz.a034c.waermenutzung.erdwaerme.technisch
+  property_name: zulaessigkeit_cd
+  property_values:
+  - name: ja
+    target_harmonized_value: 1
+    desc: zulässig
+  - name: Abklaerung_noetig
+    target_harmonized_value: 2
+    desc: bedingt zulässig
+  - name: nein
+    target_harmonized_value: 3
+    desc: nicht zulässig

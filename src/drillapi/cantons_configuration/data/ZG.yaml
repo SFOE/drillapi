@@ -1,0 +1,39 @@
+active: true
+name: ZG
+ground_control_point:
+- - 2676912
+  - 1228091
+  - 1
+  - mit Standardauflagen zulässig
+- - 2684565
+  - 1225437
+  - 2
+  - mit spezifischen Auflagen zulässig
+- - 2686680
+  - 1226360
+  - 3
+  - unzulässig
+- - 2690680
+  - 1219207
+  - 4
+cantonal_energy_service_url: https://zg.ch/de/planen-bauen/bauvorschriften/gebaeude-und-energie
+wms_url: https://services.geo.zg.ch/ows/Erdwaermenutzung
+query_url: https://services.geo.zg.ch/ows/Erdwaermenutzung
+thematic_geoportal_url: https://zugmap.ch/
+legend_url: https://services.geo.zg.ch/ows/Erdwaermenutzung?service=WMS&request=GetLegendGraphic&version=1.3.0&layer=zg.ews_zulaessigkeit&format=image/png&STYLE=default
+info_format: application/vnd.ogc.gml
+bbox_delta: 10
+style: default
+layers:
+- name: zg.ews_zulaessigkeit
+  property_name: zulaessigkeit
+  property_values:
+  - name: mit Standardauflagen zulässig
+    target_harmonized_value: 1
+    desc: mit Standardauflagen zulässig
+  - name: mit spezifischen Auflagen zulässig
+    target_harmonized_value: 2
+    desc: mit spezifischen Auflagen zulässig
+  - name: unzulässig
+    target_harmonized_value: 3
+    desc: unzulässig

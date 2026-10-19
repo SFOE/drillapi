@@ -1,0 +1,50 @@
+active: true
+name: VS
+ground_control_point:
+- - 2596336
+  - 1122359
+  - 1
+  - CLASSGV 1
+- - 2598146
+  - 1124454
+  - 1
+  - CLASSGV 2
+- - 2593661
+  - 1122203
+  - 2
+  - CLASSGV 3
+- - 2594171
+  - 1121846
+  - 2
+  - CLASSGV 4
+- - 2598068.4
+  - 1130927.1
+  - 4
+  - CLASSGV 5
+cantonal_energy_service_url: https://www.vs.ch/web/sen/eaux-souterraines-et-constructions
+wms_url: https://sit.vs.ch/arcgis/services/ENVIRONNEMENT/MapServer/WMSServer
+query_url: https://sit.vs.ch/arcgis/services/ENVIRONNEMENT/MapServer/WMSServer
+thematic_geoportal_url: https://sitonline.vs.ch/environnement/eso_admissibilite_SGV/#/?lang=fr
+legend_url: https://sit.vs.ch/arcgis/services/ENVIRONNEMENT/MapServer/WMSServer?request=GetLegendGraphic%26version=1.3.0%26format=image/png%26layer=29
+info_format: application/geo+json
+bbox_delta: 10
+style: ''
+layers:
+- name: '29'
+  property_name: CLASSGV
+  property_values:
+  - name: '1'
+    target_harmonized_value: 1
+    desc: Sondes géothermiques admises (max. 200 m sans étude)
+  - name: '2'
+    target_harmonized_value: 1
+    desc: Sondes géothermiques limitées à 100 m de profondeur
+  - name: '3'
+    target_harmonized_value: 2
+    desc: Au cas par cas – Etude préalable (contexte hydrogéologique ou autres restrictions)
+  - name: '4'
+    target_harmonized_value: 2
+    desc: Au cas par cas – Etude préalable (danger de glissement de terrain ou effondrement)
+  - name: '5'
+    target_harmonized_value: 3
+    desc: Sondes géothermiques non admises

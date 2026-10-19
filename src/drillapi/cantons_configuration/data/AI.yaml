@@ -1,0 +1,36 @@
+active: true
+name: AI
+ground_control_point:
+- - 2751274
+  - 1244545
+  - 1
+  - zulässig (siehe Erläuterungen)
+- - 2747293
+  - 1243755
+  - 2
+  - bedingt zulässig (siehe Erläuterungen)
+- - 2748348
+  - 1237931
+  - 3
+  - nicht zulässig (siehe Erläuterungen)
+cantonal_energy_service_url: https://www.ai.ch/themen/natur-und-umwelt/umweltschutz/waermeerzeugungsanlagen/waermepumpen/erdsondenbohrungen
+wms_url: https://www.geoportal.ch/services/wms/ktai
+query_url: https://www.geoportal.ch/services/wms/ktai
+thematic_geoportal_url: https://www.geoportal.ch/ktai/map/29?y=2728824.00&x=1243710.00&scale=100000&rotation=0
+legend_url: ''
+info_format: application/json
+bbox_delta: 10
+style: ''
+layers:
+- name: ch.geoportal.ver_entsorgung_kommunikation.29.0.erdwaermesonden_kt
+  property_name: Info
+  property_values:
+  - name: zulässig (siehe Erläuterungen)
+    target_harmonized_value: 1
+    desc: zulässig (siehe Erläuterungen)
+  - name: bedingt zulässig (siehe Erläuterungen)
+    target_harmonized_value: 2
+    desc: bedingt zulässig (siehe Erläuterungen)
+  - name: nicht zulässig (siehe Erläuterungen)
+    target_harmonized_value: 3
+    desc: nicht zulässig (siehe Erläuterungen)

@@ -70,7 +70,7 @@ def test_drill_category_esri_json(client):
         esri_json = f.read()
 
     respx.get(
-        "https://map.geo.fr.ch/arcgis/rest/services/PortailCarto/Theme_environnement/MapServer/17/query"
+        "https://maps.fr.ch/ags/rest/services/opendata/Admissibilite_des_sondes_geothermiques__SGV_/MapServer/0/query"
     ).mock(
         return_value=httpx.Response(
             200,
