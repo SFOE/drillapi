@@ -3,8 +3,8 @@ name: drillapi
 applicationSuite: drillcheck
 url: https://github.com/SFOE/drillapi
 isBasedOn: https://fastapi.tiangolo.com/
-softwareVersion: v0.2.3
-releaseDate: 2026-10-07
+softwareVersion: v0.2.4
+releaseDate: 2026-10-19
 platforms:
   - web
 categories:
