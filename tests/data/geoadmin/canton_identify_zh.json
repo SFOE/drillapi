@@ -1,0 +1,36 @@
+{
+    "results": [
+      {
+        "featureId": 1,
+        "bbox": [
+          2669102.0,
+          1222259.0,
+          2719477.0,
+          1284628.0
+        ],
+        "layerBodId": "ch.swisstopo.swissboundaries3d-kanton-flaeche.fill",
+        "layerName": "Cantonal boundaries",
+        "id": 1,
+        "geometry": {
+          "rings": [
+            [
+              [2669102.0, 1222259.0],
+              [2719477.0, 1222259.0],
+              [2719477.0, 1284628.0],
+              [2669102.0, 1284628.0],
+              [2669102.0, 1222259.0]
+            ]
+          ],
+          "spatialReference": {
+            "wkid": 2056
+          }
+        },
+        "attributes": {
+          "ak": "ZH",
+          "name": "Zuerich",
+          "flaeche": 172888.0000000000,
+          "label": "Zürich"
+        }
+      }
+    ]
+}

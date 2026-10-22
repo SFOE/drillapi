@@ -53,3 +53,6 @@ pytest_cache/
 *.tmp
 .DS_Store
 Thumbs.db
+
+# --- Hypothesis (property-based testing cache) ---
+.hypothesis/
