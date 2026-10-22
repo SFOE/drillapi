@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 import re
 import xml.etree.ElementTree as ET
 
@@ -138,6 +139,13 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
             bbox = f"{minx},{miny},{maxx},{maxy}"
 
             layers_list = ",".join([layer["name"] for layer in config["layers"]])
+            query_layers_list = ",".join(
+                [
+                    layer["name"]
+                    for layer in config["layers"]
+                    if layer.get("queryable", True)
+                ]
+            )
 
             i = int((coord_x - minx) / (maxx - minx) * width)
             j = int((maxy - coord_y) / (maxy - miny) * height)
@@ -146,7 +154,7 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                 "SERVICE": "WMS",
                 "VERSION": "1.3.0",
                 "REQUEST": "GetFeatureInfo",
-                "QUERY_LAYERS": layers_list,
+                "QUERY_LAYERS": query_layers_list,
                 "LAYERS": layers_list,
                 "INFO_FORMAT": config.get("info_format", "text/plain"),
                 "I": str(i),
@@ -275,14 +283,86 @@ def parse_wms_getfeatureinfo(content: bytes, info_format: str, config: dict):
                 if fdict:
                     features.append(fdict)
 
-        # ZH geoservice is a special and unique case
-        # It only returns a GML without atttibute but containing the layer that was found at location
+        # ZH geoservice is a special and unique case: its only queryable layer
+        # (waermenutzung-zonen) returns no attributes, only a bounding box
+        # (gml:boundedBy/gml:Box) identifying which zone feature was hit.
         if not features and config["name"] == "ZH":
-            name_elem = root.find(".//gml:name", ns)
-            if name_elem is not None and name_elem.text and name_elem.text.strip():
-                fdict = {"name": name_elem.text.strip()}
-                features.append(fdict)
+            box_elem = root.find(".//gml:boundedBy/gml:Box", ns)
+            if box_elem is not None:
+                coords = _parse_gml_box(box_elem, ns)
+                if coords is not None:
+                    features.append({"bbox": coords})
         return features
+
+
+def _parse_gml_box(box_elem, ns: dict) -> list[float] | None:
+    """
+    Extract [minx, miny, maxx, maxy] from a <gml:Box> element.
+
+    Supports both the GML2-style single <gml:coordinates> element (holding
+    two "x,y" pairs separated by whitespace) and the GML3-style pair of
+    <gml:coord>/<gml:pos> elements (each holding its own x/y). Returns None
+    on any malformed or missing input instead of raising, so parsing
+    failures degrade to "no feature" rather than a crash.
+    """
+    try:
+        coordinates_elem = box_elem.find("gml:coordinates", ns)
+        if coordinates_elem is not None and coordinates_elem.text:
+            raw = coordinates_elem.text.strip()
+            pairs = raw.split()
+            if len(pairs) != 2:
+                return None
+            minx, miny = (float(v) for v in pairs[0].split(","))
+            maxx, maxy = (float(v) for v in pairs[1].split(","))
+            return [minx, miny, maxx, maxy]
+
+        # GML3-style: two <gml:coord> elements, each with <gml:X>/<gml:Y>,
+        # or two <gml:pos> elements holding "x y" text directly.
+        coord_elems = box_elem.findall("gml:coord", ns)
+        if len(coord_elems) == 2:
+            points = []
+            for coord_elem in coord_elems:
+                x_elem = coord_elem.find("gml:X", ns)
+                y_elem = coord_elem.find("gml:Y", ns)
+                if (
+                    x_elem is None
+                    or y_elem is None
+                    or not x_elem.text
+                    or not y_elem.text
+                ):
+                    return None
+                points.append((float(x_elem.text.strip()), float(y_elem.text.strip())))
+            (minx, miny), (maxx, maxy) = points
+            return [minx, miny, maxx, maxy]
+
+        pos_elems = box_elem.findall("gml:pos", ns)
+        if len(pos_elems) == 2:
+            points = []
+            for pos_elem in pos_elems:
+                if not pos_elem.text:
+                    return None
+                values = pos_elem.text.strip().split()
+                if len(values) != 2:
+                    return None
+                points.append((float(values[0]), float(values[1])))
+            (minx, miny), (maxx, maxy) = points
+            return [minx, miny, maxx, maxy]
+
+        return None
+    except ValueError, TypeError, AttributeError, IndexError:
+        return None
+
+
+def _bbox_matches(a: list[float], b: list[float], tolerance: float = 0.5) -> bool:
+    """
+    Compare two [minx, miny, maxx, maxy] bounding boxes for equality within
+    an absolute tolerance (meters, EPSG:2056). A small tolerance accounts for
+    floating point noise introduced by GML parsing rather than requiring
+    exact binary float equality.
+    """
+    if a is None or b is None or len(a) != 4 or len(b) != 4:
+        return False
+    return all(math.isclose(a[i], b[i], abs_tol=tolerance) for i in range(4))
 
 
 def process_ground_category(
@@ -308,31 +388,70 @@ def process_ground_category(
         layer_name = layer_cfg.get("name")
         property_name = layer_cfg.get("property_name")
         property_values = layer_cfg.get("property_values")
+        bbox_zones = layer_cfg.get("bbox_zones")
 
         property_name_value = None
 
-        for feature in ground_features:
-            # ESRI REST support
-            if isinstance(feature, dict):
-                if "attributes" in feature and isinstance(feature["attributes"], dict):
-                    property_name_value = feature["attributes"].get(property_name)
+        # ZH-only, additive: layers with no attribute payload (only a
+        # gml:boundedBy/gml:Box bounding box per feature) resolve zone
+        # identity via a static bbox->zone lookup table instead of matching
+        # on an attribute value. Evaluated before property_values so it
+        # never interferes with the existing matching logic for layers that
+        # don't define bbox_zones.
+        if bbox_zones:
+            matched_zone_name = None
+            for feature in ground_features:
+                feature_bbox = (
+                    feature.get("bbox") if isinstance(feature, dict) else None
+                )
+                if feature_bbox is None:
+                    continue
+                for zone in bbox_zones:
+                    if _bbox_matches(feature_bbox, zone.get("bbox")):
+                        mapped_values.append(zone.get("target_harmonized_value"))
+                        source_values.append(zone.get("desc"))
+                        matched_zone_name = zone.get("name")
+                        break
+
+            # bbox-matched features have no property_name_value (there's no
+            # attribute payload to read), so layer_results bookkeeping below
+            # would otherwise never fire for this layer. Record the matched
+            # zone's name instead so a bbox-resolved layer still shows up in
+            # layer_results for debugging, mirroring the non-bbox branch.
+            if matched_zone_name:
+                layer_results.append(
+                    {
+                        "layer": layer_name,
+                        "property_name": property_name,
+                        "value": matched_zone_name,
+                    }
+                )
+
+        else:
+            for feature in ground_features:
+                # ESRI REST support
+                if isinstance(feature, dict):
+                    if "attributes" in feature and isinstance(
+                        feature["attributes"], dict
+                    ):
+                        property_name_value = feature["attributes"].get(property_name)
+                    else:
+                        property_name_value = feature.get(property_name)
                 else:
-                    property_name_value = feature.get(property_name)
-            else:
-                property_name_value = feature
+                    property_name_value = feature
 
-            property_name_value = normalize_string(property_name_value)
-            if property_values:
-                for item in property_values:
-                    # Match with values for layers that have a defined mapping
-                    if item.get("name") == property_name_value:
-                        mapped_values.append(item.get("target_harmonized_value"))
-                        source_values.append(item.get("desc"))
+                property_name_value = normalize_string(property_name_value)
+                if property_values:
+                    for item in property_values:
+                        # Match with values for layers that have a defined mapping
+                        if item.get("name") == property_name_value:
+                            mapped_values.append(item.get("target_harmonized_value"))
+                            source_values.append(item.get("desc"))
 
-            # For some cantons, only the presence or absence of feature is used to define suitability
-            else:
-                if layer_cfg.get("property_name") == feature.get("layerName"):
-                    mapped_values.append(layer_cfg.get("target_harmonized_value"))
+                # For some cantons, only the presence or absence of feature is used to define suitability
+                else:
+                    if layer_cfg.get("property_name") == feature.get("layerName"):
+                        mapped_values.append(layer_cfg.get("target_harmonized_value"))
 
         # Helping dict useful to identify issues. Only "harmonized_value" is useful for frontend application
         if property_name_value:

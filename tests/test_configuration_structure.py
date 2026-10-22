@@ -60,9 +60,13 @@ def test_each_canton_has_usable_layers(yaml_file: Path):
     )
     assert config.layers, f"{yaml_file.name}: must have at least one layer"
     for layer in config.layers:
-        assert layer.property_values or layer.target_harmonized_value is not None, (
-            f"{yaml_file.name}: layer {layer.name!r} has neither property_values "
-            f"nor a layer-level target_harmonized_value"
+        assert (
+            layer.property_values
+            or layer.target_harmonized_value is not None
+            or layer.bbox_zones
+        ), (
+            f"{yaml_file.name}: layer {layer.name!r} has neither property_values, "
+            f"a layer-level target_harmonized_value, nor bbox_zones"
         )
 
 

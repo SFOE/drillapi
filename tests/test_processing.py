@@ -148,12 +148,16 @@ def test_parse_invalid_xml_raises_http_exception():
     assert exc_info.value.status_code == 500
 
 
-def test_parse_zh_special_case():
-    """ZH canton special GML parsing extracts gml:name element."""
+def test_parse_zh_bbox_extraction():
+    """ZH canton special GML parsing extracts gml:boundedBy/gml:Box as a bbox feature."""
     gml_content = b"""<?xml version="1.0" encoding="UTF-8"?>
     <wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs"
                            xmlns:gml="http://www.opengis.net/gml">
-        <gml:name>Auflagen</gml:name>
+        <gml:boundedBy>
+            <gml:Box srsName="EPSG:2056">
+                <gml:coordinates>2688550.000000,1274960.000000 2688580.000000,1274990.000000</gml:coordinates>
+            </gml:Box>
+        </gml:boundedBy>
     </wfs:FeatureCollection>
     """
     config = {"name": "ZH"}
@@ -161,21 +165,62 @@ def test_parse_zh_special_case():
     features = parse_wms_getfeatureinfo(gml_content, "application/vnd.ogc.gml", config)
 
     assert len(features) == 1
-    assert features[0]["name"] == "Auflagen"
+    assert features[0] == {"bbox": [2688550.0, 1274960.0, 2688580.0, 1274990.0]}
 
 
-def test_parse_zh_no_name_element():
-    """ZH canton returns empty if no gml:name element."""
-    gml_content = b"""<?xml version="1.0" encoding="UTF-8"?>
+def test_parse_zh_missing_or_malformed_box():
+    """ZH canton returns an empty feature list (no crash) when gml:Box is missing or malformed."""
+    config = {"name": "ZH"}
+
+    # Case 1: no gml:boundedBy/gml:Box element at all.
+    missing_box_content = b"""<?xml version="1.0" encoding="UTF-8"?>
     <wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs"
                            xmlns:gml="http://www.opengis.net/gml">
     </wfs:FeatureCollection>
     """
-    config = {"name": "ZH"}
 
-    features = parse_wms_getfeatureinfo(gml_content, "application/vnd.ogc.gml", config)
+    assert (
+        parse_wms_getfeatureinfo(missing_box_content, "application/vnd.ogc.gml", config)
+        == []
+    )
 
-    assert features == []
+    # Case 2: gml:Box present but malformed (only one coordinate pair instead of two).
+    malformed_box_content = b"""<?xml version="1.0" encoding="UTF-8"?>
+    <wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs"
+                           xmlns:gml="http://www.opengis.net/gml">
+        <gml:boundedBy>
+            <gml:Box srsName="EPSG:2056">
+                <gml:coordinates>2688550.000000,1274960.000000</gml:coordinates>
+            </gml:Box>
+        </gml:boundedBy>
+    </wfs:FeatureCollection>
+    """
+
+    assert (
+        parse_wms_getfeatureinfo(
+            malformed_box_content, "application/vnd.ogc.gml", config
+        )
+        == []
+    )
+
+    # Case 3: gml:Box present but with non-numeric coordinate text.
+    non_numeric_box_content = b"""<?xml version="1.0" encoding="UTF-8"?>
+    <wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs"
+                           xmlns:gml="http://www.opengis.net/gml">
+        <gml:boundedBy>
+            <gml:Box srsName="EPSG:2056">
+                <gml:coordinates>not,a,number abc,def</gml:coordinates>
+            </gml:Box>
+        </gml:boundedBy>
+    </wfs:FeatureCollection>
+    """
+
+    assert (
+        parse_wms_getfeatureinfo(
+            non_numeric_box_content, "application/vnd.ogc.gml", config
+        )
+        == []
+    )
 
 
 # --- process_ground_category ---

@@ -64,6 +64,20 @@ class PropertyValue(BaseModel):
     desc: str | None = None
 
 
+class BboxZone(BaseModel):
+    """A static bounding box observed for one WMS zone feature, used to
+    resolve zone identity when GetFeatureInfo returns no attributes
+    (ZH's ``waermenutzung-zonen`` layer).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    bbox: Annotated[list[float], Field(min_length=4, max_length=4)]
+    name: str
+    target_harmonized_value: GroundSuitability
+    desc: str | None = None
+
+
 class Layer(BaseModel):
     """A geoservice layer queried for a canton.
 
@@ -85,6 +99,14 @@ class Layer(BaseModel):
     id: int | None = None
     # Optional human-readable layer description (FR only today).
     desc: str | None = None
+    # Whether this layer should be included in WMS QUERY_LAYERS. Defaults to True
+    # so every existing canton is unaffected. Set False for a layer that exists
+    # only in LAYERS (e.g. ZH's erdwaermesonden-auflagen, which the server marks
+    # queryable="0" and rejects outright if placed in QUERY_LAYERS).
+    queryable: bool = True
+    # ZH-only: static bbox->zone lookup used instead of property_values when the
+    # geoservice's GetFeatureInfo response carries no attribute payload.
+    bbox_zones: list[BboxZone] | None = None
 
 
 # A ground-control-point row: [east, north, expected_harmonized, label?, extra?]
