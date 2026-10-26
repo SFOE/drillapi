@@ -169,3 +169,11 @@ CVE-2026-35189  # openssl — excessive heap allocation in relative CRLDP proces
 # Kerberos/GSSAPI code path (no SPNEGO auth, no AD/LDAP integration). As of
 # 2026-10-19, `dnf upgrade --refresh` reports "Nothing to do" for this package.
 ALAS2023-2026-3182  # krb5-libs — unspecified (Amazon Inspector advisory, no public CVE yet) — unreachable, no Kerberos code path
+
+# Accepted risk: additional aws-lambda-rie finding (go_toolchain 1.26.9, fixed
+# upstream in 1.26.10) of the SAME RIE binary already covered above. Identical
+# reasoning applies: the RIE (/usr/local/bin/aws-lambda-rie) is only exercised
+# during local `docker run` testing. In deployed Lambda, AWS's internal runtime
+# supervisor replaces it entirely - this binary is never loaded or executed in
+# production. Zero production attack surface regardless of CVSS/severity rating.
+CVE-2026-111943  # aws-lambda-rie - improper certificate validation, CWE-295 - RIE only, not loaded in production
