@@ -177,3 +177,36 @@ ALAS2023-2026-3182  # krb5-libs — unspecified (Amazon Inspector advisory, no p
 # supervisor replaces it entirely - this binary is never loaded or executed in
 # production. Zero production attack surface regardless of CVSS/severity rating.
 CVE-2026-111943  # aws-lambda-rie - improper certificate validation, CWE-295 - RIE only, not loaded in production
+
+# Accepted risk: additional findings from the 2026-10-26 Inspector scan
+# (inspector_scan_40319343299.md), same packages/binary already covered above
+# but newer CVEs/fix versions. Re-verify with `dnf upgrade --refresh` on each
+# dependency update and remove once patched versions are actually installed.
+#
+# - pcre2 / pcre2-syntax 10.40-1.amzn2023.0.3 (fix now: .0.5, was .0.4): still
+#   only pulled in by libselinux (see rationale above), unreachable.
+#
+# - curl-minimal / libcurl-minimal 8.21.0-5.amzn2023.0.1 (fix now: .0.3, was
+#   .0.2): app uses httpx, not libcurl (see rationale above).
+#
+# - go-chi/chi v5.2.4 in /usr/local/bin/aws-lambda-rie (fix: v5.4.0): same
+#   embedded RIE binary already covered above -- only exercised during local
+#   `docker run` testing, never loaded in a deployed Lambda.
+#
+# - ca-certificates 2025.2.76-1.0.amzn2023.0.3 (fix: .0.4), CWE-295: NEW
+#   package, verified unreachable rather than assumed. httpx's default SSL
+#   context (verify=True, never overridden anywhere in processing.py) calls
+#   `ssl.create_default_context(cafile=certifi.where())`. Per cpython's ssl
+#   module source, passing a non-empty `cafile` means `load_default_certs()`
+#   -- the call that would load the OS ca-certificates bundle -- is never
+#   invoked. certifi's bundled CA store (kept current, see certifi>=2026.10.19
+#   pin above) is the only trust source ever consulted for the outbound WMS/ESRI
+#   calls to the ~20 hardcoded cantonal geoservice domains.
+
+CVE-2026-86145   # pcre2 - heap buffer overflow, CWE-424/787 - unreachable, only pulled in by libselinux
+CVE-2026-103111  # pcre2 - buffer overflow, CWE-787 - unreachable, only pulled in by libselinux
+CVE-2026-89160   # pcre2 - out-of-bounds read, CWE-125 - unreachable, only pulled in by libselinux
+CVE-2026-89156   # pcre2 - out-of-bounds read, CWE-125 - unreachable, only pulled in by libselinux
+CVE-2026-92392   # curl - use-after-free, CWE-416 - app uses httpx, not libcurl
+CVE-2026-114437  # aws-lambda-rie (go-chi/chi) - trust boundary / origin validation, CWE-348/346 - RIE only, not loaded in production
+CVE-2026-113470  # ca-certificates - improper certificate validation, CWE-295 - unreachable, httpx loads only certifi's bundle (verified via ssl.create_default_context source), never OS defaults
