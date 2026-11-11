@@ -1,298 +1,112 @@
-# Accepted risk: vulnerabilities in the RIE binary (/usr/local/bin/aws-lambda-rie)
-# embedded in public.ecr.aws/lambda/python:3.14.
+# Amazon Inspector ignore list for drillapi
+# Used by aws-actions/vulnerability-scan-github-action-for-amazon-inspector
+# (invoked via SFOE-prometheon/github-terraform-workflows ecr-build-scan-push.yml)
 #
-# The Runtime Interface Emulator (RIE) is an AWS-managed Go binary used ONLY for
-# local container testing (docker run). In production, AWS Lambda replaces it
-# entirely with their internal runtime supervisor — the RIE binary is never loaded
-# or executed. These vulnerabilities therefore have zero production attack surface.
+# Every entry below is a third-party OS package or embedded binary inside the
+# AWS Lambda base image public.ecr.aws/lambda/python:3.14 (AL2023), or the
+# dev-only Alpine image. None are vulnerabilities in drillapi's own code, and
+# none are patchable by us directly — all are blocked on upstream (AWS's AL2023
+# repo, or the curl/rpm/glibc/aws-lambda-rie maintainers) shipping a fixed
+# package. `dnf upgrade --refresh` is already run in Dockerfile.lambda; re-check
+# it on every dependency bump and remove an entry once a patch actually lands.
 #
-# Additionally, the specific CVEs are not exploitable in our context:
-#
-# - The go-chi IP spoofing issues (GHSA-rjr7, GHSA-9g5q, GHSA-3fxj) relate to
-#   the RealIP middleware trusting X-Forwarded-For headers. The RIE does not expose
-#   any public HTTP endpoint — it only listens on localhost:8080 during local
-#   development. There is no untrusted network traffic that could inject spoofed
-#   headers. Even if exploited, the RIE has no IP-based access control or rate
-#   limiting that could be bypassed.
-#
-# - CVE-2026-39824 (golang.org/x/sys integer overflow in NewNTUnicodeString) is a
-#   Windows-only vulnerability affecting NTUnicodeString construction. The Lambda
-#   runtime environment is Linux-based; this code path is never compiled into or
-#   executed by the Linux RIE binary. CVSS score is 3.3 (Low).
-#
-# We cannot patch these ourselves; they require AWS to rebuild the RIE with
-# updated Go dependencies (go-chi/chi v5.3.0+ and golang.org/x/sys v0.44.0+).
-# Tracked upstream: https://github.com/aws/aws-lambda-runtime-interface-emulator/issues/155
+# Full verification methodology (exact commands run, raw output, filesystem
+# checks) is intentionally kept out of this public file to avoid publishing a
+# ready-made reconnaissance map alongside a public base image. The complete
+# writeup is maintained privately as a draft GitHub Security Advisory:
+# GHSA-9gx6-3c8f-2873 (repo collaborators only — not public, not published).
 
-# go-chi/chi v5.2.4 → v5.3.0 required
-GHSA-rjr7-jggh-pgcp  # IP spoofing via X-Forwarded-For — RIE only, localhost, no IP-based ACL
-GHSA-9g5q-2w5x-hmxf  # IP spoofing via X-Forwarded-For — RIE only, localhost, no IP-based ACL
-GHSA-3fxj-6jh8-hvhx  # IP spoofing in middleware.RealIP — RIE only, localhost, no IP-based ACL
+# --- aws-lambda-rie (/usr/local/bin/aws-lambda-rie) ---
+# Local-testing-only binary; replaced entirely by AWS's runtime supervisor in
+# a deployed Lambda. Never loaded in production regardless of CVE/CVSS.
+GHSA-rjr7-jggh-pgcp  # go-chi IP spoofing — RIE only
+GHSA-9g5q-2w5x-hmxf  # go-chi IP spoofing — RIE only
+GHSA-3fxj-6jh8-hvhx  # go-chi IP spoofing — RIE only
+CVE-2026-39824       # golang.org/x/sys, Windows-only — RIE only
+CVE-2026-78663       # go_toolchain QUIC DoS (critical) — RIE only
+CVE-2026-97032       # go_toolchain race condition — RIE only
+CVE-2026-78669       # go_toolchain resource exhaustion — RIE only
+CVE-2026-78667       # go_toolchain resource exhaustion — RIE only
+CVE-2026-97031       # go_toolchain resource exhaustion — RIE only
+CVE-2026-78659       # go_toolchain resource exhaustion — RIE only
+CVE-2026-56866        # go_toolchain resource exhaustion — RIE only
+CVE-2026-78660        # go_toolchain resource exhaustion — RIE only
+CVE-2026-94439        # go_toolchain resource exhaustion — RIE only
+CVE-2026-94440        # go_toolchain resource exhaustion — RIE only
+CVE-2026-94448        # go_toolchain request smuggling (medium) — RIE only
+CVE-2026-97030        # go_toolchain request smuggling (medium) — RIE only
+CVE-2026-111943       # go_toolchain cert validation — RIE only
+CVE-2026-114437       # go-chi trust boundary — RIE only
+CVE-2026-97054         # go_toolchain, next patch level — RIE only
 
-# golang.org/x/sys v0.21.0 → v0.44.0 required
-CVE-2026-39824       # Windows-only integer overflow — Linux runtime, code path never executed
+# --- libxml2 (AL2023 system package; fix needed: .0.20 -> .0.21) ---
+# Not used at runtime: app parsing goes through lxml's own bundled libxml2.
+CVE-2026-74860  # heap buffer overflow — unused system libxml2
+CVE-2026-86140  # buffer overflow — unused system libxml2
+CVE-2026-86138  # integer overflow — unused system libxml2
+CVE-2026-86144  # unsafe reflection-equivalent issue — unused system libxml2
+CVE-2026-86142  # heap buffer overflow — unused system libxml2
+CVE-2026-86143  # integer overflow — unused system libxml2
+CVE-2026-86137  # out-of-bounds read (medium) — unused system libxml2
+CVE-2026-76781  # NULL pointer dereference (medium) — unused system libxml2
 
-# Accepted risk: unpatched AL2023 OS packages in public.ecr.aws/lambda/python:3.14
-# that are not reachable from the drillapi Lambda handler at runtime.
-#
-# As of 2026-10-07, `dnf upgrade -y --refresh` (already run in Dockerfile.lambda)
-# reports "Nothing to do" for all of these — the patched RPMs have not yet been
-# published by AWS to the AL2023 repo. We cannot fix these ourselves; they will
-# clear automatically once AWS ships the updated packages and the image is rebuilt.
-# Re-verify with `dnf upgrade --refresh` on each dependency update and remove the
-# corresponding entries below once patched versions are actually installed.
-#
-# Verified unreachable, package by package:
-#
-# - libxml2 2.10.4-1.amzn2023.0.20 (fix: .0.21): `rpm -q --whatrequires libxml2`
-#   returns no results — no other installed package depends on it. The app's only
-#   XML/GML parsing (src/drillapi/services/processing.py) goes through `lxml`,
-#   which bundles its own statically-linked libxml2 2.14.6 and never calls into
-#   the system library. Confirmed via `lxml.etree.LIBXML_COMPILED_VERSION`.
-#
-# - rpm / rpm-libs 4.16.1.3-29.amzn2023.0.7 (fix: .0.8): only used by the `rpm`/
-#   `dnf` package managers during image build (e.g. the `dnf upgrade` step in
-#   Dockerfile.lambda). Never invoked by the Lambda handler while processing a
-#   request.
-#
-# - curl-minimal / libcurl-minimal 8.21.0-5.amzn2023.0.1 (fix: .0.2): `rpm -q
-#   --whatrequires curl-minimal libcurl-minimal` returns no results. The app's
-#   outbound HTTP calls go through `httpx`, which does not link against libcurl.
-#
-# - pcre2 / pcre2-syntax 10.40-1.amzn2023.0.3 (fix: .0.4): the only dependent is
-#   `libselinux`, unrelated to request handling.
+# --- rpm / rpm-libs (AL2023 system package; fix needed: .0.7 -> .0.8) ---
+# Build-time package manager only; never invoked by the running handler.
+CVE-2026-78367   # command injection — build-time tool only
+CVE-2026-84233   # OS command injection — build-time tool only
+CVE-2026-84837   # OS command injection (high) — build-time tool only
+CVE-2026-95519   # OS command injection (high) — build-time tool only
+CVE-2026-103242  # heap buffer overflow (high) — build-time tool only
 
-# libxml2 2.10.4-1.amzn2023.0.20 → 0.21 required (unreachable, see above)
-CVE-2026-74860  # libxml2 — heap buffer overflow, CWE-763 — unreachable, lxml bundles its own libxml2
-CVE-2026-86140  # libxml2 — buffer overflow, CWE-121/120 — unreachable, lxml bundles its own libxml2
-CVE-2026-86138  # libxml2 — integer overflow, CWE-190 — unreachable, lxml bundles its own libxml2
-CVE-2026-86144  # libxml2 — unsafe reflection-equivalent issue, CWE-669 — unreachable, lxml bundles its own libxml2
-CVE-2026-86142  # libxml2 — heap buffer overflow, CWE-122/805 — unreachable, lxml bundles its own libxml2
-CVE-2026-86143  # libxml2 — integer overflow, CWE-192 — unreachable, lxml bundles its own libxml2
-CVE-2026-86137  # libxml2 — out-of-bounds read, CWE-125 (medium) — unreachable, lxml bundles its own libxml2
+# --- pcre2 / pcre2-syntax (AL2023 system package; fix needed: .0.3 -> .0.4) ---
+# Only pulled in by libselinux; unrelated to request handling.
+CVE-2026-89161   # ReDoS / improper handling — unused, libselinux-only dependency
+CVE-2026-86145   # heap buffer overflow — unused, libselinux-only dependency
+CVE-2026-103111  # buffer overflow — unused, libselinux-only dependency
+CVE-2026-89160   # out-of-bounds read — unused, libselinux-only dependency
+CVE-2026-89156   # out-of-bounds read — unused, libselinux-only dependency
 
-# rpm / rpm-libs 4.16.1.3-29.amzn2023.0.7 → 0.8 required (unreachable, see above)
-CVE-2026-78367  # rpm — command injection, CWE-94 — build-time tool only, not invoked by handler
-CVE-2026-84233  # rpm — OS command injection, CWE-78 — build-time tool only, not invoked by handler
+# --- curl-minimal / libcurl-minimal (AL2023 system package; fix needed: .0.1 -> .0.4) ---
+# App's HTTP client is httpx, which does not link against libcurl.
+CVE-2026-80230  # cert/auth handling — unused system libcurl
+CVE-2026-92392  # use-after-free — unused system libcurl
+CVE-2026-19931  # HTTP connection reuse / auth confusion (critical, public exploit) — unused system libcurl
+CVE-2026-18924  # use-after-free (critical, public exploit) — unused system libcurl
 
-# pcre2 / pcre2-syntax 10.40-1.amzn2023.0.3 → 0.4 required (unreachable, see above)
-CVE-2026-89161  # pcre2 — ReDoS / improper handling, CWE-590/1341 — only pulled in by libselinux
+# --- glibc / glibc-common / glibc-minimal-langpack (AL2023 system package; fix needed: .0.5 -> .0.6) ---
+# glibc IS genuinely loaded by the app, unlike the packages above. This finding
+# is accepted for a narrower reason specific to its precondition — see the
+# private advisory for the verification evidence.
+CVE-2026-86805  # ld.so $ORIGIN TOCTOU privilege escalation (high, local-attacker + setuid/setgid target required)
 
-# curl-minimal / libcurl-minimal 8.21.0-5.amzn2023.0.1 → 0.2 required (unreachable, see above)
-CVE-2026-80230  # curl — improper certificate/authentication handling, CWE-295/303 — app uses httpx, not libcurl
+# --- krb5-libs (AL2023 system package; fix needed: .0.1 -> .0.2) ---
+# No Kerberos/GSSAPI code path anywhere in the app.
+ALAS2023-2026-3182  # unspecified (Amazon Inspector advisory) — unused system krb5-libs
 
-# Accepted risk: additional aws-lambda-rie findings (v0.2.4 release scan, 2026-10-19)
-# against a newer go_toolchain tag (1.26.7, fixed upstream in 1.26.9) of the SAME
-# RIE binary already covered above. Identical reasoning applies: the RIE
-# (/usr/local/bin/aws-lambda-rie) is only exercised during local `docker run`
-# testing. In deployed Lambda, AWS's internal runtime supervisor replaces it
-# entirely — this binary is never loaded or executed in production. Zero
-# production attack surface regardless of CVSS/severity rating.
-CVE-2026-78663  # aws-lambda-rie — QUIC double flow-control credit refund, CWE-675/770 (critical) — RIE only, not loaded in production
-CVE-2026-97032  # aws-lambda-rie — race condition, CWE-362/366 — RIE only, not loaded in production
-CVE-2026-78669  # aws-lambda-rie — resource exhaustion, CWE-405/770 — RIE only, not loaded in production
-CVE-2026-78667  # aws-lambda-rie — resource exhaustion, CWE-770 — RIE only, not loaded in production
-CVE-2026-97031  # aws-lambda-rie — resource exhaustion, CWE-405/770 — RIE only, not loaded in production
-CVE-2026-78659  # aws-lambda-rie — resource exhaustion, CWE-405 — RIE only, not loaded in production
-CVE-2026-56866  # aws-lambda-rie — resource exhaustion, CWE-444 — RIE only, not loaded in production
-CVE-2026-78660  # aws-lambda-rie — resource exhaustion, CWE-444 — RIE only, not loaded in production
-CVE-2026-94439  # aws-lambda-rie — resource exhaustion, CWE-444 — RIE only, not loaded in production
-CVE-2026-94440  # aws-lambda-rie — resource exhaustion, CWE-770 — RIE only, not loaded in production
-CVE-2026-94448  # aws-lambda-rie — request smuggling / XSS, CWE-79 (medium) — RIE only, not loaded in production
-CVE-2026-97030  # aws-lambda-rie — request smuggling / XSS, CWE-79 (medium) — RIE only, not loaded in production
+# --- openssl (AL2023 system package; fix needed: .0.1 -> .0.3) ---
+# Genuinely used for every outbound HTTPS call. Each entry below is accepted
+# per a SPECIFIC unused feature path (QUIC, DTLS, CMP, mid-handshake SNI swap,
+# SM2 signing, or a narrow/bounded blast radius for CRLDP) — not a blanket
+# "library unreachable" claim. See the private advisory for the per-CVE path.
+CVE-2026-75804  # QUIC flow control — feature unused (httpx/httpcore is TCP-only)
+CVE-2026-84784  # QUIC connection-ID backlog — feature unused
+CVE-2026-54873  # QUIC fragment metadata DoS — feature unused
+CVE-2026-42772  # QUIC fragment reassembly DoS — feature unused
+CVE-2026-35191  # QUIC amplification credit (low) — feature unused
+CVE-2026-84782  # DTLS retransmission buffer — feature unused (TCP-only client)
+CVE-2026-75806  # DTLS AEAD record DoS — feature unused (TCP-only client)
+CVE-2026-75805  # CMP client NULL deref — feature unused
+CVE-2026-72897  # mid-handshake SSL_CTX swap — feature unused (no TLS server)
+CVE-2026-54872  # EC/SM2 timing side-channel — feature unused (no signing)
+CVE-2026-35189  # CRLDP heap allocation DoS — narrow/bounded, see private advisory
 
-# Accepted risk: openssl 3.5.8-1.amzn2023.0.1 (fix: .0.3) in public.ecr.aws/lambda/python:3.14,
-# owned by package `openssl-snapsafe-libs` / `openssl-fips-provider-latest`.
+# --- ca-certificates (AL2023 system package; fix needed: .0.3 -> .0.4) ---
+# httpx passes a non-empty cafile (certifi's bundle), so the OS ca-certificates
+# store is never loaded (verified against cpython's ssl module source).
+CVE-2026-113470  # improper certificate validation — unused system ca-certificates store
 #
-# UNLIKE the libxml2 entries above, this library IS genuinely loaded and used:
-# `python3 -c "import ssl; print(ssl.OPENSSL_VERSION)"` reports this exact
-# version, and every outbound HTTPS call this app makes (via httpx, to the
-# ~20 hardcoded cantonal WMS/ESRI geoservice domains defined in
-# cantons_configuration/data/*.yaml) goes through it. As of 2026-10-19,
-# `dnf upgrade -y --refresh` (already run in Dockerfile.lambda) still reports
-# "Nothing to do" — AWS has not yet published the patched RPM. We cannot fix
-# this ourselves; re-verify with `dnf upgrade --refresh` on each dependency
-# update and remove these entries once the patched version is actually
-# installed.
-#
-# Each CVE below is suppressed because the specific vulnerable FEATURE PATH is
-# never exercised by this app's TLS client usage, not because the library as a
-# whole is unreachable:
-#
-# - QUIC-stack bugs (75804, 84784, 54873, 42772, 35191): require OpenSSL's
-#   native QUIC/HTTP-3 implementation. httpcore 1.0.9 (verified installed)
-#   implements only HTTP/1.1 and HTTP/2 over TCP+TLS — there is no QUIC
-#   transport anywhere in httpx/httpcore to invoke this code.
-#
-# - DTLS bugs (84782, 75806): DTLS runs over UDP; httpx/httpcore only ever
-#   open TCP connections. This code is linked into libssl but never called.
-#
-# - CMP client bug (75805): Certificate Management Protocol (RFC 4210) is an
-#   unrelated OpenSSL feature for CA enrollment. Nothing in this app or its
-#   dependencies performs CMP operations.
-#
-# - SSL_set_SSL_CTX mid-handshake swap (72897): a server-side SNI pattern
-#   (swapping cert context based on ClientHello). This app runs no TLS server;
-#   outbound `ssl.SSLContext` objects are created once per client connection
-#   and never swapped mid-handshake.
-#
-# - EC/SM2 timing side-channel (54872): requires the local process to *sign*
-#   with SM2 or non-NIST curves lacking constant-time code. This app only does
-#   outbound TLS client handshakes (standard ECDHE on NIST curves); it never
-#   generates ECDSA/SM2 signatures.
-#
-# - CRLDP memory DoS (35189): THE ONE CASE WITH A REAL, NARROW PATH. A
-#   malicious TLS server could serve a certificate with many CRL distribution
-#   points to trigger excessive heap allocation. Mitigating context: we only
-#   connect outbound to a small, hardcoded set of ~20 Swiss cantonal
-#   government WMS/ESRI endpoints (not user-controlled input), each call is
-#   bounded by a 10-20s httpx timeout, and Lambda invocations are short-lived
-#   and recycled. Worst case is a transient memory/latency hit on one
-#   invocation if a trusted government endpoint were itself compromised to
-#   serve a malicious cert — not data exposure, not code execution. Accepted
-#   given the narrow blast radius, pending AWS's patched RPM.
-CVE-2026-75804  # openssl — QUIC stream flow control not enforced, CWE-770 — no QUIC transport in httpx/httpcore
-CVE-2026-84784  # openssl — QUIC unbounded RETIRE_CONNECTION_ID backlog, CWE-770 — no QUIC transport in httpx/httpcore
-CVE-2026-54873  # openssl — QUIC STREAM fragment metadata DoS, CWE-770 — no QUIC transport in httpx/httpcore
-CVE-2026-42772  # openssl — QUIC O(n^2) fragment reassembly CPU DoS, CWE-407 — no QUIC transport in httpx/httpcore
-CVE-2026-35191  # openssl — QUIC unvalidated amplification credit (low) — no QUIC transport in httpx/httpcore
-CVE-2026-84782  # openssl — DTLS stale retransmission buffer offset, CWE-125 — app never uses DTLS (UDP), httpx is TCP-only
-CVE-2026-75806  # openssl — DTLS 1.2 undersized AEAD record DoS, CWE-1284 — app never uses DTLS (UDP), httpx is TCP-only
-CVE-2026-75805  # openssl — CMP client NULL deref on revocation response, CWE-476 — app never performs CMP operations
-CVE-2026-72897  # openssl — out-of-bounds access after SSL_set_SSL_CTX() mid-handshake, CWE-787 — app runs no TLS server, never swaps SSL_CTX
-CVE-2026-54872  # openssl — timing side-channel in non-NIST EC/SM2 scalar multiplication, CWE-208 — app never signs with SM2/non-NIST curves
-CVE-2026-35189  # openssl — excessive heap allocation in relative CRLDP processing, CWE-770 — narrow risk, see note above; only ~20 trusted gov endpoints contacted
-
-# Accepted risk: krb5-libs 1.21.3-8.amzn2023.0.1 (fix: .0.2) in
-# public.ecr.aws/lambda/python:3.14. `rpm -q --whatrequires krb5-libs` returns
-# no results — no other installed package depends on it, and the app has no
-# Kerberos/GSSAPI code path (no SPNEGO auth, no AD/LDAP integration). As of
-# 2026-10-19, `dnf upgrade --refresh` reports "Nothing to do" for this package.
-ALAS2023-2026-3182  # krb5-libs — unspecified (Amazon Inspector advisory, no public CVE yet) — unreachable, no Kerberos code path
-
-# Accepted risk: additional aws-lambda-rie finding (go_toolchain 1.26.9, fixed
-# upstream in 1.26.10) of the SAME RIE binary already covered above. Identical
-# reasoning applies: the RIE (/usr/local/bin/aws-lambda-rie) is only exercised
-# during local `docker run` testing. In deployed Lambda, AWS's internal runtime
-# supervisor replaces it entirely - this binary is never loaded or executed in
-# production. Zero production attack surface regardless of CVSS/severity rating.
-CVE-2026-111943  # aws-lambda-rie - improper certificate validation, CWE-295 - RIE only, not loaded in production
-
-# Accepted risk: additional findings from the 2026-10-26 Inspector scan
-# (inspector_scan_40319343299.md), same packages/binary already covered above
-# but newer CVEs/fix versions. Re-verify with `dnf upgrade --refresh` on each
-# dependency update and remove once patched versions are actually installed.
-#
-# - pcre2 / pcre2-syntax 10.40-1.amzn2023.0.3 (fix now: .0.5, was .0.4): still
-#   only pulled in by libselinux (see rationale above), unreachable.
-#
-# - curl-minimal / libcurl-minimal 8.21.0-5.amzn2023.0.1 (fix now: .0.3, was
-#   .0.2): app uses httpx, not libcurl (see rationale above).
-#
-# - go-chi/chi v5.2.4 in /usr/local/bin/aws-lambda-rie (fix: v5.4.0): same
-#   embedded RIE binary already covered above -- only exercised during local
-#   `docker run` testing, never loaded in a deployed Lambda.
-#
-# - ca-certificates 2025.2.76-1.0.amzn2023.0.3 (fix: .0.4), CWE-295: NEW
-#   package, verified unreachable rather than assumed. httpx's default SSL
-#   context (verify=True, never overridden anywhere in processing.py) calls
-#   `ssl.create_default_context(cafile=certifi.where())`. Per cpython's ssl
-#   module source, passing a non-empty `cafile` means `load_default_certs()`
-#   -- the call that would load the OS ca-certificates bundle -- is never
-#   invoked. certifi's bundled CA store (kept current, see certifi>=2026.10.19
-#   pin above) is the only trust source ever consulted for the outbound WMS/ESRI
-#   calls to the ~20 hardcoded cantonal geoservice domains.
-
-CVE-2026-86145   # pcre2 - heap buffer overflow, CWE-424/787 - unreachable, only pulled in by libselinux
-CVE-2026-103111  # pcre2 - buffer overflow, CWE-787 - unreachable, only pulled in by libselinux
-CVE-2026-89160   # pcre2 - out-of-bounds read, CWE-125 - unreachable, only pulled in by libselinux
-CVE-2026-89156   # pcre2 - out-of-bounds read, CWE-125 - unreachable, only pulled in by libselinux
-CVE-2026-92392   # curl - use-after-free, CWE-416 - app uses httpx, not libcurl
-CVE-2026-114437  # aws-lambda-rie (go-chi/chi) - trust boundary / origin validation, CWE-348/346 - RIE only, not loaded in production
-CVE-2026-113470  # ca-certificates - improper certificate validation, CWE-295 - unreachable, httpx loads only certifi's bundle (verified via ssl.create_default_context source), never OS defaults
-
-# Accepted risk: newer CVE IDs from the latest Inspector scan against the SAME
-# AL2023 packages already documented as unreachable above. The scanner surfaced
-# the next advisory round on libxml2; the underlying reachability analysis is
-# unchanged (see the per-package notes above). As of this update,
-# `dnf upgrade -y --refresh` (already run in Dockerfile.lambda) still has no
-# patched RPM to install for it. Re-verify with `dnf upgrade --refresh` on each
-# dependency update and remove once a patched version is actually installed.
-#
-# NOT suppressed here: CVE-2026-114406 (ca-certificates, CRITICAL, CWE-295).
-# A critical finding is deliberately left visible rather than allowlisted, even
-# though the same verified-unreachable argument used for CVE-2026-113470 above
-# would technically apply (httpx passes a non-empty cafile, so cpython's ssl
-# module never loads the OS ca-certificates bundle). Critical-severity CVEs must
-# be reviewed and signed off explicitly, not buried in the ignore list. Track
-# and remove once AWS ships the patched RPM (fix: .0.5).
-#
-# - libxml2 2.10.4-1.amzn2023.0.21 (fix: .0.22): same package as the libxml2
-#   block above. No installed package depends on the system libxml2 and the
-#   app's XML/GML parsing goes through lxml's own statically-linked libxml2.
-CVE-2026-76781   # libxml2 — NULL pointer dereference, CWE-476 (medium) — unreachable, lxml bundles its own libxml2
-
-# Accepted risk: additional findings from the latest Inspector scan against
-# public.ecr.aws/lambda/python:3.14 (AL2023). Verified via `docker build --pull
-# --no-cache` that `dnf upgrade -y --refresh` (already run in Dockerfile.lambda)
-# reports "Nothing to do" for every package below — no patched RPM is published
-# yet. Re-verify with `dnf upgrade --refresh` on each dependency update and
-# remove once a patched version is actually installed.
-#
-# NOT suppressed here: CVE-2026-114406 (ca-certificates, CRITICAL, CWE-295),
-# still deliberately left visible — see the note above. It is NOT part of this
-# batch; critical findings require their own explicit sign-off, not inclusion
-# by association with other packages in the same scan.
-#
-# - curl-minimal / libcurl-minimal 8.21.0-5.amzn2023.0.3 (fix: .0.4): verified
-#   `rpm -q --whatrequires curl-minimal libcurl-minimal` returns no results —
-#   nothing in the image depends on it. The app's outbound HTTP calls go
-#   through `httpx`, which does not link against libcurl (same reasoning as the
-#   curl entries already accepted above).
-#   - CVE-2026-19931 (CVSS 9.8, exploit publicly available) is an HTTP
-#     connection-reuse flaw: libcurl can wrongly replay another user's
-#     Negotiate/Kerberos-authenticated connection. Requires the application to
-#     actually use libcurl's connection pool with Negotiate auth. We never call
-#     libcurl at all, let alone with Negotiate auth, so the vulnerable code path
-#     is never reached regardless of exploit availability.
-#   - CVE-2026-18924 (CVSS 9.1, exploit publicly available) is a memory
-#     corruption (use-after-free) bug inside libcurl itself. Same reasoning:
-#     the library is never invoked by this image.
-#
-# - rpm / rpm-libs 4.16.1.3-29.amzn2023.0.8 (fix: .0.9): verified
-#   `rpm -q --whatrequires rpm rpm-libs` returns no results (only rpm-libs's own
-#   internal dependency on rpm). Same reasoning as the rpm entries already
-#   accepted above — only exercised by `dnf`/`rpm` during image build, never by
-#   the running Lambda handler.
-#   - CVE-2026-84837, CVE-2026-95519 (CWE-78, OS command injection, high 7.8):
-#     require invoking the rpm/dnf CLI with attacker-controlled arguments.
-#     Nothing in the request path calls rpm or dnf.
-#   - CVE-2026-103242 (CWE-122, heap buffer overflow, high 7.1): same package,
-#     same unreachable code path.
-#
-# - glibc / glibc-common / glibc-minimal-langpack 2.34-231.amzn2023.0.5
-#   (fix: .0.6), CVE-2026-86805 (CWE-367, TOCTOU race condition, high 7.0):
-#   UNLIKE curl/rpm above, glibc genuinely is loaded and used constantly (the
-#   Python interpreter and every native extension link against it), so
-#   "unreachable" doesn't apply to the library as a whole. This specific bug is
-#   narrower: a time-of-check/time-of-use race in ld.so's expansion of $ORIGIN
-#   in DT_RPATH, exploitable only when a LOCAL attacker races a SETUID/SETGID
-#   binary that is itself invoked. Verified by walking the entire image
-#   filesystem for any file with the setuid or setgid bit set: NONE FOUND. With
-#   no setuid/setgid binary present, the vulnerable ld.so path has no target to
-#   exploit. Additionally, a Lambda execution environment runs a single
-#   function's code with no second local user to race against.
-#
-# - aws-lambda-rie go_toolchain 1.26.9 (fix: 1.26.11), CVE-2026-97054 (other
-#   severity): the SAME embedded RIE binary (/usr/local/bin/aws-lambda-rie)
-#   already covered by the RIE entries above, just the next go_toolchain patch
-#   level. Only exercised during local `docker run` testing; AWS's internal
-#   runtime supervisor replaces it entirely in a deployed Lambda, so this
-#   binary is never loaded in production regardless of toolchain version.
-CVE-2026-19931   # curl — HTTP connection reuse / auth confusion, CWE-488 (critical, exploit available) — unreachable, app uses httpx not libcurl
-CVE-2026-18924   # curl — use-after-free, CWE-416 (critical, exploit available) — unreachable, app uses httpx not libcurl
-CVE-2026-84837   # rpm — OS command injection, CWE-78 (high) — unreachable, build-time tool only, not invoked by handler
-CVE-2026-95519   # rpm — OS command injection, CWE-78 (high) — unreachable, build-time tool only, not invoked by handler
-CVE-2026-103242  # rpm — heap buffer overflow, CWE-122 (high) — unreachable, build-time tool only, not invoked by handler
-CVE-2026-86805   # glibc — ld.so $ORIGIN TOCTOU privilege escalation, CWE-367 (high, local-only) — no setuid/setgid binary exists in the image to exploit
-CVE-2026-97054   # aws-lambda-rie — go_toolchain vulnerability (other) — RIE only, not loaded in production
+# NOT suppressed: CVE-2026-114406 (ca-certificates, CRITICAL, CWE-295, fix
+# needed: .0.4 -> .0.5). The same verified-unreachable argument above would
+# technically apply, but critical-severity findings require their own
+# explicit maintainer sign-off rather than inclusion by association with a
+# lower-severity sibling finding on the same package. Left visible on purpose.
