@@ -210,3 +210,24 @@ CVE-2026-89156   # pcre2 - out-of-bounds read, CWE-125 - unreachable, only pulle
 CVE-2026-92392   # curl - use-after-free, CWE-416 - app uses httpx, not libcurl
 CVE-2026-114437  # aws-lambda-rie (go-chi/chi) - trust boundary / origin validation, CWE-348/346 - RIE only, not loaded in production
 CVE-2026-113470  # ca-certificates - improper certificate validation, CWE-295 - unreachable, httpx loads only certifi's bundle (verified via ssl.create_default_context source), never OS defaults
+
+# Accepted risk: newer CVE IDs from the latest Inspector scan against the SAME
+# AL2023 packages already documented as unreachable above. The scanner surfaced
+# the next advisory round on libxml2; the underlying reachability analysis is
+# unchanged (see the per-package notes above). As of this update,
+# `dnf upgrade -y --refresh` (already run in Dockerfile.lambda) still has no
+# patched RPM to install for it. Re-verify with `dnf upgrade --refresh` on each
+# dependency update and remove once a patched version is actually installed.
+#
+# NOT suppressed here: CVE-2026-114406 (ca-certificates, CRITICAL, CWE-295).
+# A critical finding is deliberately left visible rather than allowlisted, even
+# though the same verified-unreachable argument used for CVE-2026-113470 above
+# would technically apply (httpx passes a non-empty cafile, so cpython's ssl
+# module never loads the OS ca-certificates bundle). Critical-severity CVEs must
+# be reviewed and signed off explicitly, not buried in the ignore list. Track
+# and remove once AWS ships the patched RPM (fix: .0.5).
+#
+# - libxml2 2.10.4-1.amzn2023.0.21 (fix: .0.22): same package as the libxml2
+#   block above. No installed package depends on the system libxml2 and the
+#   app's XML/GML parsing goes through lxml's own statically-linked libxml2.
+CVE-2026-76781   # libxml2 — NULL pointer dereference, CWE-476 (medium) — unreachable, lxml bundles its own libxml2
