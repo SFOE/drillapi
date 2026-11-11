@@ -18,6 +18,7 @@ import pytest
 import respx
 
 from drillapi.services.processing import (
+    _parse_wfs_features,
     _wfs_response_has_feature,
     fetch_features_for_point,
     get_canton_from_coordinates,
@@ -254,15 +255,32 @@ def test_process_ground_category_max_value_wins():
     assert "Forbidden" in result.source_values
 
 
-# --- WFS presence-based support (ZH) ---
+# --- WFS support (presence- and attribute-based) ---
 
-_WFS_WITH_FEATURE = (
+# A presence-only feature (geometry only, no attributes) — ZH zone layers.
+_WFS_PRESENCE_ONLY = (
     b'<?xml version="1.0" encoding="UTF-8"?>'
     b'<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0" '
+    b'xmlns:gml="http://www.opengis.net/gml/3.2" '
     b'xmlns:ms="http://mapserver.gis.umn.edu/mapserver" '
     b'numberMatched="1" numberReturned="1">'
-    b'<wfs:member><ms:waermenutzung-zone-b gml:id="waermenutzung-zone-b.1"/>'
-    b"</wfs:member></wfs:FeatureCollection>"
+    b'<wfs:member><ms:waermenutzung-zone-b gml:id="waermenutzung-zone-b.1">'
+    b'<ms:msGeometry><gml:Polygon gml:id="p.1"/></ms:msGeometry>'
+    b"</ms:waermenutzung-zone-b></wfs:member></wfs:FeatureCollection>"
+)
+
+# An attribute-carrying feature (BL ohne_a style: ov_kategor + geometry).
+_WFS_WITH_ATTR = (
+    b'<?xml version="1.0" encoding="UTF-8"?>'
+    b'<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0" '
+    b'xmlns:gml="http://www.opengis.net/gml/3.2" '
+    b'xmlns:ms="http://mapserver.gis.umn.edu/mapserver" '
+    b'numberMatched="1" numberReturned="1">'
+    b'<wfs:member><ms:erdwaerme_uebersicht_ohne_a gml:id="f.1">'
+    b'<ms:geom><gml:Polygon gml:id="p.1"/></ms:geom>'
+    b"<ms:ov_kategor>C</ms:ov_kategor>"
+    b"<ms:ov_kategor_txt>Fall C</ms:ov_kategor_txt>"
+    b"</ms:erdwaerme_uebersicht_ohne_a></wfs:member></wfs:FeatureCollection>"
 )
 
 _WFS_EMPTY = (
@@ -281,7 +299,7 @@ _WFS_EXCEPTION = (
 
 def test_wfs_response_has_feature_true():
     """numberReturned > 0 means the layer intersects the point."""
-    assert _wfs_response_has_feature(_WFS_WITH_FEATURE) is True
+    assert _wfs_response_has_feature(_WFS_PRESENCE_ONLY) is True
 
 
 def test_wfs_response_has_feature_false():
@@ -302,6 +320,29 @@ def test_wfs_response_exception_raises():
     """A WFS exception report must raise so the caller flags the geoservice."""
     with pytest.raises(ValueError, match="service exception"):
         _wfs_response_has_feature(_WFS_EXCEPTION)
+
+
+def test_parse_wfs_features_presence_only():
+    """A geometry-only feature parses to an (attribute-less) dict."""
+    feats = _parse_wfs_features(_WFS_PRESENCE_ONLY)
+    assert len(feats) == 1
+    # Geometry is skipped, so no attribute keys remain.
+    assert feats[0] == {}
+
+
+def test_parse_wfs_features_with_attributes():
+    """Attribute tags are parsed (namespace-stripped); geometry is skipped."""
+    feats = _parse_wfs_features(_WFS_WITH_ATTR)
+    assert len(feats) == 1
+    assert feats[0]["ov_kategor"] == "C"
+    assert feats[0]["ov_kategor_txt"] == "Fall C"
+    assert "geom" not in feats[0]
+
+
+def test_parse_wfs_features_exception_raises():
+    """An exception report raises instead of returning an empty list."""
+    with pytest.raises(ValueError, match="service exception"):
+        _parse_wfs_features(_WFS_EXCEPTION)
 
 
 _ZH_WFS_CONFIG = {
@@ -329,12 +370,12 @@ _ZH_WFS_CONFIG = {
 @pytest.mark.asyncio
 @respx.mock
 async def test_fetch_wfs_presence_tags_matching_layer():
-    """A WFS layer that returns a feature is tagged with its layerName."""
+    """A presence-only WFS layer that returns a feature is tagged with layerName."""
     route = respx.get("https://maps.zh.ch/wfs/AwelGSWaermewwwZHWFS")
 
     def _responder(request):
         if "waermenutzung-zone-b" in str(request.url):
-            return httpx.Response(200, content=_WFS_WITH_FEATURE)
+            return httpx.Response(200, content=_WFS_PRESENCE_ONLY)
         return httpx.Response(200, content=_WFS_EMPTY)
 
     route.mock(side_effect=_responder)
@@ -347,6 +388,110 @@ async def test_fetch_wfs_presence_tags_matching_layer():
     gc = process_ground_category(result["features"], _ZH_WFS_CONFIG["layers"])
     assert gc.harmonized_value == 2
     assert gc.source_values == "Zone B"
+
+
+_BL_WFS_CONFIG = {
+    "name": "BL",
+    "info_format": "application/wfs",
+    "bbox_delta": 10,
+    "query_url": "https://geowms.bl.ch/",
+    # Fall A is encoded as a hole in ohne_a: no feature -> this default.
+    "default_harmonized_value": 3,
+    "layers": [
+        {
+            "name": "erdwaerme_uebersicht_ohne_a",
+            "property_name": "ov_kategor",
+            "geometry_property": "geom",
+            "property_values": [
+                {"name": "C", "target_harmonized_value": 1, "desc": "Fall C"},
+                {"name": "B", "target_harmonized_value": 2, "desc": "Fall B"},
+            ],
+        },
+    ],
+}
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_fetch_wfs_uses_intersects_point_filter():
+    """The WFS request uses a point INTERSECTS filter, not a bbox."""
+    route = respx.get("https://geowms.bl.ch/").mock(
+        return_value=httpx.Response(200, content=_WFS_WITH_ATTR)
+    )
+
+    await fetch_features_for_point(2620000, 1260000, _BL_WFS_CONFIG)
+
+    sent = str(route.calls.last.request.url)
+    assert "FILTER=" in sent
+    assert "Intersects" in sent
+    assert "BBOX=" not in sent
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_fetch_wfs_attribute_matching():
+    """An attribute-carrying WFS layer maps ov_kategor -> harmonized value."""
+    respx.get("https://geowms.bl.ch/").mock(
+        return_value=httpx.Response(200, content=_WFS_WITH_ATTR)
+    )
+
+    result = await fetch_features_for_point(2622256, 1258565, _BL_WFS_CONFIG)
+
+    assert result.get("geoservice_unavailable") is None
+    assert result["features"] == [
+        {
+            "ov_kategor": "C",
+            "ov_kategor_txt": "Fall C",
+            "layerName": "erdwaerme_uebersicht_ohne_a",
+        }
+    ]
+
+    gc = process_ground_category(
+        result["features"],
+        _BL_WFS_CONFIG["layers"],
+        _BL_WFS_CONFIG["default_harmonized_value"],
+    )
+    assert gc.harmonized_value == 1
+    assert gc.source_values == "Fall C"
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_fetch_wfs_fall_a_hole_uses_default():
+    """A Fall A location returns no ohne_a feature, so the canton default (3) wins."""
+    respx.get("https://geowms.bl.ch/").mock(
+        return_value=httpx.Response(200, content=_WFS_EMPTY)
+    )
+
+    result = await fetch_features_for_point(2623369, 1261302, _BL_WFS_CONFIG)
+
+    assert result.get("geoservice_unavailable") is None
+    assert result["features"] == []
+
+    gc = process_ground_category(
+        result["features"],
+        _BL_WFS_CONFIG["layers"],
+        _BL_WFS_CONFIG["default_harmonized_value"],
+    )
+    assert gc.harmonized_value == 3
+
+
+def test_process_ground_category_default_override():
+    """default_harmonized_value replaces the hardcoded 4 fallback when set."""
+    result = process_ground_category(
+        [{"some": "thing"}],
+        [
+            {
+                "name": "l",
+                "property_name": "cat",
+                "property_values": [
+                    {"name": "X", "target_harmonized_value": 1, "desc": "x"}
+                ],
+            }
+        ],
+        default_harmonized_value=3,
+    )
+    assert result.harmonized_value == 3
 
 
 @pytest.mark.asyncio

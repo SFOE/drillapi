@@ -101,6 +101,7 @@ async def get_drill_category(
     processed_ground_category = processing.process_ground_category(
         result["features"],
         canton_config["layers"],
+        canton_config.get("default_harmonized_value", 4),
     )
 
     # Fill the model with full data - all process worked for this location

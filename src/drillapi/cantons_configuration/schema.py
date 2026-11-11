@@ -85,6 +85,12 @@ class Layer(BaseModel):
     id: int | None = None
     # Optional human-readable layer description (FR only today).
     desc: str | None = None
+    # WFS-only: the feature type name to query if it differs from `ms:<name>`.
+    wfs_type_name: str | None = None
+    # WFS-only: the geometry property used in the point INTERSECTS filter.
+    # Defaults to "geom" in processing; MapServer layers sometimes use
+    # "msGeometry" instead.
+    geometry_property: str | None = None
 
 
 # A ground-control-point row: [east, north, expected_harmonized, label?, extra?]
@@ -137,6 +143,11 @@ class CantonConfig(BaseModel):
     bbox_delta: int = 10
     style: str = ""
     layers: list[Layer] = Field(min_length=1)
+
+    # Harmonized value returned when no layer matches. Defaults to 4 (UNKNOWN).
+    # Cantons that encode a category as feature-absence (BL: Fall A -> 3) set
+    # this explicitly.
+    default_harmonized_value: GroundSuitability | None = None
 
     # Legacy / currently-unused fields (LU only). Retained for lossless
     # round-tripping; see HarmonyMapEntry.
