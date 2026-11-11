@@ -105,8 +105,16 @@ CVE-2026-35189  # CRLDP heap allocation DoS — narrow/bounded, see private advi
 # store is never loaded (verified against cpython's ssl module source).
 CVE-2026-113470  # improper certificate validation — unused system ca-certificates store
 #
-# NOT suppressed: CVE-2026-114406 (ca-certificates, CRITICAL, CWE-295, fix
-# needed: .0.4 -> .0.5). The same verified-unreachable argument above would
-# technically apply, but critical-severity findings require their own
-# explicit maintainer sign-off rather than inclusion by association with a
-# lower-severity sibling finding on the same package. Left visible on purpose.
+# CVE-2026-114406 (ca-certificates, CRITICAL, CWE-295, fix needed: .0.4 -> .0.5):
+# the eMudhra intermediate-CA key compromise (Oct 2026) — a MITM could present a
+# cert signed by the compromised root that the OS trust store still trusts. This
+# is a trust-store CONTENT issue, not an unreachable code path, so it is accepted
+# on a different (stronger) basis than the sibling entry above: the app's only
+# outbound TLS (httpx in services/processing.py, default verify=True, no custom
+# SSLContext/cafile anywhere) trusts CERTIFI's bundle, not the OS store — and
+# certifi (pinned >=2026.10.19, resolved 2026.10.23) has already removed the
+# compromised eMudhra roots. So the bad certs are rejected regardless of the OS
+# store's state. The certifi pin is the actual mitigation and MUST stay current.
+# Explicitly reviewed and signed off as a critical (not auto-suppressed by
+# association). Remove once AWS ships the patched RPM (.0.5).
+CVE-2026-114406  # ca-certificates eMudhra CA compromise (CRITICAL) — accepted: app trusts certifi's bundle (eMudhra already removed), not the OS store
