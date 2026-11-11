@@ -18,6 +18,8 @@ import pytest
 import respx
 
 from drillapi.services.processing import (
+    _wfs_response_has_feature,
+    fetch_features_for_point,
     get_canton_from_coordinates,
     normalize_string,
     parse_wms_getfeatureinfo,
@@ -250,3 +252,125 @@ def test_process_ground_category_max_value_wins():
 
     assert result.harmonized_value == 3
     assert "Forbidden" in result.source_values
+
+
+# --- WFS presence-based support (ZH) ---
+
+_WFS_WITH_FEATURE = (
+    b'<?xml version="1.0" encoding="UTF-8"?>'
+    b'<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0" '
+    b'xmlns:ms="http://mapserver.gis.umn.edu/mapserver" '
+    b'numberMatched="1" numberReturned="1">'
+    b'<wfs:member><ms:waermenutzung-zone-b gml:id="waermenutzung-zone-b.1"/>'
+    b"</wfs:member></wfs:FeatureCollection>"
+)
+
+_WFS_EMPTY = (
+    b'<?xml version="1.0" encoding="UTF-8"?>'
+    b'<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0" '
+    b'numberMatched="unknown" numberReturned="0"></wfs:FeatureCollection>'
+)
+
+_WFS_EXCEPTION = (
+    b'<?xml version="1.0" encoding="UTF-8"?>'
+    b'<ows:ExceptionReport xmlns:ows="http://www.opengis.net/ows" version="2.0.0">'
+    b'<ows:Exception exceptionCode="InvalidParameterValue"/>'
+    b"</ows:ExceptionReport>"
+)
+
+
+def test_wfs_response_has_feature_true():
+    """numberReturned > 0 means the layer intersects the point."""
+    assert _wfs_response_has_feature(_WFS_WITH_FEATURE) is True
+
+
+def test_wfs_response_has_feature_false():
+    """numberReturned == 0 means no feature at the point."""
+    assert _wfs_response_has_feature(_WFS_EMPTY) is False
+
+
+def test_wfs_response_has_feature_member_fallback():
+    """A member element counts as a feature when numberReturned is absent."""
+    content = (
+        b'<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0">'
+        b"<wfs:member/></wfs:FeatureCollection>"
+    )
+    assert _wfs_response_has_feature(content) is True
+
+
+def test_wfs_response_exception_raises():
+    """A WFS exception report must raise so the caller flags the geoservice."""
+    with pytest.raises(ValueError, match="service exception"):
+        _wfs_response_has_feature(_WFS_EXCEPTION)
+
+
+_ZH_WFS_CONFIG = {
+    "name": "ZH",
+    "info_format": "application/wfs",
+    "bbox_delta": 30,
+    "query_url": "https://maps.zh.ch/wfs/AwelGSWaermewwwZHWFS",
+    "layers": [
+        {
+            "name": "waermenutzung-zone-a",
+            "property_name": "waermenutzung-zone-a",
+            "target_harmonized_value": 3,
+            "desc": "Zone A",
+        },
+        {
+            "name": "waermenutzung-zone-b",
+            "property_name": "waermenutzung-zone-b",
+            "target_harmonized_value": 2,
+            "desc": "Zone B",
+        },
+    ],
+}
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_fetch_wfs_presence_tags_matching_layer():
+    """A WFS layer that returns a feature is tagged with its layerName."""
+    route = respx.get("https://maps.zh.ch/wfs/AwelGSWaermewwwZHWFS")
+
+    def _responder(request):
+        if "waermenutzung-zone-b" in str(request.url):
+            return httpx.Response(200, content=_WFS_WITH_FEATURE)
+        return httpx.Response(200, content=_WFS_EMPTY)
+
+    route.mock(side_effect=_responder)
+
+    result = await fetch_features_for_point(2681563, 1248410, _ZH_WFS_CONFIG)
+
+    assert result.get("geoservice_unavailable") is None
+    assert result["features"] == [{"layerName": "waermenutzung-zone-b"}]
+
+    gc = process_ground_category(result["features"], _ZH_WFS_CONFIG["layers"])
+    assert gc.harmonized_value == 2
+    assert gc.source_values == "Zone B"
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_fetch_wfs_exception_is_geoservice_unavailable():
+    """A WFS exception report surfaces as geoservice_unavailable, not 'no match'."""
+    respx.get("https://maps.zh.ch/wfs/AwelGSWaermewwwZHWFS").mock(
+        return_value=httpx.Response(200, content=_WFS_EXCEPTION)
+    )
+
+    result = await fetch_features_for_point(2681563, 1248410, _ZH_WFS_CONFIG)
+
+    assert result["geoservice_unavailable"] is True
+    assert result["features"] == []
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_fetch_wfs_http_error_is_geoservice_unavailable():
+    """A network/HTTP failure on a WFS layer flags the geoservice as unavailable."""
+    respx.get("https://maps.zh.ch/wfs/AwelGSWaermewwwZHWFS").mock(
+        side_effect=httpx.ConnectError("boom")
+    )
+
+    result = await fetch_features_for_point(2681563, 1248410, _ZH_WFS_CONFIG)
+
+    assert result["geoservice_unavailable"] is True

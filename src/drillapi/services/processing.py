@@ -27,6 +27,35 @@ def normalize_string(value: str) -> str:
         return value
 
 
+# WFS RESPONSE INSPECTION
+def _wfs_response_has_feature(content: bytes) -> bool:
+    """Return True if a WFS 2.0 GetFeature response contains >= 1 feature.
+
+    Presence-based matching (ZH) only needs to know whether a feature type
+    intersects the queried point, not its attributes. A WFS 2.0
+    ``FeatureCollection`` advertises ``numberReturned`` / ``numberMatched``;
+    we fall back to counting ``member`` / ``featureMember`` elements when the
+    count attribute is absent.
+
+    Raises:
+        ValueError: if the service returned an OWS/WFS exception report, so the
+            caller can surface it as a geoservice error instead of silently
+            treating it as "no feature found".
+    """
+    text = content.decode("utf-8", errors="ignore")
+
+    if "ExceptionReport" in text or "ServiceException" in text:
+        raise ValueError("WFS returned a service exception")
+
+    # Fast path: the collection declares how many features it returned.
+    match = re.search(r'numberReturned\s*=\s*"(\d+)"', text)
+    if match:
+        return int(match.group(1)) > 0
+
+    # Fallback: any (feature)member element indicates at least one feature.
+    return bool(re.search(r"<(?:\w+:)?(?:member|featureMember)\b", text))
+
+
 # CANTON LOOKUP (geo.admin.ch)
 async def get_canton_from_coordinates(coord_x: float, coord_y: float):
     """
@@ -126,6 +155,76 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                         "error": error_message,
                         "geoservice_unavailable": True,
                     }
+
+        # WFS GetFeature (presence-based)
+        #
+        # Some geoservices (ZH) no longer expose per-category attributes through
+        # WMS GetFeatureInfo: the zone layers were consolidated and
+        # GetFeatureInfo is disabled. The WFS, however, still publishes one
+        # feature type per category (e.g. ``waermenutzung-zone-a`` ..
+        # ``-zone-f`` and ``erdwaermesonden-auflagen``). Category membership is
+        # determined purely by *which* feature type returns a feature at the
+        # point, so we query each layer individually and tag any returned
+        # feature with ``layerName`` = the layer's configured ``name``. The
+        # presence-based branch of ``process_ground_category`` then matches
+        # ``layerName`` against each layer's ``property_name``.
+        elif "wfs" in info_format:
+            delta = config["bbox_delta"]
+            minx, miny = coord_x - delta, coord_y - delta
+            maxx, maxy = coord_x + delta, coord_y + delta
+            bbox = f"{minx},{miny},{maxx},{maxy},EPSG:2056"
+
+            query_url = config["query_url"]
+            urls = []
+            for layer in config["layers"]:
+                layer_name = layer["name"]
+                # WFS feature types are namespaced (``ms:<layer>`` on MapServer).
+                type_name = layer.get("wfs_type_name", f"ms:{layer_name}")
+                params_wfs = {
+                    "SERVICE": "WFS",
+                    "VERSION": "2.0.0",
+                    "REQUEST": "GetFeature",
+                    "TYPENAMES": type_name,
+                    "SRSNAME": "EPSG:2056",
+                    "COUNT": "1",
+                    "BBOX": bbox,
+                }
+                this_url = query_url
+                try:
+                    resp = await client.get(query_url, params=params_wfs)
+                    this_url = str(resp.request.url)
+                    urls.append(this_url)
+                    resp.raise_for_status()
+                except (httpx.HTTPError, httpx.StreamError) as e:
+                    error_message = f"WFS request failed: {e}"
+                    logger.error("%s — URL: %s", error_message, this_url or query_url)
+                    return {
+                        "features": [],
+                        "full_url": this_url or query_url,
+                        "error": error_message,
+                        "geoservice_unavailable": True,
+                    }
+
+                try:
+                    if _wfs_response_has_feature(resp.content):
+                        features.append({"layerName": layer_name})
+                except HTTPException:
+                    raise
+                except (ValueError, TypeError) as e:
+                    error_message = f"Failed to parse WFS response: {e}"
+                    logger.error("%s — URL: %s", error_message, this_url)
+                    return {
+                        "features": [],
+                        "full_url": this_url,
+                        "error": error_message,
+                        "geoservice_unavailable": True,
+                    }
+
+            return {
+                "features": features,
+                "full_url": "\n".join(urls),
+                "error": error_message,
+            }
 
         # WMS GetFeatureInfo
         else:
@@ -329,13 +428,24 @@ def process_ground_category(
                         mapped_values.append(item.get("target_harmonized_value"))
                         source_values.append(item.get("desc"))
 
-            # For some cantons, only the presence or absence of feature is used to define suitability
+            # For some cantons (ZH WFS), only the presence or absence of a
+            # feature defines suitability: the feature carries no attribute, so
+            # we match the layer by its tagged `layerName` instead of a value.
             else:
                 if layer_cfg.get("property_name") == feature.get("layerName"):
                     mapped_values.append(layer_cfg.get("target_harmonized_value"))
+                    desc = layer_cfg.get("desc")
+                    source_values.append(desc)
+                    layer_results.append(
+                        {
+                            "layer": layer_name,
+                            "property_name": property_name,
+                            "value": desc or layer_name,
+                        }
+                    )
 
         # Helping dict useful to identify issues. Only "harmonized_value" is useful for frontend application
-        if property_name_value:
+        if property_values and property_name_value:
             layer_results.append(
                 {
                     "layer": layer_name,
