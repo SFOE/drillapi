@@ -231,3 +231,68 @@ CVE-2026-113470  # ca-certificates - improper certificate validation, CWE-295 - 
 #   block above. No installed package depends on the system libxml2 and the
 #   app's XML/GML parsing goes through lxml's own statically-linked libxml2.
 CVE-2026-76781   # libxml2 — NULL pointer dereference, CWE-476 (medium) — unreachable, lxml bundles its own libxml2
+
+# Accepted risk: additional findings from the latest Inspector scan against
+# public.ecr.aws/lambda/python:3.14 (AL2023). Verified via `docker build --pull
+# --no-cache` that `dnf upgrade -y --refresh` (already run in Dockerfile.lambda)
+# reports "Nothing to do" for every package below — no patched RPM is published
+# yet. Re-verify with `dnf upgrade --refresh` on each dependency update and
+# remove once a patched version is actually installed.
+#
+# NOT suppressed here: CVE-2026-114406 (ca-certificates, CRITICAL, CWE-295),
+# still deliberately left visible — see the note above. It is NOT part of this
+# batch; critical findings require their own explicit sign-off, not inclusion
+# by association with other packages in the same scan.
+#
+# - curl-minimal / libcurl-minimal 8.21.0-5.amzn2023.0.3 (fix: .0.4): verified
+#   `rpm -q --whatrequires curl-minimal libcurl-minimal` returns no results —
+#   nothing in the image depends on it. The app's outbound HTTP calls go
+#   through `httpx`, which does not link against libcurl (same reasoning as the
+#   curl entries already accepted above).
+#   - CVE-2026-19931 (CVSS 9.8, exploit publicly available) is an HTTP
+#     connection-reuse flaw: libcurl can wrongly replay another user's
+#     Negotiate/Kerberos-authenticated connection. Requires the application to
+#     actually use libcurl's connection pool with Negotiate auth. We never call
+#     libcurl at all, let alone with Negotiate auth, so the vulnerable code path
+#     is never reached regardless of exploit availability.
+#   - CVE-2026-18924 (CVSS 9.1, exploit publicly available) is a memory
+#     corruption (use-after-free) bug inside libcurl itself. Same reasoning:
+#     the library is never invoked by this image.
+#
+# - rpm / rpm-libs 4.16.1.3-29.amzn2023.0.8 (fix: .0.9): verified
+#   `rpm -q --whatrequires rpm rpm-libs` returns no results (only rpm-libs's own
+#   internal dependency on rpm). Same reasoning as the rpm entries already
+#   accepted above — only exercised by `dnf`/`rpm` during image build, never by
+#   the running Lambda handler.
+#   - CVE-2026-84837, CVE-2026-95519 (CWE-78, OS command injection, high 7.8):
+#     require invoking the rpm/dnf CLI with attacker-controlled arguments.
+#     Nothing in the request path calls rpm or dnf.
+#   - CVE-2026-103242 (CWE-122, heap buffer overflow, high 7.1): same package,
+#     same unreachable code path.
+#
+# - glibc / glibc-common / glibc-minimal-langpack 2.34-231.amzn2023.0.5
+#   (fix: .0.6), CVE-2026-86805 (CWE-367, TOCTOU race condition, high 7.0):
+#   UNLIKE curl/rpm above, glibc genuinely is loaded and used constantly (the
+#   Python interpreter and every native extension link against it), so
+#   "unreachable" doesn't apply to the library as a whole. This specific bug is
+#   narrower: a time-of-check/time-of-use race in ld.so's expansion of $ORIGIN
+#   in DT_RPATH, exploitable only when a LOCAL attacker races a SETUID/SETGID
+#   binary that is itself invoked. Verified by walking the entire image
+#   filesystem for any file with the setuid or setgid bit set: NONE FOUND. With
+#   no setuid/setgid binary present, the vulnerable ld.so path has no target to
+#   exploit. Additionally, a Lambda execution environment runs a single
+#   function's code with no second local user to race against.
+#
+# - aws-lambda-rie go_toolchain 1.26.9 (fix: 1.26.11), CVE-2026-97054 (other
+#   severity): the SAME embedded RIE binary (/usr/local/bin/aws-lambda-rie)
+#   already covered by the RIE entries above, just the next go_toolchain patch
+#   level. Only exercised during local `docker run` testing; AWS's internal
+#   runtime supervisor replaces it entirely in a deployed Lambda, so this
+#   binary is never loaded in production regardless of toolchain version.
+CVE-2026-19931   # curl — HTTP connection reuse / auth confusion, CWE-488 (critical, exploit available) — unreachable, app uses httpx not libcurl
+CVE-2026-18924   # curl — use-after-free, CWE-416 (critical, exploit available) — unreachable, app uses httpx not libcurl
+CVE-2026-84837   # rpm — OS command injection, CWE-78 (high) — unreachable, build-time tool only, not invoked by handler
+CVE-2026-95519   # rpm — OS command injection, CWE-78 (high) — unreachable, build-time tool only, not invoked by handler
+CVE-2026-103242  # rpm — heap buffer overflow, CWE-122 (high) — unreachable, build-time tool only, not invoked by handler
+CVE-2026-86805   # glibc — ld.so $ORIGIN TOCTOU privilege escalation, CWE-367 (high, local-only) — no setuid/setgid binary exists in the image to exploit
+CVE-2026-97054   # aws-lambda-rie — go_toolchain vulnerability (other) — RIE only, not loaded in production
