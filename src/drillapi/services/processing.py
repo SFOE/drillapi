@@ -27,6 +27,106 @@ def normalize_string(value: str) -> str:
         return value
 
 
+# WFS RESPONSE INSPECTION
+# Geometry / envelope tags that are never classification attributes.
+_WFS_SKIP_TAGS = frozenset(
+    {
+        "boundedby",
+        "geometry",
+        "msgeometry",
+        "geom",
+        "polygon",
+        "multipolygon",
+        "multisurface",
+        "surface",
+        "envelope",
+        "point",
+        "linestring",
+        "shape",
+    }
+)
+
+
+def _wfs_response_has_feature(content: bytes) -> bool:
+    """Return True if a WFS 2.0 GetFeature response contains >= 1 feature.
+
+    Presence-based matching only needs to know whether a feature type
+    intersects the queried point, not its attributes. A WFS 2.0
+    ``FeatureCollection`` advertises ``numberReturned`` / ``numberMatched``;
+    we fall back to counting ``member`` / ``featureMember`` elements when the
+    count attribute is absent.
+
+    Raises:
+        ValueError: if the service returned an OWS/WFS exception report, so the
+            caller can surface it as a geoservice error instead of silently
+            treating it as "no feature found".
+    """
+    text = content.decode("utf-8", errors="ignore")
+
+    if "ExceptionReport" in text or "ServiceException" in text:
+        raise ValueError("WFS returned a service exception")
+
+    # Fast path: the collection declares how many features it returned.
+    match = re.search(r'numberReturned\s*=\s*"(\d+)"', text)
+    if match:
+        return int(match.group(1)) > 0
+
+    # Fallback: any (feature)member element indicates at least one feature.
+    return bool(re.search(r"<(?:\w+:)?(?:member|featureMember)\b", text))
+
+
+def _parse_wfs_features(content: bytes) -> list[dict]:
+    """Parse a WFS 2.0 GetFeature (GML) response into attribute dicts.
+
+    Returns one dict per feature, keyed by the (namespace-stripped) attribute
+    tag -> text value, skipping geometry/envelope elements. This supports both
+    attribute-based matching (e.g. BL ``ov_kategor``, TG ``eignungszone``) and
+    presence-based matching (a feature with no usable attributes still yields
+    an empty-ish dict, so the caller can tag it with ``layerName``).
+
+    Raises:
+        ValueError: on an OWS/WFS exception report, so the caller surfaces it
+            as a geoservice error rather than "no feature".
+    """
+    text = content.decode("utf-8", errors="ignore")
+
+    if "ExceptionReport" in text or "ServiceException" in text:
+        raise ValueError("WFS returned a service exception")
+
+    try:
+        root = etree.fromstring(text.encode("utf-8"))
+    except etree.XMLSyntaxError, ValueError:
+        try:
+            root = ET.fromstring(text)
+        except ET.ParseError as e:
+            raise HTTPException(500, f"Invalid WFS XML/GML: {e}")
+
+    features: list[dict] = []
+    # WFS 2.0 uses <wfs:member>; WFS 1.x uses <gml:featureMember>.
+    members = [
+        el
+        for el in root.iter()
+        if el.tag.split("}", 1)[-1] in ("member", "featureMember")
+    ]
+    for member in members:
+        # The feature element is the member's single child (e.g. <ms:Layer>).
+        children = list(member)
+        if not children:
+            continue
+        feature_el = children[0]
+        fdict: dict = {}
+        for attr in feature_el.iter():
+            tag = attr.tag.split("}", 1)[-1]
+            if tag.lower() in _WFS_SKIP_TAGS:
+                continue
+            # Only leaf text nodes carry attribute values.
+            if len(attr) == 0 and attr.text and attr.text.strip():
+                fdict[tag] = attr.text.strip()
+        features.append(fdict)
+
+    return features
+
+
 # CANTON LOOKUP (geo.admin.ch)
 async def get_canton_from_coordinates(coord_x: float, coord_y: float):
     """
@@ -126,6 +226,89 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                         "error": error_message,
                         "geoservice_unavailable": True,
                     }
+
+        # WFS GetFeature
+        #
+        # Several cantons expose a WFS that is more reliable than the legacy
+        # WMS GetFeatureInfo (and some, like ZH and BL, no longer answer
+        # GetFeatureInfo at all). We query each configured layer with a small
+        # bbox around the point and parse the returned features. Each feature is
+        # tagged with ``layerName`` = the layer's configured ``name`` so that
+        # ``process_ground_category`` can match either:
+        #   - by attribute value (``property_values`` against the attribute
+        #     named by ``property_name``, e.g. TG ``eignungszone``), or
+        #   - by mere presence (no ``property_values``; the layer-level
+        #     ``target_harmonized_value`` applies, e.g. BL Fall A).
+        elif "wfs" in info_format:
+            query_url = config["query_url"]
+            urls = []
+            for layer in config["layers"]:
+                layer_name = layer["name"]
+                # WFS feature types are namespaced (``ms:<layer>`` on MapServer).
+                # `.get` may return an explicit None (schema default), so fall
+                # back to `ms:<name>` whenever it is missing or empty.
+                type_name = layer.get("wfs_type_name") or f"ms:{layer_name}"
+                # Use a precise point INTERSECTS filter (not a bbox): a bbox
+                # matches a feature by its bounding-box envelope, which wrongly
+                # catches neighbouring or canton-wide polygons. The geometry
+                # property name varies per server (MapServer uses "geom" or
+                # "msGeometry"); it is overridable per layer.
+                geom_prop = layer.get("geometry_property") or "geom"
+                point_filter = (
+                    '<fes:Filter xmlns:fes="http://www.opengis.net/fes/2.0" '
+                    'xmlns:gml="http://www.opengis.net/gml/3.2">'
+                    "<fes:Intersects>"
+                    f"<fes:ValueReference>{geom_prop}</fes:ValueReference>"
+                    '<gml:Point srsName="urn:ogc:def:crs:EPSG::2056">'
+                    f"<gml:pos>{coord_x} {coord_y}</gml:pos>"
+                    "</gml:Point></fes:Intersects></fes:Filter>"
+                )
+                params_wfs = {
+                    "SERVICE": "WFS",
+                    "VERSION": "2.0.0",
+                    "REQUEST": "GetFeature",
+                    "TYPENAMES": type_name,
+                    "SRSNAME": "EPSG:2056",
+                    "COUNT": config.get("feature_count", 10),
+                    "FILTER": point_filter,
+                }
+                this_url = query_url
+                try:
+                    resp = await client.get(query_url, params=params_wfs)
+                    this_url = str(resp.request.url)
+                    urls.append(this_url)
+                    resp.raise_for_status()
+                except (httpx.HTTPError, httpx.StreamError) as e:
+                    error_message = f"WFS request failed: {e}"
+                    logger.error("%s — URL: %s", error_message, this_url or query_url)
+                    return {
+                        "features": [],
+                        "full_url": this_url or query_url,
+                        "error": error_message,
+                        "geoservice_unavailable": True,
+                    }
+
+                try:
+                    for feature in _parse_wfs_features(resp.content):
+                        feature["layerName"] = layer_name
+                        features.append(feature)
+                except HTTPException:
+                    raise
+                except (ValueError, TypeError) as e:
+                    error_message = f"Failed to parse WFS response: {e}"
+                    logger.error("%s — URL: %s", error_message, this_url)
+                    return {
+                        "features": [],
+                        "full_url": this_url,
+                        "error": error_message,
+                        "geoservice_unavailable": True,
+                    }
+
+            return {
+                "features": features,
+                "full_url": "\n".join(urls),
+                "error": error_message,
+            }
 
         # WMS GetFeatureInfo
         else:
@@ -288,9 +471,15 @@ def parse_wms_getfeatureinfo(content: bytes, info_format: str, config: dict):
 def process_ground_category(
     ground_features: list,
     config_layers: list,
+    default_harmonized_value: int = 4,
 ):
     """
     Reclass canton response into normalized values.
+
+    ``default_harmonized_value`` is returned when no configured layer matches.
+    It defaults to 4 (UNKNOWN). Some cantons represent a category as the
+    *absence* of a feature — e.g. BL encodes Fall A (unzulässig, 3) as a hole in
+    the ``ohne_a`` layer — and set this to that category instead.
     """
 
     layer_results = []
@@ -329,13 +518,24 @@ def process_ground_category(
                         mapped_values.append(item.get("target_harmonized_value"))
                         source_values.append(item.get("desc"))
 
-            # For some cantons, only the presence or absence of feature is used to define suitability
+            # For some cantons (ZH WFS), only the presence or absence of a
+            # feature defines suitability: the feature carries no attribute, so
+            # we match the layer by its tagged `layerName` instead of a value.
             else:
                 if layer_cfg.get("property_name") == feature.get("layerName"):
                     mapped_values.append(layer_cfg.get("target_harmonized_value"))
+                    desc = layer_cfg.get("desc")
+                    source_values.append(desc)
+                    layer_results.append(
+                        {
+                            "layer": layer_name,
+                            "property_name": property_name,
+                            "value": desc or layer_name,
+                        }
+                    )
 
         # Helping dict useful to identify issues. Only "harmonized_value" is useful for frontend application
-        if property_name_value:
+        if property_values and property_name_value:
             layer_results.append(
                 {
                     "layer": layer_name,
@@ -348,9 +548,10 @@ def process_ground_category(
     if mapped_values:
         harmonized_value = max(mapped_values)
 
-    # If no value is found, fallback value is = 4
+    # If no value is found, use the canton's configured default (4 = UNKNOWN
+    # unless the canton encodes a category as feature-absence, e.g. BL -> 3).
     if not harmonized_value:
-        harmonized_value = 4
+        harmonized_value = default_harmonized_value
 
     source_values_str = ""
     if source_values:

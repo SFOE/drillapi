@@ -15,24 +15,28 @@ ground_control_point:
   - nB
 - - 2620314.1
   - 1263004.5
-  - 1
-  - C
+  - 3
+  - Fall A (zuvor C; Gebiet ist neu Fall A)
 - - 2623369
   - 1261302
   - 3
-  - undefined
   - Fall A
 cantonal_energy_service_url: https://www.baselland.ch/politik-und-behorden/direktionen/bau-und-umweltschutzdirektion/umweltschutz-energie
 wms_url: https://geowms.bl.ch/
 query_url: https://geowms.bl.ch/
 thematic_geoportal_url: https://geoview.bl.ch/?map_x=2632500&map_y=1245475&map_zoom=2&tree_group_layers_Oberfl%C3%A4chennahe%20Erdw%C3%A4rme=erdwaerme_uebersicht_group&tree_groups=Oberfl%C3%A4chennahe%20Erdw%C3%A4rme
 legend_url: https://geowms.bl.ch/?service=WMS&request=GetLegendGraphic&version=1.3.0&layer=erdwaerme_uebersicht_ohne_a&format=image/png&sld_version=1.1.0
-info_format: application/vnd.ogc.gml
+info_format: application/wfs
 bbox_delta: 10
 style: ''
+# Fall A (unzulässig, 3) is encoded as a hole in the ohne_a layer: at a Fall A
+# location the ohne_a feature type returns no feature, so no layer matches and
+# this default applies.
+default_harmonized_value: 3
 layers:
 - name: erdwaerme_uebersicht_ohne_a
   property_name: ov_kategor
+  geometry_property: geom
   property_values:
   - name: C
     target_harmonized_value: 1
@@ -46,6 +50,3 @@ layers:
   - name: nB
     target_harmonized_value: 4
     desc: Fall nB - Gebiet wurde noch nicht bearbeitet
-  - name: undefined
-    target_harmonized_value: 3
-    desc: Fall A - Wärmenutzung durch Erdwärmesonden unzulässig
