@@ -21,6 +21,11 @@ legend_url: https://maps.fr.ch/ags/services/opendata/Admissibilite_des_sondes_ge
 info_format: arcgis/json
 bbox_delta: 10
 style: ''
+# The backend queries the ESRI feature service (query_url), but the frontend
+# overlay uses the ArcGIS WMS, whose layer name is the numeric id "0" — not the
+# service name in layers[].name below.
+wms_layers:
+- '0'
 layers:
 - name: Admissibilite_des_sondes_geothermiques__SGV_
   property_name: DA_SGV

@@ -144,6 +144,14 @@ class CantonConfig(BaseModel):
     style: str = ""
     layers: list[Layer] = Field(min_length=1)
 
+    # WMS GetMap layer names used by the frontend to draw the cantonal overlay.
+    # `layers[].name` is the *query* identifier (a WFS feature type for WFS
+    # cantons), which can differ from the WMS layer shown on the map — e.g. ZH
+    # queries per-zone WFS feature types but the WMS only exposes the single
+    # consolidated `waermenutzung-zonen` layer. Leave unset when the display
+    # layers are identical to `layers[].name`; the frontend falls back to those.
+    wms_layers: list[str] | None = None
+
     # Harmonized value returned when no layer matches. Defaults to 4 (UNKNOWN).
     # Cantons that encode a category as feature-absence (BL: Fall A -> 3) set
     # this explicitly.

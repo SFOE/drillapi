@@ -33,6 +33,12 @@ legend_url: ''
 info_format: application/wfs
 bbox_delta: 30
 style: ''
+# The WMS consolidated the per-zone layers into a single `waermenutzung-zonen`
+# layer, so the display overlay uses that plus the auflagen layer, while the
+# backend still queries the individual WFS feature types in `layers` below.
+wms_layers:
+- waermenutzung-zonen
+- erdwaermesonden-auflagen
 layers:
 - name: erdwaermesonden-auflagen
   property_name: erdwaermesonden-auflagen
