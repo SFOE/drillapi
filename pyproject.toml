@@ -1,6 +1,6 @@
 [project]
 name = "drillapi"
-version = "0.1.12"
+version = "0.2.7"
 description = "drillapi"
 authors = [{name = "SFOE", email = "geoinformation@bfe.admin.ch"}]
 readme = "README.md"
