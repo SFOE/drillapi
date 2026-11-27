@@ -254,22 +254,36 @@ async def fetch_features_for_point(coord_x: float, coord_y: float, config: dict)
                 # property name varies per server (MapServer uses "geom" or
                 # "msGeometry"); it is overridable per layer.
                 geom_prop = layer.get("geometry_property") or "geom"
+                version = config.get("wfs_version") or "2.0.0"
+                legacy = version == "1.1.0"
+                filter_ns = (
+                    "http://www.opengis.net/ogc"
+                    if legacy
+                    else "http://www.opengis.net/fes/2.0"
+                )
+                gml_ns = (
+                    "http://www.opengis.net/gml"
+                    if legacy
+                    else "http://www.opengis.net/gml/3.2"
+                )
+                reference = "PropertyName" if legacy else "ValueReference"
                 point_filter = (
-                    '<fes:Filter xmlns:fes="http://www.opengis.net/fes/2.0" '
-                    'xmlns:gml="http://www.opengis.net/gml/3.2">'
+                    f'<fes:Filter xmlns:fes="{filter_ns}" xmlns:gml="{gml_ns}">'
                     "<fes:Intersects>"
-                    f"<fes:ValueReference>{geom_prop}</fes:ValueReference>"
+                    f"<fes:{reference}>{geom_prop}</fes:{reference}>"
                     '<gml:Point srsName="urn:ogc:def:crs:EPSG::2056">'
                     f"<gml:pos>{coord_x} {coord_y}</gml:pos>"
                     "</gml:Point></fes:Intersects></fes:Filter>"
                 )
                 params_wfs = {
                     "SERVICE": "WFS",
-                    "VERSION": "2.0.0",
+                    "VERSION": version,
                     "REQUEST": "GetFeature",
-                    "TYPENAMES": type_name,
+                    "TYPENAME" if legacy else "TYPENAMES": type_name,
                     "SRSNAME": "EPSG:2056",
-                    "COUNT": config.get("feature_count", 10),
+                    "MAXFEATURES" if legacy else "COUNT": config.get(
+                        "feature_count", 10
+                    ),
                     "FILTER": point_filter,
                 }
                 this_url = query_url

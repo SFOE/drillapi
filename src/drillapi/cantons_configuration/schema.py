@@ -15,7 +15,7 @@ why each allowance exists.
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import (
     BaseModel,
@@ -136,6 +136,7 @@ class CantonConfig(BaseModel):
     thematic_geoportal_url: Url = ""
     legend_url: Url = ""
 
+    wfs_version: Literal["1.1.0", "2.0.0"] | None = None
     info_format: str
     # Pixel/CRS buffer around the clicked point for WMS GetFeatureInfo bbox.
     # All existing values are integers (10, 30); kept as int to preserve the
